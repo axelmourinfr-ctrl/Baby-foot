@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BABYFOOT COACH RPG</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #080C12;
+    --bg-card: #0E1520;
+    --bg-surface: #141D2B;
+    --bg-elevated: #1A2438;
+    --gold: #C9A84C;
+    --gold-light: #E8C46A;
+    --gold-dim: #8A6E2F;
+    --cyan: #00D4FF;
+    --cyan-dim: #00708A;
+    --red: #FF3B30;
+    --green: #00E676;
+    --text-primary: #E8EDF5;
+    --text-secondary: #7A8AA0;
+    --text-muted: #3D4D60;
+    --border: #1E2D40;
+    --border-bright: #2A3D55;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── ONBOARDING ── */
+  #onboarding {
+    position: fixed; inset: 0; z-index: 1000;
+    background: var(--bg-deep);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .ob-wrap {
+    width: 100%; max-width: 480px;
+  }
+  .ob-logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 600;
+    letter-spacing: 4px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 40px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .ob-logo::before {
+    content: '';
+    display: inline-block; width: 24px; height: 2px;
+    background: var(--gold);
+  }
+  .ob-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(42px, 10vw, 64px);
+    font-weight: 900; line-height: 0.9;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+  .ob-title span { color: var(--gold); }
+  .ob-sub {
+    color: var(--text-secondary);
+    font-size: 14px; margin-bottom: 40px;
+  }
+  .ob-step { display: none; }
+  .ob-step.active { display: block; }
+  .ob-step-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 600; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .ob-step-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 700;
+    color: var(--text-primary); margin-bottom: 24px;
+  }
+  .ob-field { margin-bottom: 16px; }
+  .ob-field label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--text-secondary); letter-spacing: 1px;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .ob-field input, .ob-field select {
+    width: 100%; background: var(--bg-surface);
+    border: 1px solid var(--border-bright);
+    color: var(--text-primary); font-family: 'Barlow', sans-serif;
+    font-size: 16px; padding: 12px 16px; border-radius: 4px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .ob-field input:focus, .ob-field select:focus {
+    border-color: var(--gold);
+  }
+  .ob-field select option { background: var(--bg-surface); }
+  .btn-primary {
+    width: 100%; padding: 14px;
+    background: var(--gold);
+    color: #000; font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; border: none; border-radius: 4px;
+    cursor: pointer; transition: background 0.2s;
+    margin-top: 8px;
+  }
+  .btn-primary:hover { background: var(--gold-light); }
+  .ob-dots {
+    display: flex; gap: 6px; margin-bottom: 32px;
+  }
+  .ob-dot {
+    width: 20px; height: 3px; background: var(--border-bright);
+    border-radius: 2px; transition: background 0.2s;
+  }
+  .ob-dot.active { background: var(--gold); }
+  .ob-avatar-picker {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin-bottom: 16px;
+  }
+  .avatar-opt {
+    aspect-ratio: 1; border-radius: 4px;
+    border: 2px solid var(--border-bright);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; cursor: pointer; background: var(--bg-surface);
+    transition: border-color 0.2s;
+  }
+  .avatar-opt.selected { border-color: var(--gold); }
+  .ob-photo-upload {
+    width: 100%; padding: 20px;
+    border: 2px dashed var(--border-bright);
+    border-radius: 4px; text-align: center;
+    cursor: pointer; background: var(--bg-surface);
+    color: var(--text-secondary); font-size: 14px;
+    transition: border-color 0.2s; position: relative;
+  }
+  .ob-photo-upload:hover { border-color: var(--gold); }
+  .ob-photo-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  #photoPreview {
+    width: 80px; height: 80px; border-radius: 50%;
+    object-fit: cover; margin: 0 auto 8px;
+    display: none; border: 2px solid var(--gold);
+  }
+
+  /* ── APP SHELL ── */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+  #app.visible { display: flex; }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 900; letter-spacing: 2px;
+    color: var(--gold); text-transform: uppercase;
+  }
+  .topbar-right {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .topbar-xp {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 11px; color: var(--gold);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .topbar-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: var(--bg-elevated);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; overflow: hidden;
+  }
+  .topbar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    display: flex; z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 10px 0; cursor: pointer;
+    color: var(--text-muted); transition: color 0.2s;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; gap: 3px;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+  .nav-item svg { width: 22px; height: 22px; }
+  .nav-item.active { color: var(--gold); }
+  .nav-item.active svg path, .nav-item.active svg rect,
+  .nav-item.active svg circle, .nav-item.active svg polygon {
+    stroke: var(--gold);
+  }
+
+  /* MAIN CONTENT */
+  .main-content {
+    flex: 1; overflow-y: auto;
+    padding: 16px 16px 80px;
+  }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── DASHBOARD ── */
+  .dash-hero {
+    background: linear-gradient(135deg, var(--bg-card) 0%, #0A1628 100%);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 20px; margin-bottom: 16px;
+    position: relative; overflow: hidden;
+  }
+  .dash-hero::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+  }
+  .dash-hero-greeting {
+    font-size: 12px; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 2px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600; margin-bottom: 4px;
+  }
+  .dash-hero-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 36px; font-weight: 900;
+    color: var(--text-primary); margin-bottom: 2px;
+  }
+  .dash-hero-rank {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; color: var(--gold); font-weight: 600;
+    letter-spacing: 1px; margin-bottom: 16px;
+  }
+  .dash-xp-bar-wrap {
+    margin-bottom: 4px;
+  }
+  .dash-xp-label {
+    display: flex; justify-content: space-between;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 10px; color: var(--text-secondary);
+    margin-bottom: 5px;
+  }
+  .dash-xp-bar {
+    height: 6px; background: var(--border);
+    border-radius: 3px; overflow: hidden;
+  }
+  .dash-xp-fill {
+    height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+    border-radius: 3px; transition: width 0.8s ease;
+  }
+  .dash-level-badge {
+    position: absolute; top: 20px; right: 20px;
+    width: 56px; height: 56px;
+    border: 2px solid var(--gold);
+    border-radius: 4px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: var(--bg-deep);
+  }
+  .dash-level-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 26px; font-weight: 900; color: var(--gold); line-height: 1;
+  }
+  .dash-level-lbl {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px; font-weight: 600; color: var(--gold-dim);
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--text-secondary);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* STAT CARDS */
+  .stat-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 16px;
+  }
+  .stat-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px;
+  }
+  .stat-card-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .stat-card-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 32px; font-weight: 900; color: var(--text-primary);
+    line-height: 1;
+  }
+  .stat-card-sub {
+    font-size: 11px; color: var(--text-muted); margin-top: 2px;
+  }
+  .stat-card.highlight { border-color: var(--gold-dim); }
+  .stat-card.highlight .stat-card-value { color: var(--gold); }
+
+  /* QUICK ACTIONS */
+  .quick-actions {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 16px;
+  }
+  .qa-btn {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 16px 14px;
+    cursor: pointer; text-align: left; transition: border-color 0.2s, background 0.2s;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .qa-btn:hover { border-color: var(--gold-dim); background: var(--bg-surface); }
+  .qa-btn-icon { font-size: 22px; }
+  .qa-btn-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px; font-weight: 700; color: var(--text-primary);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .qa-btn-sub { font-size: 11px; color: var(--text-secondary); }
+  .qa-btn.accent { border-color: var(--gold-dim); background: linear-gradient(135deg, #1A1500 0%, var(--bg-card) 100%); }
+  .qa-btn.accent .qa-btn-label { color: var(--gold); }
+
+  /* COACH CARD */
+  .coach-card {
+    background: linear-gradient(135deg, #0A1628 0%, var(--bg-card) 100%);
+    border: 1px solid var(--cyan-dim);
+    border-radius: 6px; padding: 16px; margin-bottom: 16px;
+  }
+  .coach-card-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .coach-icon {
+    width: 32px; height: 32px; border-radius: 4px;
+    background: var(--cyan-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .coach-card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--cyan);
+  }
+  .coach-msg {
+    font-size: 14px; color: var(--text-primary); line-height: 1.5;
+  }
+  .coach-msg strong { color: var(--gold); }
+
+  /* BADGES PREVIEW */
+  .badges-row {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding-bottom: 4px; margin-bottom: 16px;
+  }
+  .badge-chip {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 4px; padding: 8px 12px; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-secondary);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600; letter-spacing: 0.5px;
+  }
+  .badge-chip.unlocked {
+    border-color: var(--gold-dim); color: var(--gold);
+    background: linear-gradient(135deg, #1A1500 0%, var(--bg-card) 100%);
+  }
+  .badge-chip .badge-icon { font-size: 16px; }
+
+  /* ── TRAINING SCREEN ── */
+  .training-cats {
+    display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .cat-tab {
+    padding: 8px 16px; border-radius: 4px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--text-secondary);
+    cursor: pointer; white-space: nowrap; transition: all 0.2s;
+  }
+  .cat-tab.active {
+    background: var(--gold); color: #000; border-color: var(--gold);
+  }
+  .exercise-list { display: flex; flex-direction: column; gap: 10px; }
+  .exercise-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px;
+  }
+  .exercise-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .exercise-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700; color: var(--text-primary);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .exercise-pct {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 20px; font-weight: 600;
+    color: var(--gold);
+  }
+  .exercise-pct.low { color: var(--red); }
+  .exercise-pct.mid { color: #FF9500; }
+  .exercise-pct.good { color: var(--green); }
+  .exercise-inputs {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .ex-input-wrap label {
+    display: block; font-size: 10px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-secondary); margin-bottom: 4px;
+  }
+  .ex-input-wrap input {
+    width: 100%; background: var(--bg-surface);
+    border: 1px solid var(--border-bright);
+    color: var(--text-primary); font-family: 'Roboto Mono', monospace;
+    font-size: 20px; font-weight: 600;
+    padding: 8px 10px; border-radius: 4px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .ex-input-wrap input:focus { border-color: var(--gold); }
+  .ex-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .ex-bar-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+    transition: width 0.4s;
+  }
+  .ex-save-btn {
+    width: 100%; padding: 10px;
+    background: transparent; border: 1px solid var(--gold-dim);
+    color: var(--gold); font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; border-radius: 4px;
+    cursor: pointer; transition: all 0.2s; margin-top: 10px;
+  }
+  .ex-save-btn:hover { background: var(--gold); color: #000; }
+  .add-exercise-btn {
+    width: 100%; padding: 12px;
+    background: transparent; border: 1px dashed var(--border-bright);
+    color: var(--text-secondary); font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; border-radius: 6px;
+    cursor: pointer; transition: all 0.2s; margin-top: 4px;
+  }
+  .add-exercise-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  /* ── MATCH SCREEN ── */
+  .match-role-picker {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 20px;
+  }
+  .role-card {
+    background: var(--bg-card); border: 2px solid var(--border);
+    border-radius: 6px; padding: 20px; text-align: center;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .role-card.selected { border-color: var(--gold); background: #1A1500; }
+  .role-card-icon { font-size: 36px; margin-bottom: 8px; }
+  .role-card-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-primary);
+  }
+  .match-form { display: flex; flex-direction: column; gap: 10px; }
+  .match-stat-input {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .msi-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 600; color: var(--text-primary);
+  }
+  .msi-controls {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .msi-btn {
+    width: 32px; height: 32px; border-radius: 4px;
+    background: var(--bg-elevated); border: 1px solid var(--border-bright);
+    color: var(--text-primary); font-size: 18px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .msi-btn:hover { background: var(--gold); color: #000; border-color: var(--gold); }
+  .msi-val {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 22px; font-weight: 600; color: var(--gold);
+    min-width: 30px; text-align: center;
+  }
+  .match-submit {
+    width: 100%; padding: 16px;
+    background: var(--gold); color: #000;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px; font-weight: 900; letter-spacing: 3px;
+    text-transform: uppercase; border: none; border-radius: 6px;
+    cursor: pointer; transition: background 0.2s; margin-top: 8px;
+  }
+  .match-submit:hover { background: var(--gold-light); }
+
+  /* ── STATS SCREEN ── */
+  .stats-overview {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px; margin-bottom: 20px;
+  }
+  .stats-pill {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px 8px; text-align: center;
+  }
+  .stats-pill-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 900; color: var(--gold); line-height: 1;
+  }
+  .stats-pill-lbl {
+    font-size: 10px; color: var(--text-secondary);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .history-item {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px; margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .history-left {}
+  .history-date {
+    font-size: 11px; color: var(--text-muted);
+    font-family: 'Roboto Mono', monospace; margin-bottom: 2px;
+  }
+  .history-desc {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 600; color: var(--text-primary);
+  }
+  .history-xp {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 14px; color: var(--gold); font-weight: 600;
+  }
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--text-secondary);
+  }
+  .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; color: var(--text-muted);
+  }
+
+  /* ── PROFILE SCREEN ── */
+  .profile-hero {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 20px; margin-bottom: 16px;
+    text-align: center;
+  }
+  .profile-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 3px solid var(--gold);
+    margin: 0 auto 12px;
+    background: var(--bg-elevated);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; overflow: hidden;
+  }
+  .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 32px; font-weight: 900; color: var(--text-primary);
+  }
+  .profile-rank {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; color: var(--gold); font-weight: 600;
+    letter-spacing: 1px; margin-bottom: 16px;
+  }
+  .profile-tags {
+    display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+  }
+  .profile-tag {
+    padding: 4px 10px; border-radius: 20px;
+    border: 1px solid var(--border-bright);
+    font-size: 12px; color: var(--text-secondary);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+  }
+  .profile-section { margin-bottom: 16px; }
+  .profile-edit-btn {
+    width: 100%; padding: 12px;
+    background: transparent; border: 1px solid var(--border-bright);
+    color: var(--text-secondary); font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; border-radius: 4px;
+    cursor: pointer; transition: all 0.2s; margin-top: 8px;
+  }
+  .profile-edit-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  /* TITLES */
+  .title-grid { display: flex; flex-direction: column; gap: 8px; }
+  .title-row {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .title-row.unlocked { border-color: var(--gold-dim); }
+  .title-row.validated { border-color: var(--gold); background: #1A1500; }
+  .title-info {}
+  .title-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 700; color: var(--text-primary);
+  }
+  .title-row.unlocked .title-name { color: var(--gold); }
+  .title-req { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .title-badge {
+    font-size: 10px; font-weight: 600; letter-spacing: 1px;
+    padding: 3px 8px; border-radius: 20px;
+    font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;
+  }
+  .title-badge.locked { background: var(--border); color: var(--text-muted); }
+  .title-badge.unlocked-b { background: #1A1500; color: var(--gold); border: 1px solid var(--gold-dim); }
+  .title-badge.validated-b { background: var(--gold); color: #000; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(8,12,18,0.9);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg-card); border: 1px solid var(--border-bright);
+    border-radius: 8px; padding: 24px; width: 100%; max-width: 400px;
+  }
+  .modal-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px; font-weight: 900; color: var(--text-primary);
+    text-transform: uppercase; margin-bottom: 16px;
+  }
+  .modal-field { margin-bottom: 12px; }
+  .modal-field label {
+    display: block; font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-secondary); margin-bottom: 5px;
+  }
+  .modal-field input {
+    width: 100%; background: var(--bg-surface);
+    border: 1px solid var(--border-bright);
+    color: var(--text-primary); font-family: 'Barlow', sans-serif;
+    font-size: 15px; padding: 10px 12px; border-radius: 4px;
+    outline: none;
+  }
+  .modal-field input:focus { border-color: var(--gold); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .modal-cancel {
+    flex: 1; padding: 11px;
+    background: transparent; border: 1px solid var(--border-bright);
+    color: var(--text-secondary); font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; border-radius: 4px; cursor: pointer;
+  }
+  .modal-confirm {
+    flex: 2; padding: 11px;
+    background: var(--gold); color: #000;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; border: none; border-radius: 4px;
+    cursor: pointer;
+  }
+
+  /* XP TOAST */
+  .xp-toast {
+    position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    background: var(--gold); color: #000;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 900; letter-spacing: 2px;
+    padding: 10px 20px; border-radius: 4px;
+    opacity: 0; pointer-events: none;
+    transition: all 0.3s; z-index: 999;
+  }
+  .xp-toast.show {
+    opacity: 1; transform: translateX(-50%) translateY(0);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ══ ONBOARDING ══ -->
+<div id="onboarding">
+  <div class="ob-wrap">
+    <div class="ob-logo">Babyfoot Coach</div>
+    <div class="ob-title">LEVEL<br><span>UP</span><br>YOUR<br>GAME</div>
+    <div class="ob-sub">Entraîne-toi comme un pro. Progresse comme un joueur RPG.</div>
+
+    <div class="ob-dots">
+      <div class="ob-dot active" id="dot0"></div>
+      <div class="ob-dot" id="dot1"></div>
+      <div class="ob-dot" id="dot2"></div>
+    </div>
+
+    <!-- Step 0: Name -->
+    <div class="ob-step active" id="step0">
+      <div class="ob-step-label">Étape 1 / 3</div>
+      <div class="ob-step-title">Qui es-tu ?</div>
+      <div class="ob-field">
+        <label>Ton nom / pseudo</label>
+        <input type="text" id="ob-name" placeholder="Ex: Axel, Le Mur, ..." maxlength="30">
+      </div>
+      <div class="ob-field">
+        <label>Main dominante</label>
+        <select id="ob-hand">
+          <option value="">— Choisir —</option>
+          <option value="Droitier">Droitier</option>
+          <option value="Gaucher">Gaucher</option>
+          <option value="Ambidextre">Ambidextre</option>
+        </select>
+      </div>
+      <div class="ob-field">
+        <label>Poste préféré</label>
+        <select id="ob-pos">
+          <option value="">— Choisir —</option>
+          <option value="Défenseur">Défenseur</option>
+          <option value="Attaquant">Attaquant</option>
+          <option value="Polyvalent">Polyvalent</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="obNext(0)">Continuer →</button>
+    </div>
+
+    <!-- Step 1: Avatar -->
+    <div class="ob-step" id="step1">
+      <div class="ob-step-label">Étape 2 / 3</div>
+      <div class="ob-step-title">Ton avatar</div>
+      <div style="margin-bottom:12px;">
+        <img id="photoPreview" alt="Photo">
+        <div class="ob-photo-upload" id="photoUploadZone">
+          <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(this)">
+          📷 Ajouter une photo (optionnel)
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;text-align:center;">— ou choisir un emoji —</div>
+      <div class="ob-avatar-picker" id="avatarPicker">
+        <div class="avatar-opt selected" data-emoji="⚽" onclick="selectAvatar(this)">⚽</div>
+        <div class="avatar-opt" data-emoji="🥅" onclick="selectAvatar(this)">🥅</div>
+        <div class="avatar-opt" data-emoji="🎯" onclick="selectAvatar(this)">🎯</div>
+        <div class="avatar-opt" data-emoji="🛡️" onclick="selectAvatar(this)">🛡️</div>
+        <div class="avatar-opt" data-emoji="⚡" onclick="selectAvatar(this)">⚡</div>
+        <div class="avatar-opt" data-emoji="🔥" onclick="selectAvatar(this)">🔥</div>
+        <div class="avatar-opt" data-emoji="💪" onclick="selectAvatar(this)">💪</div>
+        <div class="avatar-opt" data-emoji="🏆" onclick="selectAvatar(this)">🏆</div>
+      </div>
+      <button class="btn-primary" onclick="obNext(1)">Continuer →</button>
+    </div>
+
+    <!-- Step 2: Tables -->
+    <div class="ob-step" id="step2">
+      <div class="ob-step-label">Étape 3 / 3</div>
+      <div class="ob-step-title">Niveau & Tables</div>
+      <div class="ob-field">
+        <label>Niveau actuel (auto-évaluation)</label>
+        <select id="ob-level">
+          <option value="Débutant">Débutant</option>
+          <option value="Intermédiaire" selected>Intermédiaire</option>
+          <option value="Confirmé">Confirmé</option>
+          <option value="Expert">Expert</option>
+          <option value="Elite">Elite</option>
+        </select>
+      </div>
+      <div class="ob-field">
+        <label>Tables pratiquées (séparées par virgule)</label>
+        <input type="text" id="ob-tables" placeholder="Ex: Bonzini, Tornado, Garlando">
+      </div>
+      <div class="ob-field">
+        <label>ELO réel (laisser vide si inconnu)</label>
+        <input type="number" id="ob-elo" placeholder="Ex: 1250">
+      </div>
+      <div class="ob-field">
+        <label>Objectif principal</label>
+        <input type="text" id="ob-goal" placeholder="Ex: Monter en division 2">
+      </div>
+      <button class="btn-primary" onclick="finishOnboarding()">🚀 Commencer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ XP TOAST ══ -->
+<div class="xp-toast" id="xpToast">+0 XP</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">BFC·RPG</div>
+    <div class="topbar-right">
+      <div class="topbar-xp">
+        <span id="tb-xp">0 XP</span>
+        <span style="color:var(--text-muted)">·</span>
+        <span id="tb-lvl" style="color:var(--gold)">NV.1</span>
+      </div>
+      <div class="topbar-avatar" id="topbarAvatar" onclick="navTo('profile')">⚽</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- DASHBOARD -->
+    <div class="screen active" id="screen-dash">
+      <div class="dash-hero">
+        <div class="dash-hero-greeting" id="dash-greeting">Bon entraînement</div>
+        <div class="dash-hero-name" id="dash-name">—</div>
+        <div class="dash-hero-rank" id="dash-rank">Apprenti</div>
+        <div class="dash-xp-bar-wrap">
+          <div class="dash-xp-label">
+            <span id="dash-xp-cur">0 XP</span>
+            <span id="dash-xp-next">100 XP</span>
+          </div>
+          <div class="dash-xp-bar">
+            <div class="dash-xp-fill" id="dash-xp-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="dash-level-badge">
+          <div class="dash-level-num" id="dash-level">1</div>
+          <div class="dash-level-lbl">Niv.</div>
+        </div>
+      </div>
+
+      <div class="section-title">Aujourd'hui</div>
+      <div class="stat-grid">
+        <div class="stat-card highlight">
+          <div class="stat-card-label">Sessions</div>
+          <div class="stat-card-value" id="stat-sessions">0</div>
+          <div class="stat-card-sub">entraînements</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Matchs</div>
+          <div class="stat-card-value" id="stat-matches">0</div>
+          <div class="stat-card-sub">joués</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Passes OK</div>
+          <div class="stat-card-value" id="stat-passes">—</div>
+          <div class="stat-card-sub">ce mois</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Buts</div>
+          <div class="stat-card-value" id="stat-goals">—</div>
+          <div class="stat-card-sub">ce mois</div>
+        </div>
+      </div>
+
+      <div class="section-title">Actions rapides</div>
+      <div class="quick-actions">
+        <div class="qa-btn accent" onclick="navTo('training')">
+          <div class="qa-btn-icon">🏃</div>
+          <div class="qa-btn-label">Entraînement</div>
+          <div class="qa-btn-sub">Logger une session</div>
+        </div>
+        <div class="qa-btn" onclick="navTo('match')">
+          <div class="qa-btn-icon">⚽</div>
+          <div class="qa-btn-label">Match</div>
+          <div class="qa-btn-sub">Encoder rapidement</div>
+        </div>
+        <div class="qa-btn" onclick="navTo('stats')">
+          <div class="qa-btn-icon">📊</div>
+          <div class="qa-btn-label">Stats</div>
+          <div class="qa-btn-sub">Voir ma progression</div>
+        </div>
+        <div class="qa-btn" onclick="navTo('profile')">
+          <div class="qa-btn-icon">🏆</div>
+          <div class="qa-btn-label">Profil</div>
+          <div class="qa-btn-sub">Titres & badges</div>
+        </div>
+      </div>
+
+      <div class="section-title">Coach IA</div>
+      <div class="coach-card">
+        <div class="coach-card-head">
+          <div class="coach-icon">🎯</div>
+          <div class="coach-card-title">Analyse du jour</div>
+        </div>
+        <div class="coach-msg" id="coach-msg">Commence ton premier entraînement pour recevoir une analyse personnalisée.</div>
+      </div>
+
+      <div class="section-title">Badges</div>
+      <div class="badges-row" id="badges-row">
+        <div class="badge-chip"><span class="badge-icon">🔒</span> Le Facteur</div>
+        <div class="badge-chip"><span class="badge-icon">🔒</span> Mur Défensif</div>
+        <div class="badge-chip"><span class="badge-icon">🔒</span> Machine à Buts</div>
+        <div class="badge-chip"><span class="badge-icon">🔒</span> Polyvalent</div>
+        <div class="badge-chip"><span class="badge-icon">🔒</span> Globe-Trotter</div>
+      </div>
+    </div>
+
+    <!-- TRAINING -->
+    <div class="screen" id="screen-training">
+      <div class="section-title" style="margin-bottom:4px">Entraînement</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Chaque session = XP. Log tes répétitions.</div>
+
+      <div class="training-cats" id="trainingCats">
+        <div class="cat-tab active" onclick="switchCat('passes',this)">Passes</div>
+        <div class="cat-tab" onclick="switchCat('attack',this)">Attaque</div>
+        <div class="cat-tab" onclick="switchCat('defense',this)">Défense</div>
+      </div>
+
+      <div id="trainingContent"></div>
+    </div>
+
+    <!-- MATCH -->
+    <div class="screen" id="screen-match">
+      <div class="section-title" style="margin-bottom:4px">Encoder un match</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Mode rapide — moins d'une minute.</div>
+
+      <div class="match-role-picker">
+        <div class="role-card selected" id="role-att" onclick="selectRole('att')">
+          <div class="role-card-icon">⚔️</div>
+          <div class="role-card-name">Attaquant</div>
+        </div>
+        <div class="role-card" id="role-def" onclick="selectRole('def')">
+          <div class="role-card-icon">🛡️</div>
+          <div class="role-card-name">Défenseur</div>
+        </div>
+      </div>
+
+      <div class="match-form" id="matchForm"></div>
+
+      <button class="match-submit" onclick="saveMatch()">Valider le match</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="screen" id="screen-stats">
+      <div class="section-title" style="margin-bottom:4px">Statistiques</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Ta progression globale.</div>
+
+      <div class="stats-overview">
+        <div class="stats-pill">
+          <div class="stats-pill-val" id="s-total-sessions">0</div>
+          <div class="stats-pill-lbl">Sessions</div>
+        </div>
+        <div class="stats-pill">
+          <div class="stats-pill-val" id="s-total-matches">0</div>
+          <div class="stats-pill-lbl">Matchs</div>
+        </div>
+        <div class="stats-pill">
+          <div class="stats-pill-val" id="s-total-xp">0</div>
+          <div class="stats-pill-lbl">XP Total</div>
+        </div>
+      </div>
+
+      <div class="section-title">Passes milieu</div>
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat-card">
+          <div class="stat-card-label">Tentatives</div>
+          <div class="stat-card-value" id="s-pass-att">0</div>
+        </div>
+        <div class="stat-card highlight">
+          <div class="stat-card-label">% Réussite</div>
+          <div class="stat-card-value" id="s-pass-pct">—</div>
+        </div>
+      </div>
+
+      <div class="section-title">Attaque</div>
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat-card">
+          <div class="stat-card-label">Tirs tentés</div>
+          <div class="stat-card-value" id="s-att-tries">0</div>
+        </div>
+        <div class="stat-card highlight">
+          <div class="stat-card-label">% Conversion</div>
+          <div class="stat-card-value" id="s-att-pct">—</div>
+        </div>
+      </div>
+
+      <div class="section-title">Historique</div>
+      <div id="historyList"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="screen-profile">
+      <div class="profile-hero">
+        <div class="profile-avatar" id="prof-avatar">⚽</div>
+        <div class="profile-name" id="prof-name">—</div>
+        <div class="profile-rank" id="prof-rank">Apprenti</div>
+        <div class="profile-tags" id="prof-tags"></div>
+      </div>
+
+      <div class="section-title">Titres Défense</div>
+      <div class="title-grid" id="titles-def"></div>
+
+      <div class="section-title" style="margin-top:16px;">Titres Attaque</div>
+      <div class="title-grid" id="titles-att"></div>
+
+      <div class="section-title" style="margin-top:16px;">Titres Multi-table</div>
+      <div class="title-grid" id="titles-multi"></div>
+
+      <button class="profile-edit-btn" onclick="openEditProfile()">✏️ Modifier le profil</button>
+    </div>
+
+  </div><!-- /main-content -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-dash" onclick="navTo('dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Accueil
+    </div>
+    <div class="nav-item" id="nav-training" onclick="navTo('training')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2v20M2 12h20M7 7l10 10M17 7L7 17"/>
+      </svg>
+      Training
+    </div>
+    <div class="nav-item" id="nav-match" onclick="navTo('match')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 8v4l3 3"/>
+      </svg>
+      Match
+    </div>
+    <div class="nav-item" id="nav-stats" onclick="navTo('stats')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 20h18M5 20V10l7-7 7 7v10"/>
+        <path d="M9 20v-5h6v5"/>
+      </svg>
+      Stats
+    </div>
+    <div class="nav-item" id="nav-profile" onclick="navTo('profile')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+      Profil
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- MODAL: Edit Profile -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">Modifier le profil</div>
+    <div class="modal-field"><label>Nom / Pseudo</label><input type="text" id="edit-name" maxlength="30"></div>
+    <div class="modal-field"><label>Main dominante</label>
+      <input type="text" id="edit-hand" placeholder="Droitier, Gaucher...">
+    </div>
+    <div class="modal-field"><label>Poste préféré</label>
+      <input type="text" id="edit-pos" placeholder="Défenseur, Attaquant...">
+    </div>
+    <div class="modal-field"><label>Tables pratiquées</label><input type="text" id="edit-tables"></div>
+    <div class="modal-field"><label>ELO réel</label><input type="number" id="edit-elo"></div>
+    <div class="modal-field"><label>Objectif</label><input type="text" id="edit-goal"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal('editModal')">Annuler</button>
+      <button class="modal-confirm" onclick="saveProfile()">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Exercise -->
+<div class="modal-overlay" id="addExModal">
+  <div class="modal">
+    <div class="modal-title">Ajouter un exercice</div>
+    <div class="modal-field"><label>Nom de l'exercice</label><input type="text" id="newExName" placeholder="Ex: Tir coupé gauche..."></div>
+    <div class="modal-field">
+      <label>Unité mesurée</label>
+      <select id="newExType" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:15px;padding:10px 12px;border-radius:4px;outline:none;">
+        <option value="passes">Passes (tentatives / réussites)</option>
+        <option value="goals">Buts (tentatives / buts)</option>
+        <option value="saves">Arrêts (tentatives / réussites)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal('addExModal')">Annuler</button>
+      <button class="modal-confirm" onclick="confirmAddExercise()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// STORAGE LAYER (abstracted for future migration)
+// ══════════════════════════════════════════
+const DB = {
+  get: (k) => { try { return JSON.parse(localStorage.getItem('bfc_'+k)); } catch(e) { return null; } },
+  set: (k,v) => localStorage.setItem('bfc_'+k, JSON.stringify(v)),
+  push: (k,v) => { const a = DB.get(k)||[]; a.push(v); DB.set(k,a); return a; }
+};
+
+// ══════════════════════════════════════════
+// DEFAULT DATA
+// ══════════════════════════════════════════
+const DEFAULT_EXERCISES = {
+  passes: [
+    { id:'p1', name:'Bande', type:'passes' },
+    { id:'p2', name:'Croisée', type:'passes' },
+    { id:'p3', name:'Droite', type:'passes' },
+  ],
+  attack: [
+    { id:'a1', name:'Tirer courte', type:'goals' },
+    { id:'a2', name:'Tirer longue', type:'goals' },
+    { id:'a3', name:'Tirer croisée courte', type:'goals' },
+    { id:'a4', name:'Tirer croisée longue', type:'goals' },
+    { id:'a5', name:'Tirer décroisée', type:'goals' },
+    { id:'a6', name:'Pousser courte', type:'goals' },
+    { id:'a7', name:'Pousser longue', type:'goals' },
+    { id:'a8', name:'Fixe', type:'goals' },
+    { id:'a9', name:'Aller-retour tirer', type:'goals' },
+  ],
+  defense: [
+    { id:'d1', name:'Relance bande', type:'saves' },
+    { id:'d2', name:'Relance centre', type:'saves' },
+    { id:'d3', name:'Relance directe', type:'saves' },
+  ]
+};
+
+const RPG = {
+  ranks: [
+    { name:'Apprenti Gardien', xp:0 },
+    { name:'Gardien', xp:200 },
+    { name:'Rempart', xp:500 },
+    { name:'Muraille', xp:1000 },
+    { name:'Forteresse', xp:2000 },
+    { name:'Bastion', xp:4000 },
+    { name:'Légende Défensive', xp:8000 },
+  ],
+  titlesDefense: ['Apprenti Gardien','Gardien','Rempart','Muraille','Forteresse','Bastion','Légende Défensive'],
+  titlesAttack: ['Buteur','Finisseur','Chasseur','Tireur d\'Élite','Bourreau','Machine à Buts','Légende Offensive'],
+  titlesMulti: ['Voyageur','Aventurier','Polyvalent','Maître Multi-table','Ambassadeur International'],
+  defenseReqs: [0, 100, 300, 700, 1500, 3000, 6000],
+  attackReqs: [0, 100, 300, 700, 1500, 3000, 6000],
+  multiReqs: [0, 2, 5, 10, 20],
+  levelXP: (lvl) => 100 * lvl * lvl,
+  getLevel: (xp) => {
+    let lvl = 1;
+    while (RPG.levelXP(lvl) <= xp) lvl++;
+    return lvl - 1;
+  }
+};
+
+// ══════════════════════════════════════════
+// ONBOARDING
+// ══════════════════════════════════════════
+let obAvatar = '⚽';
+let obPhotoData = null;
+let currentStep = 0;
+
+function selectAvatar(el) {
+  document.querySelectorAll('.avatar-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  obAvatar = el.dataset.emoji;
+  obPhotoData = null;
+}
+
+function handlePhoto(inp) {
+  const file = inp.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    obPhotoData = e.target.result;
+    const prev = document.getElementById('photoPreview');
+    prev.src = obPhotoData;
+    prev.style.display = 'block';
+    document.getElementById('photoUploadZone').querySelector('div') && null;
+  };
+  reader.readAsDataURL(file);
+}
+
+function obNext(step) {
+  if (step === 0) {
+    const name = document.getElementById('ob-name').value.trim();
+    if (!name) { alert('Entre ton nom ou pseudo !'); return; }
+  }
+  document.getElementById('step'+step).classList.remove('active');
+  document.getElementById('dot'+step).classList.remove('active');
+  const next = step + 1;
+  document.getElementById('step'+next).classList.add('active');
+  document.getElementById('dot'+next).classList.add('active');
+  currentStep = next;
+}
+
+function finishOnboarding() {
+  const profile = {
+    name: document.getElementById('ob-name').value.trim(),
+    hand: document.getElementById('ob-hand').value,
+    pos: document.getElementById('ob-pos').value,
+    level: document.getElementById('ob-level').value,
+    tables: document.getElementById('ob-tables').value,
+    elo: document.getElementById('ob-elo').value,
+    goal: document.getElementById('ob-goal').value,
+    avatar: obAvatar,
+    photo: obPhotoData,
+    createdAt: Date.now()
+  };
+  DB.set('profile', profile);
+  if (!DB.get('xp')) DB.set('xp', 0);
+  if (!DB.get('exercises')) DB.set('exercises', DEFAULT_EXERCISES);
+  if (!DB.get('history')) DB.set('history', []);
+  if (!DB.get('matchStats')) DB.set('matchStats', { att:{passTried:0,passOk:0,shotTried:0,goals:0,recovered:0}, def:{saves:0,passTried:0,passOk:0,lostRelance:0,goalsConceded:0} });
+  if (!DB.get('trainStats')) DB.set('trainStats', {});
+
+  document.getElementById('onboarding').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  initApp();
+}
+
+// ══════════════════════════════════════════
+// APP INIT
+// ══════════════════════════════════════════
+function initApp() {
+  const profile = DB.get('profile');
+  if (!profile) { document.getElementById('onboarding').style.display='flex'; return; }
+
+  document.getElementById('onboarding').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+
+  renderTopbar();
+  renderDashboard();
+  renderTraining('passes');
+  renderMatch('att');
+  renderStats();
+  renderProfile();
+  checkBadges();
+  updateCoach();
+}
+
+function renderTopbar() {
+  const xp = DB.get('xp') || 0;
+  const lvl = RPG.getLevel(xp);
+  document.getElementById('tb-xp').textContent = xp + ' XP';
+  document.getElementById('tb-lvl').textContent = 'NV.' + lvl;
+
+  const profile = DB.get('profile');
+  const av = document.getElementById('topbarAvatar');
+  if (profile.photo) {
+    av.innerHTML = `<img src="${profile.photo}" alt="">`;
+  } else {
+    av.textContent = profile.avatar || '⚽';
+  }
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+function renderDashboard() {
+  const profile = DB.get('profile');
+  const xp = DB.get('xp') || 0;
+  const lvl = RPG.getLevel(xp);
+  const rank = getRank(xp);
+  const history = DB.get('history') || [];
+
+  const h = new Date().getHours();
+  let greeting = h < 12 ? 'Bon matin' : h < 18 ? 'Bon après-midi' : 'Bonne soirée';
+
+  document.getElementById('dash-greeting').textContent = greeting;
+  document.getElementById('dash-name').textContent = profile.name;
+  document.getElementById('dash-rank').textContent = rank.name;
+  document.getElementById('dash-level').textContent = lvl;
+
+  const curLvlXP = RPG.levelXP(lvl);
+  const nextLvlXP = RPG.levelXP(lvl + 1);
+  const pct = Math.min(100, Math.round(((xp - curLvlXP) / (nextLvlXP - curLvlXP)) * 100));
+  document.getElementById('dash-xp-cur').textContent = xp + ' XP';
+  document.getElementById('dash-xp-next').textContent = nextLvlXP + ' XP';
+  document.getElementById('dash-xp-fill').style.width = pct + '%';
+
+  // Today's stats
+  const today = new Date().toDateString();
+  const todaySessions = history.filter(h => new Date(h.ts).toDateString() === today && h.type === 'training').length;
+  const todayMatches = history.filter(h => new Date(h.ts).toDateString() === today && h.type === 'match').length;
+  document.getElementById('stat-sessions').textContent = todaySessions;
+  document.getElementById('stat-matches').textContent = todayMatches;
+
+  const trainStats = DB.get('trainStats') || {};
+  let totalPassOk = 0, totalPassTried = 0, totalGoals = 0, totalShotTried = 0;
+  Object.values(trainStats).forEach(ex => {
+    if (ex.type === 'passes') { totalPassOk += ex.ok||0; totalPassTried += ex.tried||0; }
+    if (ex.type === 'goals') { totalGoals += ex.ok||0; totalShotTried += ex.tried||0; }
+  });
+  document.getElementById('stat-passes').textContent = totalPassTried > 0 ? Math.round(totalPassOk/totalPassTried*100)+'%' : '—';
+  document.getElementById('stat-goals').textContent = totalGoals || '—';
+}
+
+function getRank(xp) {
+  let rank = RPG.ranks[0];
+  for (const r of RPG.ranks) { if (xp >= r.xp) rank = r; }
+  return rank;
+}
+
+// ══════════════════════════════════════════
+// TRAINING
+// ══════════════════════════════════════════
+let currentCat = 'passes';
+let pendingExCat = 'passes';
+
+function switchCat(cat, el) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentCat = cat;
+  renderTraining(cat);
+}
+
+function renderTraining(cat) {
+  const exercises = DB.get('exercises') || DEFAULT_EXERCISES;
+  const list = exercises[cat] || [];
+  const trainStats = DB.get('trainStats') || {};
+
+  const labels = { passes: ['Tentatives','Réussites'], goals: ['Tentatives','Buts'], saves: ['Tentatives','Arrêts'] };
+
+  let html = '<div class="exercise-list">';
+  list.forEach(ex => {
+    const stats = trainStats[ex.id] || { tried:0, ok:0 };
+    const pct = stats.tried > 0 ? Math.round(stats.ok / stats.tried * 100) : null;
+    const pctClass = pct === null ? '' : pct >= 70 ? 'good' : pct >= 40 ? 'mid' : 'low';
+    const pctStr = pct === null ? '—' : pct + '%';
+    const [l1, l2] = labels[ex.type] || ['Tentatives','Réussites'];
+    html += `
+    <div class="exercise-card">
+      <div class="exercise-header">
+        <div class="exercise-name">${ex.name}</div>
+        <div class="exercise-pct ${pctClass}" id="pct-${ex.id}">${pctStr}</div>
+      </div>
+      <div class="exercise-inputs">
+        <div class="ex-input-wrap">
+          <label>${l1}</label>
+          <input type="number" id="tried-${ex.id}" value="${stats.tried||''}" placeholder="0" min="0" oninput="updatePct('${ex.id}','${ex.type}')">
+        </div>
+        <div class="ex-input-wrap">
+          <label>${l2}</label>
+          <input type="number" id="ok-${ex.id}" value="${stats.ok||''}" placeholder="0" min="0" oninput="updatePct('${ex.id}','${ex.type}')">
+        </div>
+      </div>
+      <div class="ex-bar"><div class="ex-bar-fill" id="bar-${ex.id}" style="width:${pct||0}%"></div></div>
+      <button class="ex-save-btn" onclick="saveExercise('${ex.id}','${ex.type}')">Enregistrer +XP</button>
+    </div>`;
+  });
+  html += '</div>';
+  html += `<button class="add-exercise-btn" onclick="openAddExercise('${cat}')">+ Ajouter un exercice</button>`;
+  document.getElementById('trainingContent').innerHTML = html;
+}
+
+function updatePct(id, type) {
+  const tried = parseInt(document.getElementById('tried-'+id)?.value) || 0;
+  const ok = parseInt(document.getElementById('ok-'+id)?.value) || 0;
+  const pct = tried > 0 ? Math.round(ok/tried*100) : null;
+  const pctEl = document.getElementById('pct-'+id);
+  const barEl = document.getElementById('bar-'+id);
+  if (pctEl) {
+    pctEl.textContent = pct === null ? '—' : pct + '%';
+    pctEl.className = 'exercise-pct' + (pct === null ? '' : pct >= 70 ? ' good' : pct >= 40 ? ' mid' : ' low');
+  }
+  if (barEl) barEl.style.width = (pct||0) + '%';
+}
+
+function saveExercise(id, type) {
+  const tried = parseInt(document.getElementById('tried-'+id)?.value) || 0;
+  const ok = parseInt(document.getElementById('ok-'+id)?.value) || 0;
+  if (tried === 0) return;
+
+  const trainStats = DB.get('trainStats') || {};
+  const prev = trainStats[id] || { tried:0, ok:0, type };
+  trainStats[id] = { tried: prev.tried + tried, ok: prev.ok + ok, type };
+  DB.set('trainStats', trainStats);
+
+  // Clear inputs
+  document.getElementById('tried-'+id).value = '';
+  document.getElementById('ok-'+id).value = '';
+
+  // XP
+  const xpGain = Math.max(5, Math.round(tried * 0.5) + (ok >= tried * 0.7 ? 10 : 0));
+  addXP(xpGain, `Entraînement · ${tried} rép.`);
+
+  DB.push('history', { type:'training', ts:Date.now(), exerciseId:id, tried, ok, xp:xpGain });
+  renderDashboard();
+  checkBadges();
+  updateCoach();
+}
+
+function openAddExercise(cat) {
+  pendingExCat = cat;
+  document.getElementById('newExName').value = '';
+  document.getElementById('addExModal').classList.add('open');
+}
+
+function confirmAddExercise() {
+  const name = document.getElementById('newExName').value.trim();
+  const type = document.getElementById('newExType').value;
+  if (!name) return;
+
+  const exercises = DB.get('exercises') || DEFAULT_EXERCISES;
+  const id = 'custom_' + Date.now();
+  exercises[pendingExCat] = exercises[pendingExCat] || [];
+  exercises[pendingExCat].push({ id, name, type });
+  DB.set('exercises', exercises);
+  closeModal('addExModal');
+  renderTraining(pendingExCat);
+}
+
+// ══════════════════════════════════════════
+// MATCH
+// ══════════════════════════════════════════
+let matchRole = 'att';
+let matchCounts = {};
+
+const matchFields = {
+  att: [
+    { key:'passTried', label:'Passes tentées' },
+    { key:'passOk', label:'Passes réussies' },
+    { key:'shotTried', label:'Tirs tentés' },
+    { key:'goals', label:'Buts marqués' },
+    { key:'recovered', label:'Balles récupérées' },
+  ],
+  def: [
+    { key:'saves', label:'Arrêts' },
+    { key:'passTried', label:'Passes tentées' },
+    { key:'passOk', label:'Passes réussies' },
+    { key:'lostRelance', label:'Relances perdues' },
+    { key:'goalsConceded', label:'Buts encaissés' },
+  ]
+};
+
+function selectRole(role) {
+  matchRole = role;
+  document.getElementById('role-att').classList.toggle('selected', role==='att');
+  document.getElementById('role-def').classList.toggle('selected', role==='def');
+  renderMatch(role);
+}
+
+function renderMatch(role) {
+  matchCounts = {};
+  matchFields[role].forEach(f => matchCounts[f.key] = 0);
+  let html = '';
+  matchFields[role].forEach(f => {
+    html += `
+    <div class="match-stat-input">
+      <div class="msi-label">${f.label}</div>
+      <div class="msi-controls">
+        <button class="msi-btn" onclick="matchAdj('${f.key}',-1)">−</button>
+        <div class="msi-val" id="msi-${f.key}">0</div>
+        <button class="msi-btn" onclick="matchAdj('${f.key}',1)">+</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('matchForm').innerHTML = html;
+}
+
+function matchAdj(key, delta) {
+  matchCounts[key] = Math.max(0, (matchCounts[key]||0) + delta);
+  document.getElementById('msi-'+key).textContent = matchCounts[key];
+}
+
+function saveMatch() {
+  const xpGain = 30 + (matchRole==='att' ? (matchCounts.goals||0)*5 : (matchCounts.saves||0)*3);
+  addXP(xpGain, 'Match · ' + (matchRole==='att' ? 'Attaquant' : 'Défenseur'));
+
+  const ms = DB.get('matchStats') || { att:{}, def:{} };
+  Object.entries(matchCounts).forEach(([k,v]) => {
+    ms[matchRole][k] = (ms[matchRole][k]||0) + v;
+  });
+  DB.set('matchStats', ms);
+  DB.push('history', { type:'match', ts:Date.now(), role:matchRole, counts:{...matchCounts}, xp:xpGain });
+
+  // Reset
+  renderMatch(matchRole);
+  renderDashboard();
+  renderStats();
+  checkBadges();
+  updateCoach();
+  navTo('dash');
+}
+
+// ══════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════
+function renderStats() {
+  const history = DB.get('history') || [];
+  const xp = DB.get('xp') || 0;
+  const trainStats = DB.get('trainStats') || {};
+
+  document.getElementById('s-total-sessions').textContent = history.filter(h=>h.type==='training').length;
+  document.getElementById('s-total-matches').textContent = history.filter(h=>h.type==='match').length;
+  document.getElementById('s-total-xp').textContent = xp;
+
+  let totalPassOk=0, totalPassTried=0, totalGoals=0, totalShotTried=0;
+  Object.values(trainStats).forEach(ex => {
+    if (ex.type==='passes') { totalPassOk+=ex.ok||0; totalPassTried+=ex.tried||0; }
+    if (ex.type==='goals') { totalGoals+=ex.ok||0; totalShotTried+=ex.tried||0; }
+  });
+  document.getElementById('s-pass-att').textContent = totalPassTried;
+  document.getElementById('s-pass-pct').textContent = totalPassTried>0 ? Math.round(totalPassOk/totalPassTried*100)+'%' : '—';
+  document.getElementById('s-att-tries').textContent = totalShotTried;
+  document.getElementById('s-att-pct').textContent = totalShotTried>0 ? Math.round(totalGoals/totalShotTried*100)+'%' : '—';
+
+  // History list
+  const sorted = [...history].sort((a,b) => b.ts-a.ts).slice(0, 20);
+  if (sorted.length === 0) {
+    document.getElementById('historyList').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-state-icon">📋</div>
+      <div class="empty-state-text">Aucune activité pour l'instant</div>
+    </div>`;
+    return;
+  }
+  let html = '';
+  sorted.forEach(h => {
+    const d = new Date(h.ts);
+    const ds = d.toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
+    const desc = h.type==='match' ? `Match · ${h.role==='att'?'Attaquant':'Défenseur'}` : `Entraînement · ${h.tried||0} rép.`;
+    html += `<div class="history-item"><div class="history-left"><div class="history-date">${ds}</div><div class="history-desc">${desc}</div></div><div class="history-xp">+${h.xp} XP</div></div>`;
+  });
+  document.getElementById('historyList').innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════
+function renderProfile() {
+  const profile = DB.get('profile');
+  const xp = DB.get('xp') || 0;
+  const rank = getRank(xp);
+  const trainStats = DB.get('trainStats') || {};
+  const matchStats = DB.get('matchStats') || { att:{}, def:{} };
+
+  const av = document.getElementById('prof-avatar');
+  if (profile.photo) av.innerHTML = `<img src="${profile.photo}" alt="">`;
+  else av.textContent = profile.avatar || '⚽';
+
+  document.getElementById('prof-name').textContent = profile.name;
+  document.getElementById('prof-rank').textContent = rank.name;
+
+  const tags = [];
+  if (profile.pos) tags.push(profile.pos);
+  if (profile.hand) tags.push(profile.hand);
+  if (profile.level) tags.push(profile.level);
+  if (profile.elo) tags.push('ELO ' + profile.elo);
+  document.getElementById('prof-tags').innerHTML = tags.map(t => `<div class="profile-tag">${t}</div>`).join('');
+
+  // Compute totals for titles
+  let totalArrêts = (matchStats.def.saves||0);
+  let totalButs = (matchStats.att.goals||0);
+  Object.values(trainStats).forEach(ex => {
+    if (ex.type==='saves') totalArrêts += ex.ok||0;
+    if (ex.type==='goals') totalButs += ex.ok||0;
+  });
+
+  // Defense titles
+  let defLevel = 0;
+  RPG.defenseReqs.forEach((req, i) => { if (totalArrêts >= req) defLevel = i; });
+  renderTitles('titles-def', RPG.titlesDefense, defLevel, RPG.defenseReqs, totalArrêts, 'arrêts');
+
+  // Attack titles
+  let attLevel = 0;
+  RPG.attackReqs.forEach((req, i) => { if (totalButs >= req) attLevel = i; });
+  renderTitles('titles-att', RPG.titlesAttack, attLevel, RPG.attackReqs, totalButs, 'buts');
+
+  // Multi titles
+  const history = DB.get('history') || [];
+  const matchCount = history.filter(h=>h.type==='match').length;
+  let multiLevel = 0;
+  RPG.multiReqs.forEach((req, i) => { if (matchCount >= req) multiLevel = i; });
+  renderTitles('titles-multi', RPG.titlesMulti, multiLevel, RPG.multiReqs, matchCount, 'matchs');
+}
+
+function renderTitles(containerId, titles, currentLevel, reqs, value, unit) {
+  let html = '';
+  titles.forEach((title, i) => {
+    const unlocked = i <= currentLevel;
+    const validated = false; // Phase 2: real validation
+    html += `
+    <div class="title-row ${unlocked?'unlocked':''} ${validated?'validated':''}">
+      <div class="title-info">
+        <div class="title-name">${unlocked?'🏆 ':''} ${title}</div>
+        <div class="title-req">${reqs[i]} ${unit} requis · Actuel: ${value}</div>
+      </div>
+      <span class="title-badge ${unlocked?'unlocked-b':'locked'}">${unlocked?'Débloqué':'Verrouillé'}</span>
+    </div>`;
+  });
+  document.getElementById(containerId).innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+// XP SYSTEM
+// ══════════════════════════════════════════
+function addXP(amount, label) {
+  const prev = DB.get('xp') || 0;
+  const newXP = prev + amount;
+  DB.set('xp', newXP);
+
+  // Toast
+  const toast = document.getElementById('xpToast');
+  toast.textContent = '+' + amount + ' XP — ' + label;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+
+  renderTopbar();
+}
+
+// ══════════════════════════════════════════
+// BADGES
+// ══════════════════════════════════════════
+const BADGES = [
+  { id:'facteur', label:'Le Facteur', icon:'📬', check: (ts, ms) => {
+    let total = 0;
+    Object.values(ts).forEach(ex => { if(ex.type==='passes') total += ex.ok||0; });
+    return total >= 1000;
+  }},
+  { id:'mur', label:'Mur Défensif', icon:'🧱', check: (ts, ms) => {
+    let total = (ms?.def?.saves||0);
+    Object.values(ts).forEach(ex => { if(ex.type==='saves') total += ex.ok||0; });
+    return total >= 1000;
+  }},
+  { id:'machine', label:'Machine à Buts', icon:'🔥', check: (ts, ms) => {
+    let total = (ms?.att?.goals||0);
+    Object.values(ts).forEach(ex => { if(ex.type==='goals') total += ex.ok||0; });
+    return total >= 1000;
+  }},
+  { id:'polyvalent', label:'Polyvalent', icon:'⚡', check: (ts, ms, hist) => {
+    const a = hist.filter(h=>h.type==='match'&&h.role==='att').length;
+    const d = hist.filter(h=>h.type==='match'&&h.role==='def').length;
+    return a >= 100 && d >= 100;
+  }},
+  { id:'globe', label:'Globe-Trotter', icon:'🌍', check: (ts, ms, hist) => {
+    const tables = (DB.get('profile')?.tables||'').split(',').filter(Boolean);
+    return tables.length >= 2 && hist.filter(h=>h.type==='match').length >= 10;
+  }},
+];
+
+function checkBadges() {
+  const ts = DB.get('trainStats') || {};
+  const ms = DB.get('matchStats') || { att:{}, def:{} };
+  const hist = DB.get('history') || [];
+  const unlocked = DB.get('badges') || {};
+
+  BADGES.forEach(b => {
+    if (!unlocked[b.id] && b.check(ts, ms, hist)) {
+      unlocked[b.id] = true;
+      DB.set('badges', unlocked);
+      showToast('🏅 Badge débloqué : ' + b.label, true);
+    }
+  });
+
+  renderBadges(unlocked);
+}
+
+function renderBadges(unlocked) {
+  const row = document.getElementById('badges-row');
+  if (!row) return;
+  row.innerHTML = BADGES.map(b => `
+    <div class="badge-chip ${unlocked[b.id]?'unlocked':''}">
+      <span class="badge-icon">${unlocked[b.id]?b.icon:'🔒'}</span>
+      ${b.label}
+    </div>
+  `).join('');
+}
+
+function showToast(msg, isBadge=false) {
+  const toast = document.getElementById('xpToast');
+  toast.textContent = msg;
+  if (isBadge) toast.style.background = '#00E676'; else toast.style.background = '';
+  toast.classList.add('show');
+  setTimeout(() => { toast.classList.remove('show'); toast.style.background=''; }, 3000);
+}
+
+// ══════════════════════════════════════════
+// COACH
+// ══════════════════════════════════════════
+function updateCoach() {
+  const ts = DB.get('trainStats') || {};
+  const hist = DB.get('history') || [];
+  const msgs = [];
+
+  // Analyse passes
+  let passOk=0, passTried=0;
+  Object.entries(ts).forEach(([id, ex]) => {
+    if (ex.type==='passes') { passOk+=ex.ok||0; passTried+=ex.tried||0; }
+  });
+  if (passTried > 20) {
+    const pct = Math.round(passOk/passTried*100);
+    if (pct < 50) msgs.push(`Tes passes milieu sont à <strong>${pct}%</strong> — c'est ton point faible prioritaire. Recommandation : <strong>100 passes croisées aujourd'hui.</strong>`);
+    else if (pct >= 80) msgs.push(`Excellent ! Tes passes atteignent <strong>${pct}%</strong>. Maintiens ce niveau et attaque les exercices d'attaque.`);
+    else msgs.push(`Tes passes sont à <strong>${pct}%</strong>. Progresse — l'objectif est 70%+.`);
+  }
+
+  // Sessions récentes
+  const last7 = hist.filter(h => Date.now()-h.ts < 7*24*3600*1000 && h.type==='training').length;
+  if (last7 === 0 && hist.length > 0) msgs.push(`Aucun entraînement cette semaine. <strong>Reprends dès aujourd'hui</strong> pour maintenir ta progression !`);
+  else if (last7 >= 5) msgs.push(`<strong>${last7} sessions</strong> cette semaine — tu es en feu ! Continue.`);
+
+  if (msgs.length === 0) {
+    msgs.push('Commence ton premier entraînement pour recevoir une analyse personnalisée.');
+  }
+
+  document.getElementById('coach-msg').innerHTML = msgs[0];
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function navTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  document.getElementById('screen-'+screen).classList.add('active');
+  const nav = document.getElementById('nav-'+screen);
+  if (nav) nav.classList.add('active');
+
+  if (screen === 'stats') renderStats();
+  if (screen === 'profile') renderProfile();
+  if (screen === 'dash') renderDashboard();
+}
+
+// ══════════════════════════════════════════
+// PROFILE EDIT
+// ══════════════════════════════════════════
+function openEditProfile() {
+  const p = DB.get('profile');
+  document.getElementById('edit-name').value = p.name || '';
+  document.getElementById('edit-hand').value = p.hand || '';
+  document.getElementById('edit-pos').value = p.pos || '';
+  document.getElementById('edit-tables').value = p.tables || '';
+  document.getElementById('edit-elo').value = p.elo || '';
+  document.getElementById('edit-goal').value = p.goal || '';
+  document.getElementById('editModal').classList.add('open');
+}
+
+function saveProfile() {
+  const p = DB.get('profile');
+  p.name = document.getElementById('edit-name').value.trim() || p.name;
+  p.hand = document.getElementById('edit-hand').value;
+  p.pos = document.getElementById('edit-pos').value;
+  p.tables = document.getElementById('edit-tables').value;
+  p.elo = document.getElementById('edit-elo').value;
+  p.goal = document.getElementById('edit-goal').value;
+  DB.set('profile', p);
+  closeModal('editModal');
+  renderProfile();
+  renderDashboard();
+  renderTopbar();
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ══════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  const profile = DB.get('profile');
+  if (profile) {
+    document.getElementById('onboarding').style.display = 'none';
+    initApp();
+  }
+});
+</script>
+</body>
+</html>
