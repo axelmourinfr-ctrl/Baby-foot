@@ -39,11 +39,13 @@
   #onboarding {
     position: fixed; inset: 0; z-index: 1000;
     background: var(--bg-deep);
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 40px 20px 60px;
   }
   .ob-wrap {
     width: 100%; max-width: 480px;
+    margin: 0 auto;
   }
   .ob-logo {
     font-family: 'Barlow Condensed', sans-serif;
@@ -207,7 +209,7 @@
   /* MAIN CONTENT */
   .main-content {
     flex: 1; overflow-y: auto;
-    padding: 16px 16px 80px;
+    padding: 16px 16px calc(80px + env(safe-area-inset-bottom)); -webkit-overflow-scrolling: touch;
   }
 
   /* SCREENS */
@@ -692,6 +694,78 @@
     opacity: 1; transform: translateX(-50%) translateY(0);
   }
 
+
+  /* ── OBJECTIVES ── */
+  .obj-tabs { display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; padding-bottom:4px; }
+  .obj-tab {
+    padding:7px 14px; border-radius:4px;
+    background:var(--bg-card); border:1px solid var(--border);
+    font-family:'Barlow Condensed',sans-serif; font-size:13px;
+    font-weight:700; letter-spacing:1px; text-transform:uppercase;
+    color:var(--text-secondary); cursor:pointer; white-space:nowrap;
+    transition:all 0.2s;
+  }
+  .obj-tab.active { background:var(--gold); color:#000; border-color:var(--gold); }
+  .obj-item {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:6px; padding:14px; margin-bottom:8px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .obj-item.done { border-color:var(--green); opacity:0.7; }
+  .obj-check {
+    width:28px; height:28px; border-radius:50%;
+    border:2px solid var(--border-bright);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; flex-shrink:0; transition:all 0.2s;
+    font-size:14px;
+  }
+  .obj-item.done .obj-check { background:var(--green); border-color:var(--green); }
+  .obj-info { flex:1; }
+  .obj-title {
+    font-family:'Barlow Condensed',sans-serif; font-size:16px;
+    font-weight:700; color:var(--text-primary); margin-bottom:2px;
+  }
+  .obj-item.done .obj-title { text-decoration:line-through; color:var(--text-muted); }
+  .obj-meta { font-size:11px; color:var(--text-secondary); }
+  .obj-xp {
+    font-family:'Roboto Mono',monospace; font-size:13px;
+    color:var(--gold); font-weight:600; flex-shrink:0;
+  }
+  .add-obj-btn {
+    width:100%; padding:12px;
+    background:transparent; border:1px dashed var(--border-bright);
+    color:var(--text-secondary); font-family:'Barlow Condensed',sans-serif;
+    font-size:14px; font-weight:700; letter-spacing:2px;
+    text-transform:uppercase; border-radius:6px;
+    cursor:pointer; transition:all 0.2s; margin-top:4px;
+  }
+  .add-obj-btn:hover { border-color:var(--gold-dim); color:var(--gold); }
+
+  /* ── CHART ── */
+  .chart-wrap {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:6px; padding:16px; margin-bottom:16px;
+  }
+  .chart-title {
+    font-family:'Barlow Condensed',sans-serif; font-size:13px;
+    font-weight:700; letter-spacing:2px; text-transform:uppercase;
+    color:var(--text-secondary); margin-bottom:12px;
+  }
+  canvas { display:block; }
+
+  /* Modal select fix */
+  .modal-field select {
+    width:100%; background:var(--bg-surface);
+    border:1px solid var(--border-bright);
+    color:var(--text-primary); font-family:'Barlow',sans-serif;
+    font-size:15px; padding:10px 12px; border-radius:4px; outline:none;
+  }
+  .modal-field select option { background:var(--bg-surface); }
+
+  /* Touch fix for inputs on iOS */
+  input, select, button { -webkit-appearance:none; appearance:none; }
+  input[type=number] { -moz-appearance:textfield; }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -987,6 +1061,18 @@
         </div>
       </div>
 
+      <div class="section-title">Progression XP</div>
+      <div class="chart-wrap">
+        <div class="chart-title">XP par jour (7 derniers jours)</div>
+        <canvas id="chartXP" style="width:100%;height:120px;"></canvas>
+      </div>
+
+      <div class="section-title">% Réussite passes</div>
+      <div class="chart-wrap">
+        <div class="chart-title">Évolution sur 10 sessions</div>
+        <canvas id="chartPass" style="width:100%;height:120px;"></canvas>
+      </div>
+
       <div class="section-title">Historique</div>
       <div id="historyList"></div>
     </div>
@@ -1012,6 +1098,21 @@
       <button class="profile-edit-btn" onclick="openEditProfile()">✏️ Modifier le profil</button>
     </div>
 
+
+    <!-- OBJECTIVES -->
+    <div class="screen" id="screen-objectives">
+      <div class="section-title" style="margin-bottom:4px">Objectifs</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Accomplis tes objectifs pour gagner de l'XP bonus.</div>
+      <div class="obj-tabs">
+        <div class="obj-tab active" onclick="switchObjTab('daily',this)">Journalier</div>
+        <div class="obj-tab" onclick="switchObjTab('weekly',this)">Hebdo</div>
+        <div class="obj-tab" onclick="switchObjTab('monthly',this)">Mensuel</div>
+        <div class="obj-tab" onclick="switchObjTab('custom',this)">Perso</div>
+      </div>
+      <div id="objList"></div>
+      <button class="add-obj-btn" onclick="openAddObj()">+ Ajouter un objectif</button>
+    </div>
+
   </div><!-- /main-content -->
 
   <!-- BOTTOM NAV -->
@@ -1025,7 +1126,7 @@
     </div>
     <div class="nav-item" id="nav-training" onclick="navTo('training')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M12 2v20M2 12h20M7 7l10 10M17 7L7 17"/>
+        <path d="M6 4v16M18 4v16M6 12h12"/>
       </svg>
       Training
     </div>
@@ -1036,10 +1137,15 @@
       </svg>
       Match
     </div>
+    <div class="nav-item" id="nav-objectives" onclick="navTo('objectives')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+      </svg>
+      Objectifs
+    </div>
     <div class="nav-item" id="nav-stats" onclick="navTo('stats')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M3 20h18M5 20V10l7-7 7 7v10"/>
-        <path d="M9 20v-5h6v5"/>
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
       </svg>
       Stats
     </div>
@@ -1237,6 +1343,7 @@ function initApp() {
   renderMatch('att');
   renderStats();
   renderProfile();
+  renderObjectives();
   checkBadges();
   updateCoach();
 }
@@ -1721,9 +1828,10 @@ function navTo(screen) {
   const nav = document.getElementById('nav-'+screen);
   if (nav) nav.classList.add('active');
 
-  if (screen === 'stats') renderStats();
+  if (screen === 'stats') { renderStats(); setTimeout(renderCharts, 150); }
   if (screen === 'profile') renderProfile();
   if (screen === 'dash') renderDashboard();
+  if (screen === 'objectives') renderObjectives();
 }
 
 // ══════════════════════════════════════════
@@ -1759,6 +1867,184 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
 
+
+// ══════════════════════════════════════════
+// OBJECTIVES SYSTEM
+// ══════════════════════════════════════════
+const DEFAULT_OBJECTIVES = {
+  daily: [
+    { id:'d_passes', title:'Faire 50 passes', period:'daily', xp:20, done:false, createdAt: Date.now() },
+    { id:'d_match', title:'Jouer 1 match', period:'daily', xp:15, done:false, createdAt: Date.now() },
+  ],
+  weekly: [
+    { id:'w_train', title:'5 sessions d'entraînement', period:'weekly', xp:50, done:false, createdAt: Date.now() },
+    { id:'w_goals', title:'Marquer 20 buts en exercice', period:'weekly', xp:40, done:false, createdAt: Date.now() },
+  ],
+  monthly: [
+    { id:'m_passes', title:'Réussir 500 passes', period:'monthly', xp:100, done:false, createdAt: Date.now() },
+    { id:'m_matches', title:'Jouer 10 matchs', period:'monthly', xp:80, done:false, createdAt: Date.now() },
+  ],
+  custom: []
+};
+
+let currentObjTab = 'daily';
+
+function switchObjTab(tab, el) {
+  currentObjTab = tab;
+  document.querySelectorAll('.obj-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderObjectives();
+}
+
+function renderObjectives() {
+  const objectives = DB.get('objectives') || DEFAULT_OBJECTIVES;
+  const list = objectives[currentObjTab] || [];
+  const el = document.getElementById('objList');
+  if (!el) return;
+
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🎯</div><div class="empty-state-text">Aucun objectif — ajoutes-en un !</div></div>`;
+    return;
+  }
+
+  const periodLabel = { daily:'Aujourd\'hui', weekly:'Cette semaine', monthly:'Ce mois', custom:'Personnalisé' };
+  el.innerHTML = list.map(obj => `
+    <div class="obj-item ${obj.done?'done':''}" id="obj-${obj.id}">
+      <div class="obj-check" onclick="toggleObj('${obj.id}','${currentObjTab}')">
+        ${obj.done ? '✓' : ''}
+      </div>
+      <div class="obj-info">
+        <div class="obj-title">${obj.title}</div>
+        <div class="obj-meta">${periodLabel[obj.period]||''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div class="obj-xp">+${obj.xp} XP</div>
+        <div style="font-size:10px;color:var(--text-muted);cursor:pointer;" onclick="deleteObj('${obj.id}','${currentObjTab}')">✕</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleObj(id, tab) {
+  const objectives = DB.get('objectives') || DEFAULT_OBJECTIVES;
+  const list = objectives[tab] || [];
+  const obj = list.find(o => o.id === id);
+  if (!obj) return;
+  if (!obj.done) {
+    obj.done = true;
+    addXP(obj.xp, 'Objectif accompli !');
+  } else {
+    obj.done = false;
+  }
+  DB.set('objectives', objectives);
+  renderObjectives();
+}
+
+function deleteObj(id, tab) {
+  const objectives = DB.get('objectives') || DEFAULT_OBJECTIVES;
+  objectives[tab] = (objectives[tab]||[]).filter(o => o.id !== id);
+  DB.set('objectives', objectives);
+  renderObjectives();
+}
+
+function openAddObj() {
+  document.getElementById('newObjTitle').value = '';
+  document.getElementById('newObjXP').value = '50';
+  document.getElementById('newObjPeriod').value = currentObjTab;
+  document.getElementById('addObjModal').classList.add('open');
+}
+
+function confirmAddObj() {
+  const title = document.getElementById('newObjTitle').value.trim();
+  const period = document.getElementById('newObjPeriod').value;
+  const xp = parseInt(document.getElementById('newObjXP').value) || 50;
+  if (!title) return;
+
+  const objectives = DB.get('objectives') || DEFAULT_OBJECTIVES;
+  if (!objectives[period]) objectives[period] = [];
+  objectives[period].push({ id:'obj_'+Date.now(), title, period, xp, done:false, createdAt:Date.now() });
+  DB.set('objectives', objectives);
+  closeModal('addObjModal');
+  currentObjTab = period;
+  document.querySelectorAll('.obj-tab').forEach((t,i) => {
+    const tabs = ['daily','weekly','monthly','custom'];
+    t.classList.toggle('active', tabs[i]===period);
+  });
+  renderObjectives();
+}
+
+// ══════════════════════════════════════════
+// CHART (Canvas-based, no library)
+// ══════════════════════════════════════════
+function drawProgressChart(canvasId, data, label, color) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || data.length < 2) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.offsetWidth;
+  const H = canvas.height = 120;
+  ctx.clearRect(0, 0, W, H);
+
+  const max = Math.max(...data, 1);
+  const pad = { t:10, b:20, l:10, r:10 };
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
+
+  // Grid lines
+  ctx.strokeStyle = '#1E2D40'; ctx.lineWidth = 1;
+  [0, 0.5, 1].forEach(f => {
+    const y = pad.t + ch * (1 - f);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W-pad.r, y); ctx.stroke();
+  });
+
+  // Fill
+  const pts = data.map((v, i) => ({
+    x: pad.l + (i / (data.length-1)) * cw,
+    y: pad.t + ch * (1 - v/max)
+  }));
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, H - pad.b);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(pts[pts.length-1].x, H - pad.b);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, pad.t, 0, H);
+  grad.addColorStop(0, color + '55');
+  grad.addColorStop(1, color + '00');
+  ctx.fillStyle = grad; ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  pts.forEach((p,i) => i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round'; ctx.stroke();
+
+  // Dots
+  pts.forEach(p => {
+    ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+    ctx.fillStyle = color; ctx.fill();
+  });
+}
+
+function renderCharts() {
+  const history = DB.get('history') || [];
+  // Last 7 training sessions XP
+  const trainHist = history.filter(h=>h.type==='training').slice(-14);
+  
+  // Group by day, sum XP
+  const dayMap = {};
+  trainHist.forEach(h => {
+    const d = new Date(h.ts).toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'});
+    dayMap[d] = (dayMap[d]||0) + (h.xp||0);
+  });
+  const dayData = Object.values(dayMap).slice(-7);
+  setTimeout(() => drawProgressChart('chartXP', dayData.length>1?dayData:[0,0], 'XP', '#C9A84C'), 100);
+
+  // Pass % over sessions
+  const passHist = history.filter(h=>h.type==='training' && h.tried>0).slice(-10);
+  const pctData = passHist.map(h => h.ok && h.tried ? Math.round(h.ok/h.tried*100) : 0);
+  setTimeout(() => drawProgressChart('chartPass', pctData.length>1?pctData:[0,0], '%', '#00D4FF'), 100);
+}
+
+
 // ══════════════════════════════════════════
 // BOOT
 // ══════════════════════════════════════════
@@ -1770,5 +2056,27 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
+<!-- MODAL: Add Objective -->
+<div class="modal-overlay" id="addObjModal">
+  <div class="modal">
+    <div class="modal-title">Nouvel objectif</div>
+    <div class="modal-field"><label>Description</label><input type="text" id="newObjTitle" placeholder="Ex: Réussir 200 passes bande"></div>
+    <div class="modal-field"><label>Période</label>
+      <select id="newObjPeriod">
+        <option value="daily">Journalier</option>
+        <option value="weekly">Hebdomadaire</option>
+        <option value="monthly">Mensuel</option>
+        <option value="custom">Personnalisé</option>
+      </select>
+    </div>
+    <div class="modal-field"><label>XP récompense</label><input type="number" id="newObjXP" value="50" min="5" max="500"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal('addObjModal')">Annuler</button>
+      <button class="modal-confirm" onclick="confirmAddObj()">Créer</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
