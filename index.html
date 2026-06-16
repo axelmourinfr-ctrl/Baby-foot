@@ -2,7 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>BABYFOOT COACH RPG</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -95,7 +97,7 @@
     width: 100%; background: var(--bg-surface);
     border: 1px solid var(--border-bright);
     color: var(--text-primary); font-family: 'Barlow', sans-serif;
-    font-size: 16px; padding: 12px 16px; border-radius: 4px;
+    font-size: 16px; padding: 12px 16px; border-radius: 4px; -webkit-appearance: none;
     outline: none; transition: border-color 0.2s;
   }
   .ob-field input:focus, .ob-field select:focus {
@@ -763,8 +765,9 @@
   .modal-field select option { background:var(--bg-surface); }
 
   /* Touch fix for inputs on iOS */
-  input, select, button { -webkit-appearance:none; appearance:none; }
+  input, select { -webkit-appearance:none; appearance:none; }
   input[type=number] { -moz-appearance:textfield; }
+  button { cursor:pointer; }
 
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -813,7 +816,7 @@
           <option value="Polyvalent">Polyvalent</option>
         </select>
       </div>
-      <button class="btn-primary" onclick="obNext(0)">Continuer →</button>
+      <button type="button" class="btn-primary" onclick="obNext(0)">Continuer →</button>
     </div>
 
     <!-- Step 1: Avatar -->
@@ -838,7 +841,7 @@
         <div class="avatar-opt" data-emoji="💪" onclick="selectAvatar(this)">💪</div>
         <div class="avatar-opt" data-emoji="🏆" onclick="selectAvatar(this)">🏆</div>
       </div>
-      <button class="btn-primary" onclick="obNext(1)">Continuer →</button>
+      <button type="button" class="btn-primary" onclick="obNext(1)">Continuer →</button>
     </div>
 
     <!-- Step 2: Tables -->
@@ -867,7 +870,7 @@
         <label>Objectif principal</label>
         <input type="text" id="ob-goal" placeholder="Ex: Monter en division 2">
       </div>
-      <button class="btn-primary" onclick="finishOnboarding()">🚀 Commencer</button>
+      <button type="button" class="btn-primary" onclick="finishOnboarding()">🚀 Commencer</button>
     </div>
   </div>
 </div>
@@ -1014,7 +1017,7 @@
 
       <div class="match-form" id="matchForm"></div>
 
-      <button class="match-submit" onclick="saveMatch()">Valider le match</button>
+      <button type="button" class="match-submit" onclick="saveMatch()">Valider le match</button>
     </div>
 
     <!-- STATS -->
@@ -1095,7 +1098,7 @@
       <div class="section-title" style="margin-top:16px;">Titres Multi-table</div>
       <div class="title-grid" id="titles-multi"></div>
 
-      <button class="profile-edit-btn" onclick="openEditProfile()">✏️ Modifier le profil</button>
+      <button type="button" class="profile-edit-btn" onclick="openEditProfile()">✏️ Modifier le profil</button>
     </div>
 
 
@@ -1110,7 +1113,7 @@
         <div class="obj-tab" onclick="switchObjTab('custom',this)">Perso</div>
       </div>
       <div id="objList"></div>
-      <button class="add-obj-btn" onclick="openAddObj()">+ Ajouter un objectif</button>
+      <button type="button" class="add-obj-btn" onclick="openAddObj()">+ Ajouter un objectif</button>
     </div>
 
   </div><!-- /main-content -->
@@ -1174,8 +1177,8 @@
     <div class="modal-field"><label>ELO réel</label><input type="number" id="edit-elo"></div>
     <div class="modal-field"><label>Objectif</label><input type="text" id="edit-goal"></div>
     <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeModal('editModal')">Annuler</button>
-      <button class="modal-confirm" onclick="saveProfile()">Sauvegarder</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('editModal')">Annuler</button>
+      <button type="button" class="modal-confirm" onclick="saveProfile()">Sauvegarder</button>
     </div>
   </div>
 </div>
@@ -1194,8 +1197,8 @@
       </select>
     </div>
     <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeModal('addExModal')">Annuler</button>
-      <button class="modal-confirm" onclick="confirmAddExercise()">Ajouter</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('addExModal')">Annuler</button>
+      <button type="button" class="modal-confirm" onclick="confirmAddExercise()">Ajouter</button>
     </div>
   </div>
 </div>
@@ -1292,14 +1295,26 @@ function handlePhoto(inp) {
 function obNext(step) {
   if (step === 0) {
     const name = document.getElementById('ob-name').value.trim();
-    if (!name) { alert('Entre ton nom ou pseudo !'); return; }
+    if (!name) {
+      const inp = document.getElementById('ob-name');
+      inp.style.borderColor = '#FF3B30';
+      inp.placeholder = 'Obligatoire !';
+      setTimeout(() => { inp.style.borderColor = ''; inp.placeholder = 'Ex: Axel, Le Mur, ...'; }, 2000);
+      return;
+    }
   }
-  document.getElementById('step'+step).classList.remove('active');
-  document.getElementById('dot'+step).classList.remove('active');
+  const cur = document.getElementById('step'+step);
+  const dot = document.getElementById('dot'+step);
+  if (cur) cur.classList.remove('active');
+  if (dot) dot.classList.remove('active');
   const next = step + 1;
-  document.getElementById('step'+next).classList.add('active');
-  document.getElementById('dot'+next).classList.add('active');
+  const nextEl = document.getElementById('step'+next);
+  const nextDot = document.getElementById('dot'+next);
+  if (nextEl) nextEl.classList.add('active');
+  if (nextDot) nextDot.classList.add('active');
   currentStep = next;
+  // Scroll to top on mobile
+  document.getElementById('onboarding').scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function finishOnboarding() {
@@ -1455,11 +1470,11 @@ function renderTraining(cat) {
         </div>
       </div>
       <div class="ex-bar"><div class="ex-bar-fill" id="bar-${ex.id}" style="width:${pct||0}%"></div></div>
-      <button class="ex-save-btn" onclick="saveExercise('${ex.id}','${ex.type}')">Enregistrer +XP</button>
+      <button type="button" class="ex-save-btn" onclick="saveExercise('${ex.id}','${ex.type}')">Enregistrer +XP</button>
     </div>`;
   });
   html += '</div>';
-  html += `<button class="add-exercise-btn" onclick="openAddExercise('${cat}')">+ Ajouter un exercice</button>`;
+  html += `<button type="button" class="add-exercise-btn" onclick="openAddExercise('${cat}')">+ Ajouter un exercice</button>`;
   document.getElementById('trainingContent').innerHTML = html;
 }
 
@@ -2072,8 +2087,8 @@ window.addEventListener('DOMContentLoaded', () => {
     </div>
     <div class="modal-field"><label>XP récompense</label><input type="number" id="newObjXP" value="50" min="5" max="500"></div>
     <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeModal('addObjModal')">Annuler</button>
-      <button class="modal-confirm" onclick="confirmAddObj()">Créer</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('addObjModal')">Annuler</button>
+      <button type="button" class="modal-confirm" onclick="confirmAddObj()">Créer</button>
     </div>
   </div>
 </div>
