@@ -1690,6 +1690,7 @@ function saveExercise(id, type) {
   if (tried > 0) updateLeagueFromTraining(Math.round(ok/tried*100));
   renderDashboard();
   checkBadges();
+  autoCheckObjectives();
   updateCoach();
 }
 
@@ -1916,6 +1917,25 @@ function addXP(amount, label) {
 // BADGES
 // ══════════════════════════════════════════
 const BADGES = [
+  { id:'firsttrain', label:'Première fois', icon:'👶', check: (ts,ms,hist) => hist.filter(h=>h.type==='training').length >= 1 },
+  { id:'streak3', label:'En feu — 3 jours', icon:'🔥', check: (ts,ms,hist) => {
+    const days = [...new Set(hist.filter(h=>h.type==='training').map(h=>new Date(h.ts).toDateString()))];
+    if(days.length<3) return false;
+    const today = new Date(); let streak=0;
+    for(let i=0;i<7;i++){
+      const d = new Date(today); d.setDate(d.getDate()-i);
+      if(days.includes(d.toDateString())) streak++; else break;
+    }
+    return streak>=3;
+  }},
+  { id:'perfect', label:'Parfait', icon:'💯', check: (ts) => Object.values(ts).some(ex=>ex.tried>=10&&ex.ok>=ex.tried) },
+  { id:'early', label:'Lève-tôt', icon:'🌅', check: (ts,ms,hist) => hist.some(h=>new Date(h.ts).getHours()<8) },
+  { id:'night', label:'Nocturne', icon:'🦉', check: (ts,ms,hist) => hist.some(h=>new Date(h.ts).getHours()>=22) },
+  { id:'placement', label:'Placé', icon:'🎯', check: () => !!DB.get('rankGlobal') },
+  { id:'level5', label:'Décollage', icon:'🚀', check: () => RPG.getLevel(DB.get('xp')||0) >= 5 },
+  { id:'gold', label:'Rang Or+', icon:'🥇', check: () => { const r=DB.get('rankGlobal'); return r && r.leagueIdx>=2; } },
+  // Original badges
+
   { id:'facteur', label:'Le Facteur', icon:'📬', check: (ts, ms) => {
     let total = 0;
     Object.values(ts).forEach(ex => { if(ex.type==='passes') total += ex.ok||0; });
@@ -1941,6 +1961,83 @@ const BADGES = [
     return tables.length >= 2 && hist.filter(h=>h.type==='match').length >= 10;
   }},
 ];
+
+
+// ══════════════════════════════════════════
+// AUTO-COMPLETE OBJECTIVES
+// ══════════════════════════════════════════
+function autoCheckObjectives() {
+  const objectives = DB.get('objectives');
+  if (!objectives) return;
+  const trainStats = DB.get('trainStats') || {};
+  const matchStats = DB.get('matchStats') || { att:{}, def:{} };
+  const history = DB.get('history') || [];
+
+  // Compute current totals
+  let totalPasses=0, totalPassOk=0, totalGoals=0, totalGoalTried=0,
+      totalSaves=0, totalSaveTried=0, totalSessions=0, totalMatches=0;
+
+  Object.values(trainStats).forEach(ex => {
+    if(ex.type==='passes'){ totalPasses+=ex.tried||0; totalPassOk+=ex.ok||0; }
+    if(ex.type==='goals'){ totalGoalTried+=ex.tried||0; totalGoals+=ex.ok||0; }
+    if(ex.type==='saves'){ totalSaveTried+=ex.tried||0; totalSaves+=ex.ok||0; }
+  });
+  totalGoals += matchStats.att.goals||0;
+  totalSaves += matchStats.def.saves||0;
+  totalSessions = history.filter(h=>h.type==='training').length;
+  totalMatches = history.filter(h=>h.type==='match').length;
+
+  // Week/month helpers
+  const now = Date.now();
+  const weekAgo = now - 7*24*3600*1000;
+  const monthAgo = now - 30*24*3600*1000;
+  const todayStr = new Date().toDateString();
+
+  const sessionsToday = history.filter(h=>h.type==='training' && new Date(h.ts).toDateString()===todayStr).length;
+  const matchesToday = history.filter(h=>h.type==='match' && new Date(h.ts).toDateString()===todayStr).length;
+  const sessionsWeek = history.filter(h=>h.type==='training' && h.ts>weekAgo).length;
+  const goalsWeek = history.filter(h=>h.type==='training' && h.ts>weekAgo).reduce((s,h)=>s+(h.type==='training'?h.ok||0:0),0);
+  const sessionsMonth = history.filter(h=>h.type==='training' && h.ts>monthAgo).length;
+  const matchesMonth = history.filter(h=>h.type==='match' && h.ts>monthAgo).length;
+
+  // Keyword matcher
+  const matchers = [
+    { regex:/(\d+)\s*passe/i,   getValue: (n) => totalPassOk >= n },
+    { regex:/(\d+)\s*but/i,     getValue: (n) => totalGoals >= n },
+    { regex:/(\d+)\s*arrêt/i,   getValue: (n) => totalSaves >= n },
+    { regex:/(\d+)\s*session/i, getValue: (n) => n<=3 ? sessionsToday>=n : sessionsWeek>=n },
+    { regex:/(\d+)\s*match/i,   getValue: (n) => n<=2 ? matchesToday>=n : matchesMonth>=n },
+    { regex:/(\d+)\s*entraîn/i, getValue: (n) => sessionsWeek>=n },
+  ];
+
+  let anyCompleted = false;
+  let changed = false;
+  ['daily','weekly','monthly','custom'].forEach(period => {
+    (objectives[period]||[]).forEach(obj => {
+      if (obj.done) return;
+      const title = obj.title.toLowerCase();
+      for(const m of matchers) {
+        const match = title.match(m.regex);
+        if(match && m.getValue(parseInt(match[1]))) {
+          obj.done = true;
+          obj.autoCompleted = true;
+          changed = true;
+          anyCompleted = true;
+          setTimeout(() => {
+            showToast('🎯 Objectif accompli : ' + obj.title, false);
+            addXP(obj.xp, 'Objectif auto : ' + obj.title);
+          }, 500);
+          break;
+        }
+      }
+    });
+  });
+
+  if(changed) {
+    DB.set('objectives', objectives);
+    if(document.getElementById('screen-objectives').classList.contains('active')) renderObjectives();
+  }
+}
 
 function checkBadges() {
   const ts = DB.get('trainStats') || {};
@@ -2245,58 +2342,109 @@ function renderCharts() {
 // ══════════════════════════════════════════
 const LEAGUES = [
   { id:'bronze',      name:'Bronze',       emoji:'🥉', color:'#CD7F32', divisions:3, lpPerDiv:100, minScore:0   },
-  { id:'silver',      name:'Argent',       emoji:'🥈', color:'#C0C0C0', divisions:3, lpPerDiv:100, minScore:25  },
-  { id:'gold',        name:'Or',           emoji:'🥇', color:'#FFD700', divisions:3, lpPerDiv:100, minScore:40  },
-  { id:'platinum',    name:'Platine',      emoji:'💎', color:'#00E5FF', divisions:3, lpPerDiv:100, minScore:55  },
-  { id:'diamond',     name:'Diamant',      emoji:'💠', color:'#00B0FF', divisions:3, lpPerDiv:100, minScore:65  },
-  { id:'master',      name:'Maître',       emoji:'👑', color:'#AA00FF', divisions:3, lpPerDiv:100, minScore:75  },
-  { id:'grandmaster', name:'Grand Maître', emoji:'🔥', color:'#FF4500', divisions:2, lpPerDiv:100, minScore:85  },
-  { id:'legend',      name:'Légende',      emoji:'🏆', color:'#FFD700', divisions:1, lpPerDiv:100, minScore:93  },
+  { id:'silver',      name:'Argent',       emoji:'🥈', color:'#C0C0C0', divisions:3, lpPerDiv:100, minScore:20  },
+  { id:'gold',        name:'Or',           emoji:'🥇', color:'#FFD700', divisions:3, lpPerDiv:100, minScore:35  },
+  { id:'platinum',    name:'Platine',      emoji:'💎', color:'#00E5FF', divisions:3, lpPerDiv:100, minScore:50  },
+  { id:'diamond',     name:'Diamant',      emoji:'💠', color:'#00B0FF', divisions:3, lpPerDiv:100, minScore:68  },
+  { id:'master',      name:'Maître',       emoji:'👑', color:'#AA00FF', divisions:3, lpPerDiv:100, minScore:80  },
+  { id:'grandmaster', name:'Grand Maître', emoji:'🔥', color:'#FF4500', divisions:2, lpPerDiv:100, minScore:90  },
+  { id:'legend',      name:'Légende',      emoji:'🏆', color:'#C9A84C', divisions:1, lpPerDiv:100, minScore:96  },
 ];
 
 // Placement state
-let plData = { scores: [null,null,null,null,null], tries: [0,0,0,0,0], step: 0, tirChoice: '' };
+let plData = { scores:[0,0,0,0,0,0], tries:[0,0,0,0,0,0], step:0, choices:{passeDef:'',tirDef:'',tirAtt:''} };
+
+// Reactive test actions bank
+const REACT_ACTIONS = [
+  { zone:'DÉFENSE', action:'Poussée décroisée' },
+  { zone:'DÉFENSE', action:'Relance bande' },
+  { zone:'DÉFENSE', action:'Tir long' },
+  { zone:'DÉFENSE', action:'Pousser courte' },
+  { zone:'DÉFENSE', action:'Relance centre' },
+  { zone:'MILIEU', action:'Passe bande' },
+  { zone:'MILIEU', action:'Passe croisée' },
+  { zone:'MILIEU', action:'Passe directe' },
+  { zone:'MILIEU', action:'Contrôle balle' },
+  { zone:'MILIEU', action:'Relance rapide' },
+  { zone:'ATTAQUE', action:'Tirer croisée' },
+  { zone:'ATTAQUE', action:'Pousser longue' },
+  { zone:'ATTAQUE', action:'Tirer courte' },
+  { zone:'ATTAQUE', action:'Fixe' },
+  { zone:'ATTAQUE', action:'Pousser décroisée' },
+  { zone:'DÉFENSE', action:'Pousser longue' },
+  { zone:'MILIEU', action:'Passe rapide bande' },
+  { zone:'ATTAQUE', action:'Tirer longue' },
+  { zone:'DÉFENSE', action:'Tir croisé défense' },
+  { zone:'MILIEU', action:'Passe décroisée' },
+];
+let reactQueue = [];
+let reactIdx = 0;
 
 function openPlacement() {
-  plData = { scores: [0,0,0,0,0], tries: [0,0,0,0,0], step: 0, tirChoice: '' };
-  for(let i=0;i<5;i++){
-    if(document.getElementById('plcount'+i)) document.getElementById('plcount'+i).textContent='0';
-    if(document.getElementById('plbar'+i)) document.getElementById('plbar'+i).style.width='0%';
-    if(document.getElementById('plscore'+i)) document.getElementById('plscore'+i).textContent='Réussites : 0';
+  plData = { scores:[0,0,0,0,0,0], tries:[0,0,0,0,0,0], step:0, choices:{passeDef:'',tirDef:'',tirAtt:''} };
+  reactQueue = [...REACT_ACTIONS].sort(()=>Math.random()-0.5);
+  reactIdx = 0;
+
+  for(let i=0;i<6;i++){
+    const c=document.getElementById('plcount'+i); if(c) c.textContent='0';
+    const b=document.getElementById('plbar'+i); if(b) b.style.width='0%';
+    const s=document.getElementById('plscore'+i); if(s) s.textContent='Réussites : 0';
   }
-  // Reset step display
-  for(let i=0;i<=5;i++){
-    const s = document.getElementById('plstep'+i);
-    if(s) s.classList.remove('active');
-  }
-  for(let i=0;i<5;i++){
-    const d = document.getElementById('pldot'+i);
-    if(d){ d.classList.remove('done','active'); }
-  }
+  for(let i=0;i<=6;i++){ const s=document.getElementById('plstep'+i); if(s) s.classList.remove('active'); }
+  for(let i=0;i<6;i++){ const d=document.getElementById('pldot'+i); if(d){ d.classList.remove('done','active'); } }
   document.getElementById('plstep0').classList.add('active');
   document.getElementById('pldot0').classList.add('active');
-  // Reset tir step
-  document.getElementById('plTirPicker').style.display='block';
-  document.getElementById('plTirTest').style.display='none';
+
+  // Reset pickers
+  ['plPasseDefPicker','plTirDefPicker','plTirAttPicker'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.style.display='block';
+  });
+  ['plPasseDefTest','plTirDefTest','plTirAttTest','plReactTest'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.style.display='none';
+  });
+  document.getElementById('plReactStart').style.display='block';
   document.querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
-  document.getElementById('plTirStart').style.opacity='0.4';
-  document.getElementById('plTirStart').style.pointerEvents='none';
+  ['plPasseDefStart','plTirDefStart','plTirAttStart'].forEach(id => {
+    const btn = document.getElementById(id);
+    if(btn){ btn.style.opacity='0.4'; btn.style.pointerEvents='none'; }
+  });
 
   document.getElementById('placementOverlay').classList.add('open');
   document.getElementById('placementOverlay').scrollTo({top:0});
 }
 
-function selectPlTir(el, name) {
-  document.querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
+function selectPlChoice(type, el, name) {
+  // Only deselect within same picker group
+  el.closest('.pl-tir-grid').querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
   el.classList.add('selected');
-  plData.tirChoice = name;
-  document.getElementById('plTirStart').style.opacity='1';
-  document.getElementById('plTirStart').style.pointerEvents='auto';
+  plData.choices[type] = name;
+  const btnMap = { passeDef:'plPasseDefStart', tirDef:'plTirDefStart', tirAtt:'plTirAttStart' };
+  const btn = document.getElementById(btnMap[type]);
+  if(btn){ btn.style.opacity='1'; btn.style.pointerEvents='auto'; }
 }
 
-function startPlTir() {
-  document.getElementById('plTirPicker').style.display='none';
-  document.getElementById('plTirTest').style.display='block';
+function startPlStep(step) {
+  const pickerMap = { 2:'plPasseDefPicker', 3:'plTirDefPicker', 4:'plTirAttPicker' };
+  const testMap   = { 2:'plPasseDefTest',   3:'plTirDefTest',   4:'plTirAttTest'   };
+  const labelMap  = { 2:'plPasseDefLabel',  3:'plTirDefLabel',  4:'plTirAttLabel'  };
+  const choiceMap = { 2:'passeDef', 3:'tirDef', 4:'tirAtt' };
+  if(pickerMap[step]) document.getElementById(pickerMap[step]).style.display='none';
+  if(testMap[step])   document.getElementById(testMap[step]).style.display='block';
+  if(labelMap[step])  document.getElementById(labelMap[step]).textContent = '▶ ' + plData.choices[choiceMap[step]];
+}
+
+function startReact() {
+  document.getElementById('plReactStart').style.display='none';
+  document.getElementById('plReactTest').style.display='block';
+  showNextReact();
+}
+
+function showNextReact() {
+  if(reactIdx < reactQueue.length) {
+    const a = reactQueue[reactIdx];
+    document.getElementById('plReactZone').textContent = a.zone;
+    document.getElementById('plReactAction').textContent = a.action;
+  }
 }
 
 function plRecord(step, success) {
@@ -2310,8 +2458,11 @@ function plRecord(step, success) {
   const scoreEl = document.getElementById('plscore'+step);
   if(countEl) countEl.textContent = plData.tries[step];
   if(barEl) barEl.style.width = pct+'%';
-  const labels = ['Réussites','Réussites','Buts','Réussites','Arrêts'];
+  const labels = ['Réussites','Réussites','Réussites','Buts','Buts','Réussites'];
   if(scoreEl) scoreEl.textContent = labels[step]+' : '+plData.scores[step];
+
+  // Reactive test: show next action
+  if(step===5) { reactIdx++; if(plData.tries[5]<20) showNextReact(); }
 
   if (plData.tries[step] >= 20) {
     setTimeout(() => plNextStep(step), 500);
@@ -2331,33 +2482,45 @@ function plNextStep(step) {
   if(nextDot) nextDot.classList.add('active');
   document.getElementById('placementOverlay').scrollTo({top:0, behavior:'smooth'});
 
-  if (next === 5) showPlacementResult();
+  if (next === 6) showPlacementResult();
 }
 
 function showPlacementResult() {
   const pcts = plData.scores.map((s,i) => plData.tries[i]>0 ? Math.round(s/plData.tries[i]*100) : 0);
-  // Weighted score: passes 25%, passes croisées 20%, tir 25%, contrôle 15%, defense 15%
-  const weights = [0.25, 0.20, 0.25, 0.15, 0.15];
+  // Weighted: bande 20%, croisée 20%, passe def 15%, tir def 15%, tir att 20%, réactivité 10%
+  const weights = [0.20, 0.20, 0.15, 0.15, 0.20, 0.10];
   const globalScore = pcts.reduce((sum, p, i) => sum + p * weights[i], 0);
+
+  // Pénalité si très faible en passe (< 25%) = plafonner à Or max
+  const passAvg = (pcts[0]+pcts[1]+pcts[2])/3;
+  const cappedScore = passAvg < 25 ? Math.min(globalScore, 34) : globalScore;
 
   // Find league
   let leagueIdx = 0;
-  LEAGUES.forEach((l, i) => { if(globalScore >= l.minScore) leagueIdx = i; });
+  LEAGUES.forEach((l, i) => { if(cappedScore >= l.minScore) leagueIdx = i; });
   const league = LEAGUES[leagueIdx];
 
-  // Division: based on how far into league range
+  // Division
   const nextMin = leagueIdx < LEAGUES.length-1 ? LEAGUES[leagueIdx+1].minScore : 100;
-  const rangeSize = nextMin - league.minScore;
-  const posInRange = globalScore - league.minScore;
-  const divFraction = rangeSize > 0 ? posInRange / rangeSize : 1;
+  const rangeSize = Math.max(1, nextMin - league.minScore);
+  const posInRange = cappedScore - league.minScore;
+  const divFraction = Math.min(1, posInRange / rangeSize);
   const division = Math.max(1, Math.min(league.divisions, Math.ceil((1 - divFraction) * league.divisions)));
 
   document.getElementById('plResultBadge').textContent = league.emoji;
   document.getElementById('plResultLeague').textContent = league.name;
   document.getElementById('plResultLeague').style.color = league.color;
   document.getElementById('plResultDiv').textContent = 'Division ' + ['I','II','III'][division-1];
+  document.getElementById('plResultScore').textContent = 'Score global : ' + Math.round(cappedScore) + '%';
 
-  const stepNames = ['Passe Bande','Passe Croisée','Tir ('+plData.tirChoice+')','Contrôle','Défense'];
+  const stepNames = [
+    'Passe Bande',
+    'Passe Croisée',
+    'Passe Déf. (' + (plData.choices.passeDef||'—') + ')',
+    'Tir Déf. (' + (plData.choices.tirDef||'—') + ')',
+    'Tir Att. (' + (plData.choices.tirAtt||'—') + ')',
+    'Réactivité'
+  ];
   document.getElementById('plResultCards').innerHTML = pcts.map((p,i) => `
     <div class="pl-result-card">
       <div class="pl-result-label">${stepNames[i]}</div>
@@ -2365,12 +2528,13 @@ function showPlacementResult() {
     </div>
   `).join('');
 
-  // Store placement result
   const lp = Math.round(divFraction * 100) % 100;
-  DB.set('placement', { leagueIdx, division, lp, globalScore, pcts, tirChoice:plData.tirChoice, date:Date.now() });
+  const attIdx = Math.max(0, Math.min(leagueIdx, Math.round(leagueIdx * (pcts[4]/100))));
+  const defIdx = Math.max(0, Math.min(leagueIdx, Math.round(leagueIdx * (pcts[2]/100))));
+  DB.set('placement', { leagueIdx, division, lp, globalScore:Math.round(cappedScore), pcts, choices:plData.choices, date:Date.now() });
   DB.set('rankGlobal', { leagueIdx, division, lp });
-  DB.set('rankAttack', { leagueIdx: Math.max(0,leagueIdx-1), division:1, lp:50 });
-  DB.set('rankDefense', { leagueIdx: leagueIdx, division:2, lp:30 });
+  DB.set('rankAttack', { leagueIdx: attIdx, division: Math.min(3, league.divisions), lp: 40 });
+  DB.set('rankDefense', { leagueIdx: defIdx, division: Math.min(3, league.divisions), lp: 40 });
 }
 
 function confirmPlacement() {
@@ -2402,34 +2566,33 @@ function renderLeague() {
   }
 
   const lg = LEAGUES[rankG.leagueIdx];
-  const la = LEAGUES[rankA.leagueIdx];
-  const ld = LEAGUES[rankD.leagueIdx];
+  const la = LEAGUES[rankA ? rankA.leagueIdx : 0];
+  const ld = LEAGUES[rankD ? rankD.leagueIdx : 0];
   const divNames = ['I','II','III'];
 
-  // Season info
   const placement = DB.get('placement') || {};
   const seasonStart = placement.date || Date.now();
   const seasonEnd = seasonStart + 90*24*3600*1000;
   const daysLeft = Math.max(0, Math.ceil((seasonEnd - Date.now()) / (24*3600*1000)));
+  const valLabel = validated ? (typeof validated==='object' ? validated.label : validated) : null;
+  const valPhoto = validated && typeof validated==='object' ? validated.photo : null;
 
   el.innerHTML = `
   <div class="section-title">Rang Global</div>
   <div class="league-card" style="border:1px solid ${lg.color}40;">
     <span class="league-badge-big">${lg.emoji}</span>
-    <div class="league-name" style="color:${lg.color}">${lg.name} ${divNames[rankG.division-1]}</div>
-    <div class="league-division">Score de placement : ${placement.globalScore ? Math.round(placement.globalScore)+'%' : '—'}</div>
-    <div class="league-points">
-      <span>${rankG.lp} LP</span>
-      <span style="color:var(--text-muted)">/ 100</span>
-    </div>
-    <div class="lp-bar"><div class="lp-fill" style="width:${rankG.lp}%;background:${lg.color}"></div></div>
+    <div class="league-name" style="color:${lg.color}">${lg.name} ${divNames[(rankG.division||1)-1]}</div>
+    <div class="league-division">Score de placement : ${placement.globalScore ? placement.globalScore+'%' : '—'}</div>
+    <div class="league-points"><span>${rankG.lp||0} LP</span><span style="color:var(--text-muted)">/ 100</span></div>
+    <div class="lp-bar"><div class="lp-fill" style="width:${rankG.lp||0}%;background:${lg.color}"></div></div>
   </div>
 
-  <div class="${validated?'validation-banner validated':'validation-banner unvalidated'}">
-    <span>${validated?'✅':'⚪'}</span>
-    <span>${validated?'Rang homologué — '+validated : 'Non homologué — compétition réelle requise'}</span>
+  <div class="${valLabel?'validation-banner validated':'validation-banner unvalidated'}">
+    <span>${valLabel?'✅':'⚪'}</span>
+    <span>${valLabel ? 'Homologué — '+valLabel : 'Non homologué — compétition réelle requise'}</span>
   </div>
-  <button type="button" class="validate-btn" onclick="openModal('validateModal')">🏆 Homologuer mon rang</button>
+  ${valPhoto ? `<div style="margin-bottom:8px;border-radius:6px;overflow:hidden;border:1px solid var(--green);"><img src="${valPhoto}" style="width:100%;max-height:150px;object-fit:contain;background:#000;" alt="Preuve"></div>` : ''}
+  <button type="button" class="validate-btn" onclick="openModal('validateModal')">🏆 ${valLabel?'Mettre à jour':'Homologuer mon rang'}</button>
 
   <div class="section-title" style="margin-top:4px;">Spécialisations</div>
   <div class="ranks-grid">
@@ -2462,7 +2625,7 @@ function renderLeague() {
   <div class="season-card" style="margin-top:0;">
     <div class="season-label">Progression de saison</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-      ${['Passe Bande','Passe Croisée','Tir ('+placement.tirChoice+')','Contrôle','Défense'].map((n,i)=>`
+      ${['Passe Bande','Passe Croisée','Passe Déf.','Tir Déf.','Tir Att.','Réactivité'].map((n,i)=>`
         <div style="font-size:12px;color:var(--text-secondary);">${n} <span style="color:var(--gold);font-weight:700;">${placement.pcts?placement.pcts[i]+'%':'—'}</span></div>
       `).join('')}
     </div>
@@ -2502,8 +2665,39 @@ function updateLeagueFromTraining(successPct) {
   DB.set('rankGlobal', rank);
 }
 
+
+function resetAll() {
+  if (!confirm('Effacer toutes les données et recommencer à zéro ?')) return;
+  const keys = ['profile','xp','exercises','history','matchStats','trainStats','placement','rankGlobal','rankAttack','rankDefense','validated','badges','objectives'];
+  keys.forEach(k => localStorage.removeItem('bfc_'+k));
+  document.getElementById('placementOverlay').classList.remove('open');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('onboarding').style.display='block';
+  document.getElementById('onboarding').scrollTo({top:0});
+  // Reset onboarding steps
+  document.querySelectorAll('.ob-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step0').classList.add('active');
+  document.querySelectorAll('.ob-dot').forEach(d=>d.classList.remove('active'));
+  document.getElementById('dot0').classList.add('active');
+}
+
 function openModal(id) {
   document.getElementById(id).classList.add('open');
+}
+
+
+function handleValPhoto(inp) {
+  const file = inp.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = document.getElementById('valPhotoPreview');
+    prev.src = e.target.result;
+    prev.style.display = 'block';
+    document.getElementById('valPhotoText').style.display = 'none';
+    window._valPhotoData = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function confirmValidation() {
@@ -2511,7 +2705,16 @@ function confirmValidation() {
   const details = document.getElementById('valDetails').value.trim();
   const date = document.getElementById('valDate').value;
   if (!details) return;
-  DB.set('validated', type + ' — ' + details + (date?' ('+date+')':''));
+  const valData = {
+    label: type + ' — ' + details + (date?' ('+date+')':''),
+    photo: window._valPhotoData || null,
+    date: date || new Date().toLocaleDateString('fr-BE')
+  };
+  DB.set('validated', valData);
+  window._valPhotoData = null;
+  // Reset photo UI
+  document.getElementById('valPhotoPreview').style.display='none';
+  document.getElementById('valPhotoText').style.display='block';
   closeModal('validateModal');
   renderLeague();
   addXP(200, 'Rang homologué ! 🏆');
@@ -2558,25 +2761,29 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="pl-header">
       <span class="pl-badge">🎯</span>
       <div class="pl-title">Test de placement</div>
-      <div class="pl-sub">5 épreuves · 15–20 min · Détermine ta ligue de départ</div>
+      <div class="pl-sub">6 épreuves · 15–20 min · Détermine ta ligue de départ</div>
     </div>
+
+    <!-- RESET BUTTON -->
+    <div style="text-align:right;margin-bottom:12px;">
+      <button type="button" onclick="resetAll()" style="background:transparent;border:1px solid var(--red);color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;padding:5px 12px;border-radius:4px;cursor:pointer;">🔄 Recommencer à zéro</button>
+    </div>
+
     <div class="pl-step-indicator">
       <div class="pl-step-dot active" id="pldot0"></div>
       <div class="pl-step-dot" id="pldot1"></div>
       <div class="pl-step-dot" id="pldot2"></div>
       <div class="pl-step-dot" id="pldot3"></div>
       <div class="pl-step-dot" id="pldot4"></div>
+      <div class="pl-step-dot" id="pldot5"></div>
     </div>
 
     <!-- Step 0: Passe Bande -->
     <div class="pl-step active" id="plstep0">
       <div class="pl-step-title">① Passe Bande</div>
-      <div class="pl-step-desc">20 tentatives — tape ✓ ou ✗ après chaque passe</div>
+      <div class="pl-step-desc">20 tentatives — tape ✓ ou ✗ après chaque passe milieu</div>
       <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar0" style="width:0%"></div></div>
-      <div class="pl-counter">
-        <div class="pl-counter-num" id="plcount0">0</div>
-        <div class="pl-counter-label">tentatives / 20</div>
-      </div>
+      <div class="pl-counter"><div class="pl-counter-num" id="plcount0">0</div><div class="pl-counter-label">tentatives / 20</div></div>
       <div class="pl-buttons">
         <button type="button" class="pl-btn-success" onclick="plRecord(0,true)">✓ Réussie</button>
         <button type="button" class="pl-btn-fail" onclick="plRecord(0,false)">✗ Ratée</button>
@@ -2587,12 +2794,9 @@ window.addEventListener('DOMContentLoaded', () => {
     <!-- Step 1: Passe Croisée -->
     <div class="pl-step" id="plstep1">
       <div class="pl-step-title">② Passe Croisée</div>
-      <div class="pl-step-desc">20 tentatives</div>
+      <div class="pl-step-desc">20 tentatives — passe milieu croisée</div>
       <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar1" style="width:0%"></div></div>
-      <div class="pl-counter">
-        <div class="pl-counter-num" id="plcount1">0</div>
-        <div class="pl-counter-label">tentatives / 20</div>
-      </div>
+      <div class="pl-counter"><div class="pl-counter-num" id="plcount1">0</div><div class="pl-counter-label">tentatives / 20</div></div>
       <div class="pl-buttons">
         <button type="button" class="pl-btn-success" onclick="plRecord(1,true)">✓ Réussie</button>
         <button type="button" class="pl-btn-fail" onclick="plRecord(1,false)">✗ Ratée</button>
@@ -2600,76 +2804,123 @@ window.addEventListener('DOMContentLoaded', () => {
       <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore1">Réussites : 0</div>
     </div>
 
-    <!-- Step 2: Tir Principal -->
+    <!-- Step 2: Passe Défense Favorite -->
     <div class="pl-step" id="plstep2">
-      <div class="pl-step-title">③ Tir Principal</div>
-      <div class="pl-step-desc">Choisis ton tir préféré, puis 20 tentatives</div>
-      <div id="plTirPicker">
+      <div class="pl-step-title">③ Passe Défense Favorite</div>
+      <div class="pl-step-desc">Choisis ta passe défense préférée, puis 20 tentatives</div>
+      <div id="plPasseDefPicker">
         <div class="pl-tir-grid">
-          <div class="pl-tir-opt" onclick="selectPlTir(this,'Tirer courte')">Tirer courte</div>
-          <div class="pl-tir-opt" onclick="selectPlTir(this,'Tirer longue')">Tirer longue</div>
-          <div class="pl-tir-opt" onclick="selectPlTir(this,'Tirer croisée')">Tirer croisée</div>
-          <div class="pl-tir-opt" onclick="selectPlTir(this,'Pousser courte')">Pousser courte</div>
-          <div class="pl-tir-opt" onclick="selectPlTir(this,'Pousser longue')">Pousser longue</div>
-          <div class="pl-tir-opt" onclick="selectPlTir(this,'Fixe')">Fixe</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Bande défense')">Bande</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Centre défense')">Centre</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Directe défense')">Directe</div>
         </div>
-        <button type="button" class="btn-primary" onclick="startPlTir()" id="plTirStart" style="opacity:0.4;pointer-events:none;">Commencer →</button>
+        <button type="button" class="btn-primary" id="plPasseDefStart" onclick="startPlStep(2)" style="opacity:0.4;pointer-events:none;">Commencer →</button>
       </div>
-      <div id="plTirTest" style="display:none;">
+      <div id="plPasseDefTest" style="display:none;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--gold);text-align:center;margin-bottom:12px;" id="plPasseDefLabel"></div>
         <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar2" style="width:0%"></div></div>
-        <div class="pl-counter">
-          <div class="pl-counter-num" id="plcount2">0</div>
-          <div class="pl-counter-label">tentatives / 20</div>
-        </div>
+        <div class="pl-counter"><div class="pl-counter-num" id="plcount2">0</div><div class="pl-counter-label">tentatives / 20</div></div>
         <div class="pl-buttons">
-          <button type="button" class="pl-btn-success" onclick="plRecord(2,true)">✓ But</button>
-          <button type="button" class="pl-btn-fail" onclick="plRecord(2,false)">✗ Raté</button>
+          <button type="button" class="pl-btn-success" onclick="plRecord(2,true)">✓ Réussie</button>
+          <button type="button" class="pl-btn-fail" onclick="plRecord(2,false)">✗ Ratée</button>
         </div>
-        <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore2">Buts : 0</div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore2">Réussites : 0</div>
       </div>
     </div>
 
-    <!-- Step 3: Contrôle -->
+    <!-- Step 3: Tir Défense Favori -->
     <div class="pl-step" id="plstep3">
-      <div class="pl-step-title">④ Contrôle</div>
-      <div class="pl-step-desc">20 réceptions — la balle reste sous contrôle ?</div>
-      <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar3" style="width:0%"></div></div>
-      <div class="pl-counter">
-        <div class="pl-counter-num" id="plcount3">0</div>
-        <div class="pl-counter-label">tentatives / 20</div>
+      <div class="pl-step-title">④ Tir Défense Favori</div>
+      <div class="pl-step-desc">Choisis ton tir depuis la défense préféré, puis 20 tentatives</div>
+      <div id="plTirDefPicker">
+        <div class="pl-tir-grid">
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer courte défense')">Tirer courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer longue défense')">Tirer longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer croisée défense')">Tirer croisée</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser courte défense')">Pousser courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser longue défense')">Pousser longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser décroisée défense')">Pousser décroisée</div>
+        </div>
+        <button type="button" class="btn-primary" id="plTirDefStart" onclick="startPlStep(3)" style="opacity:0.4;pointer-events:none;">Commencer →</button>
       </div>
-      <div class="pl-buttons">
-        <button type="button" class="pl-btn-success" onclick="plRecord(3,true)">✓ Contrôlé</button>
-        <button type="button" class="pl-btn-fail" onclick="plRecord(3,false)">✗ Raté</button>
+      <div id="plTirDefTest" style="display:none;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--gold);text-align:center;margin-bottom:12px;" id="plTirDefLabel"></div>
+        <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar3" style="width:0%"></div></div>
+        <div class="pl-counter"><div class="pl-counter-num" id="plcount3">0</div><div class="pl-counter-label">tentatives / 20</div></div>
+        <div class="pl-buttons">
+          <button type="button" class="pl-btn-success" onclick="plRecord(3,true)">✓ But</button>
+          <button type="button" class="pl-btn-fail" onclick="plRecord(3,false)">✗ Raté</button>
+        </div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore3">Buts : 0</div>
       </div>
-      <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore3">Réussites : 0</div>
     </div>
 
-    <!-- Step 4: Défense -->
+    <!-- Step 4: Tir Attaque Favori -->
     <div class="pl-step" id="plstep4">
-      <div class="pl-step-title">⑤ Défense</div>
-      <div class="pl-step-desc">20 tirs reçus — arrêtes-tu la balle ?</div>
-      <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar4" style="width:0%"></div></div>
-      <div class="pl-counter">
-        <div class="pl-counter-num" id="plcount4">0</div>
-        <div class="pl-counter-label">tentatives / 20</div>
+      <div class="pl-step-title">⑤ Tir Attaque Favori</div>
+      <div class="pl-step-desc">Choisis ton tir depuis l'attaque préféré, puis 20 tentatives</div>
+      <div id="plTirAttPicker">
+        <div class="pl-tir-grid">
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer courte attaque')">Tirer courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer longue attaque')">Tirer longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer croisée attaque')">Tirer croisée</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Pousser courte attaque')">Pousser courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Pousser longue attaque')">Pousser longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Fixe attaque')">Fixe</div>
+        </div>
+        <button type="button" class="btn-primary" id="plTirAttStart" onclick="startPlStep(4)" style="opacity:0.4;pointer-events:none;">Commencer →</button>
       </div>
-      <div class="pl-buttons">
-        <button type="button" class="pl-btn-success" onclick="plRecord(4,true)">✓ Arrêt</button>
-        <button type="button" class="pl-btn-fail" onclick="plRecord(4,false)">✗ But encaissé</button>
+      <div id="plTirAttTest" style="display:none;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--gold);text-align:center;margin-bottom:12px;" id="plTirAttLabel"></div>
+        <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar4" style="width:0%"></div></div>
+        <div class="pl-counter"><div class="pl-counter-num" id="plcount4">0</div><div class="pl-counter-label">tentatives / 20</div></div>
+        <div class="pl-buttons">
+          <button type="button" class="pl-btn-success" onclick="plRecord(4,true)">✓ But</button>
+          <button type="button" class="pl-btn-fail" onclick="plRecord(4,false)">✗ Raté</button>
+        </div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore4">Buts : 0</div>
       </div>
-      <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore4">Arrêts : 0</div>
     </div>
 
-    <!-- Step 5: Results -->
+    <!-- Step 5: Test Réactivité -->
     <div class="pl-step" id="plstep5">
+      <div class="pl-step-title">⑥ Test Réactivité</div>
+      <div class="pl-step-desc">L'app affiche une action précise — exécute-la, puis dis si tu as réussi</div>
+      <div id="plReactStart">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;">
+          <div style="font-size:32px;margin-bottom:8px;">🎲</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;color:var(--text-secondary);">20 actions tirées au hasard depuis toutes les zones</div>
+        </div>
+        <button type="button" class="btn-primary" onclick="startReact()">Commencer le test →</button>
+      </div>
+      <div id="plReactTest" style="display:none;">
+        <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar5" style="width:0%"></div></div>
+        <div style="background:var(--bg-card);border:2px solid var(--gold);border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;min-height:100px;display:flex;align-items:center;justify-content:center;">
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;margin-bottom:6px;" id="plReactZone">ZONE</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--gold);" id="plReactAction">—</div>
+          </div>
+        </div>
+        <div class="pl-counter"><div class="pl-counter-num" id="plcount5">0</div><div class="pl-counter-label">actions / 20</div></div>
+        <div class="pl-buttons">
+          <button type="button" class="pl-btn-success" onclick="plRecord(5,true)">✓ Réussie</button>
+          <button type="button" class="pl-btn-fail" onclick="plRecord(5,false)">✗ Ratée</button>
+        </div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore5">Réussites : 0</div>
+      </div>
+    </div>
+
+    <!-- Step 6: Results -->
+    <div class="pl-step" id="plstep6">
       <div style="text-align:center;margin-bottom:24px;">
         <span style="font-size:64px;" id="plResultBadge">🥉</span>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;margin:8px 0 4px;" id="plResultLeague">Bronze</div>
         <div style="font-size:14px;color:var(--text-secondary);" id="plResultDiv">Division II</div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--text-muted);margin-top:4px;" id="plResultScore"></div>
       </div>
       <div id="plResultCards"></div>
       <button type="button" class="btn-primary" onclick="confirmPlacement()" style="margin-top:8px;">🚀 Commencer l'aventure</button>
+      <button type="button" onclick="openPlacement()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-bright);color:var(--text-secondary);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:4px;cursor:pointer;margin-top:8px;">🔄 Refaire le test</button>
     </div>
 
   </div>
@@ -2690,6 +2941,14 @@ window.addEventListener('DOMContentLoaded', () => {
     </div>
     <div class="modal-field"><label>Détails</label><input type="text" id="valDetails" placeholder="Ex: Top 4 tournoi régional Ath"></div>
     <div class="modal-field"><label>Date</label><input type="date" id="valDate"></div>
+    <div class="modal-field">
+      <label>Capture d'écran (preuve)</label>
+      <div style="position:relative;border:2px dashed var(--border-bright);border-radius:4px;padding:16px;text-align:center;background:var(--bg-surface);cursor:pointer;" id="valPhotoZone">
+        <input type="file" accept="image/*" id="valPhoto" onchange="handleValPhoto(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+        <div id="valPhotoText" style="font-size:13px;color:var(--text-secondary);">📸 Ajouter une capture d'écran</div>
+        <img id="valPhotoPreview" style="display:none;width:100%;max-height:120px;object-fit:contain;border-radius:4px;margin-top:8px;" alt="Preuve">
+      </div>
+    </div>
     <div class="modal-actions">
       <button type="button" class="modal-cancel" onclick="closeModal('validateModal')">Annuler</button>
       <button type="button" class="modal-confirm" onclick="confirmValidation()">Homologuer ✅</button>
