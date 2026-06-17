@@ -769,6 +769,171 @@
   input[type=number] { -moz-appearance:textfield; }
   button { cursor:pointer; }
 
+
+  /* ── LEAGUE SYSTEM ── */
+  .placement-overlay {
+    position: fixed; inset: 0; z-index: 900;
+    background: var(--bg-deep); overflow-y: auto;
+    -webkit-overflow-scrolling: touch; padding: 30px 20px 60px;
+    display: none;
+  }
+  .placement-overlay.open { display: block; }
+  .pl-wrap { max-width: 480px; margin: 0 auto; }
+  .pl-header { text-align: center; margin-bottom: 32px; }
+  .pl-badge {
+    font-size: 56px; margin-bottom: 12px; display: block;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+  .pl-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 32px; font-weight: 900; color: var(--text-primary);
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .pl-sub { font-size: 13px; color: var(--text-secondary); }
+  .pl-step-indicator {
+    display: flex; gap: 4px; margin-bottom: 28px;
+  }
+  .pl-step-dot {
+    flex: 1; height: 4px; background: var(--border);
+    border-radius: 2px; transition: background 0.3s;
+  }
+  .pl-step-dot.done { background: var(--gold); }
+  .pl-step-dot.active { background: var(--cyan); }
+  .pl-step { display: none; }
+  .pl-step.active { display: block; }
+  .pl-step-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px; font-weight: 900; color: var(--text-primary);
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .pl-step-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+  .pl-counter {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 24px; text-align: center; margin-bottom: 16px;
+  }
+  .pl-counter-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 72px; font-weight: 900; color: var(--gold); line-height: 1;
+  }
+  .pl-counter-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .pl-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .pl-btn-success {
+    padding: 16px; background: rgba(0,230,118,0.1);
+    border: 2px solid var(--green); border-radius: 6px;
+    color: var(--green); font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px; font-weight: 900; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer; transition: all 0.15s;
+  }
+  .pl-btn-success:active { background: rgba(0,230,118,0.25); transform: scale(0.97); }
+  .pl-btn-fail {
+    padding: 16px; background: rgba(255,59,48,0.1);
+    border: 2px solid var(--red); border-radius: 6px;
+    color: var(--red); font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px; font-weight: 900; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer; transition: all 0.15s;
+  }
+  .pl-btn-fail:active { background: rgba(255,59,48,0.25); transform: scale(0.97); }
+  .pl-progress-bar {
+    height: 8px; background: var(--border); border-radius: 4px;
+    overflow: hidden; margin-bottom: 20px;
+  }
+  .pl-progress-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+    transition: width 0.3s;
+  }
+  .pl-result-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .pl-result-label { font-family: 'Barlow Condensed', sans-serif; font-size:16px; font-weight:700; color:var(--text-primary); }
+  .pl-result-pct { font-family: 'Roboto Mono', monospace; font-size:18px; font-weight:600; color:var(--gold); }
+  .pl-tir-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .pl-tir-opt {
+    padding: 12px; background: var(--bg-card);
+    border: 2px solid var(--border); border-radius: 6px;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 15px;
+    font-weight: 700; color: var(--text-secondary); cursor: pointer;
+    text-align: center; transition: all 0.2s; text-transform: uppercase;
+  }
+  .pl-tir-opt.selected { border-color: var(--gold); color: var(--gold); background: #1A1500; }
+
+  /* LEAGUE CARD */
+  .league-card {
+    background: linear-gradient(135deg, var(--bg-card) 0%, #0A1628 100%);
+    border-radius: 8px; padding: 20px; margin-bottom: 16px;
+    position: relative; overflow: hidden;
+  }
+  .league-card::before {
+    content: ''; position: absolute; top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, var(--league-color, rgba(201,168,76,0.15)) 0%, transparent 70%);
+  }
+  .league-badge-big { font-size: 48px; margin-bottom: 8px; display: block; }
+  .league-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 900; margin-bottom: 2px;
+  }
+  .league-division { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+  .league-points {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px; color: var(--gold);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .lp-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+  .lp-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+  .ranks-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .rank-mini {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px 8px; text-align: center;
+  }
+  .rank-mini-icon { font-size: 24px; margin-bottom: 4px; }
+  .rank-mini-label {
+    font-size: 9px; color: var(--text-secondary);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .rank-mini-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; color: var(--text-primary);
+  }
+  .rank-mini-div { font-size: 10px; color: var(--text-muted); }
+  .validation-banner {
+    border-radius: 6px; padding: 12px 14px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700;
+  }
+  .validation-banner.validated { background: rgba(0,230,118,0.1); border: 1px solid var(--green); color: var(--green); }
+  .validation-banner.unvalidated { background: rgba(122,138,160,0.1); border: 1px solid var(--text-muted); color: var(--text-secondary); }
+  .validate-btn {
+    width: 100%; padding: 12px;
+    background: transparent; border: 1px solid var(--gold-dim);
+    color: var(--gold); font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; border-radius: 4px;
+    cursor: pointer; transition: all 0.2s; margin-bottom: 8px;
+  }
+  .validate-btn:hover { background: var(--gold); color: #000; }
+  .season-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px; margin-bottom: 8px;
+  }
+  .season-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px;
+  }
+  .season-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px; font-weight: 700; color: var(--text-primary);
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -1102,6 +1267,12 @@
     </div>
 
 
+
+    <!-- LEAGUE -->
+    <div class="screen" id="screen-league">
+      <div id="leagueContent"></div>
+    </div>
+
     <!-- OBJECTIVES -->
     <div class="screen" id="screen-objectives">
       <div class="section-title" style="margin-bottom:4px">Objectifs</div>
@@ -1140,17 +1311,17 @@
       </svg>
       Match
     </div>
+    <div class="nav-item" id="nav-league" onclick="navTo('league')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2l3 6.5L22 9.3l-5 4.9 1.2 6.8L12 17.7l-6.2 3.3L7 14.2 2 9.3l7-.8z"/>
+      </svg>
+      Ligue
+    </div>
     <div class="nav-item" id="nav-objectives" onclick="navTo('objectives')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
         <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
       </svg>
       Objectifs
-    </div>
-    <div class="nav-item" id="nav-stats" onclick="navTo('stats')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-      </svg>
-      Stats
     </div>
     <div class="nav-item" id="nav-profile" onclick="navTo('profile')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -1340,6 +1511,10 @@ function finishOnboarding() {
   document.getElementById('onboarding').style.display = 'none';
   document.getElementById('app').classList.add('visible');
   initApp();
+  // Trigger placement test after short delay
+  setTimeout(() => {
+    if (!DB.get('rankGlobal')) openPlacement();
+  }, 800);
 }
 
 // ══════════════════════════════════════════
@@ -1393,7 +1568,9 @@ function renderDashboard() {
 
   document.getElementById('dash-greeting').textContent = greeting;
   document.getElementById('dash-name').textContent = profile.name;
-  document.getElementById('dash-rank').textContent = rank.name;
+  const rankG = DB.get('rankGlobal');
+  const leagueStr = rankG ? LEAGUES[rankG.leagueIdx].emoji + ' ' + LEAGUES[rankG.leagueIdx].name + ' ' + ['I','II','III'][rankG.division-1] : rank.name;
+  document.getElementById('dash-rank').textContent = leagueStr;
   document.getElementById('dash-level').textContent = lvl;
 
   const curLvlXP = RPG.levelXP(lvl);
@@ -1510,6 +1687,7 @@ function saveExercise(id, type) {
   addXP(xpGain, `Entraînement · ${tried} rép.`);
 
   DB.push('history', { type:'training', ts:Date.now(), exerciseId:id, tried, ok, xp:xpGain });
+  if (tried > 0) updateLeagueFromTraining(Math.round(ok/tried*100));
   renderDashboard();
   checkBadges();
   updateCoach();
@@ -1847,6 +2025,7 @@ function navTo(screen) {
   if (screen === 'profile') renderProfile();
   if (screen === 'dash') renderDashboard();
   if (screen === 'objectives') renderObjectives();
+  if (screen === 'league') renderLeague();
 }
 
 // ══════════════════════════════════════════
@@ -2060,6 +2239,285 @@ function renderCharts() {
 }
 
 
+
+// ══════════════════════════════════════════
+// LEAGUE SYSTEM
+// ══════════════════════════════════════════
+const LEAGUES = [
+  { id:'bronze',      name:'Bronze',       emoji:'🥉', color:'#CD7F32', divisions:3, lpPerDiv:100, minScore:0   },
+  { id:'silver',      name:'Argent',       emoji:'🥈', color:'#C0C0C0', divisions:3, lpPerDiv:100, minScore:25  },
+  { id:'gold',        name:'Or',           emoji:'🥇', color:'#FFD700', divisions:3, lpPerDiv:100, minScore:40  },
+  { id:'platinum',    name:'Platine',      emoji:'💎', color:'#00E5FF', divisions:3, lpPerDiv:100, minScore:55  },
+  { id:'diamond',     name:'Diamant',      emoji:'💠', color:'#00B0FF', divisions:3, lpPerDiv:100, minScore:65  },
+  { id:'master',      name:'Maître',       emoji:'👑', color:'#AA00FF', divisions:3, lpPerDiv:100, minScore:75  },
+  { id:'grandmaster', name:'Grand Maître', emoji:'🔥', color:'#FF4500', divisions:2, lpPerDiv:100, minScore:85  },
+  { id:'legend',      name:'Légende',      emoji:'🏆', color:'#FFD700', divisions:1, lpPerDiv:100, minScore:93  },
+];
+
+// Placement state
+let plData = { scores: [null,null,null,null,null], tries: [0,0,0,0,0], step: 0, tirChoice: '' };
+
+function openPlacement() {
+  plData = { scores: [0,0,0,0,0], tries: [0,0,0,0,0], step: 0, tirChoice: '' };
+  for(let i=0;i<5;i++){
+    if(document.getElementById('plcount'+i)) document.getElementById('plcount'+i).textContent='0';
+    if(document.getElementById('plbar'+i)) document.getElementById('plbar'+i).style.width='0%';
+    if(document.getElementById('plscore'+i)) document.getElementById('plscore'+i).textContent='Réussites : 0';
+  }
+  // Reset step display
+  for(let i=0;i<=5;i++){
+    const s = document.getElementById('plstep'+i);
+    if(s) s.classList.remove('active');
+  }
+  for(let i=0;i<5;i++){
+    const d = document.getElementById('pldot'+i);
+    if(d){ d.classList.remove('done','active'); }
+  }
+  document.getElementById('plstep0').classList.add('active');
+  document.getElementById('pldot0').classList.add('active');
+  // Reset tir step
+  document.getElementById('plTirPicker').style.display='block';
+  document.getElementById('plTirTest').style.display='none';
+  document.querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
+  document.getElementById('plTirStart').style.opacity='0.4';
+  document.getElementById('plTirStart').style.pointerEvents='none';
+
+  document.getElementById('placementOverlay').classList.add('open');
+  document.getElementById('placementOverlay').scrollTo({top:0});
+}
+
+function selectPlTir(el, name) {
+  document.querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  plData.tirChoice = name;
+  document.getElementById('plTirStart').style.opacity='1';
+  document.getElementById('plTirStart').style.pointerEvents='auto';
+}
+
+function startPlTir() {
+  document.getElementById('plTirPicker').style.display='none';
+  document.getElementById('plTirTest').style.display='block';
+}
+
+function plRecord(step, success) {
+  if (plData.tries[step] >= 20) return;
+  plData.tries[step]++;
+  if (success) plData.scores[step]++;
+
+  const pct = Math.round(plData.tries[step]/20*100);
+  const countEl = document.getElementById('plcount'+step);
+  const barEl = document.getElementById('plbar'+step);
+  const scoreEl = document.getElementById('plscore'+step);
+  if(countEl) countEl.textContent = plData.tries[step];
+  if(barEl) barEl.style.width = pct+'%';
+  const labels = ['Réussites','Réussites','Buts','Réussites','Arrêts'];
+  if(scoreEl) scoreEl.textContent = labels[step]+' : '+plData.scores[step];
+
+  if (plData.tries[step] >= 20) {
+    setTimeout(() => plNextStep(step), 500);
+  }
+}
+
+function plNextStep(step) {
+  const cur = document.getElementById('plstep'+step);
+  const dot = document.getElementById('pldot'+step);
+  if(cur) cur.classList.remove('active');
+  if(dot) { dot.classList.remove('active'); dot.classList.add('done'); }
+
+  const next = step + 1;
+  const nextEl = document.getElementById('plstep'+next);
+  const nextDot = document.getElementById('pldot'+next);
+  if(nextEl) nextEl.classList.add('active');
+  if(nextDot) nextDot.classList.add('active');
+  document.getElementById('placementOverlay').scrollTo({top:0, behavior:'smooth'});
+
+  if (next === 5) showPlacementResult();
+}
+
+function showPlacementResult() {
+  const pcts = plData.scores.map((s,i) => plData.tries[i]>0 ? Math.round(s/plData.tries[i]*100) : 0);
+  // Weighted score: passes 25%, passes croisées 20%, tir 25%, contrôle 15%, defense 15%
+  const weights = [0.25, 0.20, 0.25, 0.15, 0.15];
+  const globalScore = pcts.reduce((sum, p, i) => sum + p * weights[i], 0);
+
+  // Find league
+  let leagueIdx = 0;
+  LEAGUES.forEach((l, i) => { if(globalScore >= l.minScore) leagueIdx = i; });
+  const league = LEAGUES[leagueIdx];
+
+  // Division: based on how far into league range
+  const nextMin = leagueIdx < LEAGUES.length-1 ? LEAGUES[leagueIdx+1].minScore : 100;
+  const rangeSize = nextMin - league.minScore;
+  const posInRange = globalScore - league.minScore;
+  const divFraction = rangeSize > 0 ? posInRange / rangeSize : 1;
+  const division = Math.max(1, Math.min(league.divisions, Math.ceil((1 - divFraction) * league.divisions)));
+
+  document.getElementById('plResultBadge').textContent = league.emoji;
+  document.getElementById('plResultLeague').textContent = league.name;
+  document.getElementById('plResultLeague').style.color = league.color;
+  document.getElementById('plResultDiv').textContent = 'Division ' + ['I','II','III'][division-1];
+
+  const stepNames = ['Passe Bande','Passe Croisée','Tir ('+plData.tirChoice+')','Contrôle','Défense'];
+  document.getElementById('plResultCards').innerHTML = pcts.map((p,i) => `
+    <div class="pl-result-card">
+      <div class="pl-result-label">${stepNames[i]}</div>
+      <div class="pl-result-pct" style="color:${p>=70?'#00E676':p>=40?'#FF9500':'#FF3B30'}">${p}%</div>
+    </div>
+  `).join('');
+
+  // Store placement result
+  const lp = Math.round(divFraction * 100) % 100;
+  DB.set('placement', { leagueIdx, division, lp, globalScore, pcts, tirChoice:plData.tirChoice, date:Date.now() });
+  DB.set('rankGlobal', { leagueIdx, division, lp });
+  DB.set('rankAttack', { leagueIdx: Math.max(0,leagueIdx-1), division:1, lp:50 });
+  DB.set('rankDefense', { leagueIdx: leagueIdx, division:2, lp:30 });
+}
+
+function confirmPlacement() {
+  document.getElementById('placementOverlay').classList.remove('open');
+  renderLeague();
+  renderDashboard();
+  addXP(100, 'Test de placement complété !');
+}
+
+// ── LEAGUE SCREEN RENDER ──
+function renderLeague() {
+  const el = document.getElementById('leagueContent');
+  if (!el) return;
+
+  const rankG = DB.get('rankGlobal');
+  const rankA = DB.get('rankAttack');
+  const rankD = DB.get('rankDefense');
+  const validated = DB.get('validated') || false;
+
+  if (!rankG) {
+    el.innerHTML = `
+    <div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:64px;margin-bottom:16px;">🎯</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">TEST DE PLACEMENT</div>
+      <div style="font-size:14px;color:var(--text-secondary);margin-bottom:24px;">Détermine ta ligue de départ en 15 minutes.</div>
+      <button type="button" class="btn-primary" onclick="openPlacement()">Commencer le test →</button>
+    </div>`;
+    return;
+  }
+
+  const lg = LEAGUES[rankG.leagueIdx];
+  const la = LEAGUES[rankA.leagueIdx];
+  const ld = LEAGUES[rankD.leagueIdx];
+  const divNames = ['I','II','III'];
+
+  // Season info
+  const placement = DB.get('placement') || {};
+  const seasonStart = placement.date || Date.now();
+  const seasonEnd = seasonStart + 90*24*3600*1000;
+  const daysLeft = Math.max(0, Math.ceil((seasonEnd - Date.now()) / (24*3600*1000)));
+
+  el.innerHTML = `
+  <div class="section-title">Rang Global</div>
+  <div class="league-card" style="border:1px solid ${lg.color}40;">
+    <span class="league-badge-big">${lg.emoji}</span>
+    <div class="league-name" style="color:${lg.color}">${lg.name} ${divNames[rankG.division-1]}</div>
+    <div class="league-division">Score de placement : ${placement.globalScore ? Math.round(placement.globalScore)+'%' : '—'}</div>
+    <div class="league-points">
+      <span>${rankG.lp} LP</span>
+      <span style="color:var(--text-muted)">/ 100</span>
+    </div>
+    <div class="lp-bar"><div class="lp-fill" style="width:${rankG.lp}%;background:${lg.color}"></div></div>
+  </div>
+
+  <div class="${validated?'validation-banner validated':'validation-banner unvalidated'}">
+    <span>${validated?'✅':'⚪'}</span>
+    <span>${validated?'Rang homologué — '+validated : 'Non homologué — compétition réelle requise'}</span>
+  </div>
+  <button type="button" class="validate-btn" onclick="openModal('validateModal')">🏆 Homologuer mon rang</button>
+
+  <div class="section-title" style="margin-top:4px;">Spécialisations</div>
+  <div class="ranks-grid">
+    <div class="rank-mini">
+      <div class="rank-mini-icon">${lg.emoji}</div>
+      <div class="rank-mini-label">Global</div>
+      <div class="rank-mini-val">${lg.name}</div>
+      <div class="rank-mini-div">${divNames[rankG.division-1]}</div>
+    </div>
+    <div class="rank-mini">
+      <div class="rank-mini-icon">${la.emoji}</div>
+      <div class="rank-mini-label">Attaque</div>
+      <div class="rank-mini-val">${la.name}</div>
+      <div class="rank-mini-div">${divNames[rankA.division-1]}</div>
+    </div>
+    <div class="rank-mini">
+      <div class="rank-mini-icon">${ld.emoji}</div>
+      <div class="rank-mini-label">Défense</div>
+      <div class="rank-mini-val">${ld.name}</div>
+      <div class="rank-mini-div">${divNames[rankD.division-1]}</div>
+    </div>
+  </div>
+
+  <div class="section-title">Saison en cours</div>
+  <div class="season-card">
+    <div class="season-label">Temps restant</div>
+    <div class="season-val">${daysLeft} jours</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Promotion / Maintien / Relégation à la fin</div>
+  </div>
+  <div class="season-card" style="margin-top:0;">
+    <div class="season-label">Progression de saison</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+      ${['Passe Bande','Passe Croisée','Tir ('+placement.tirChoice+')','Contrôle','Défense'].map((n,i)=>`
+        <div style="font-size:12px;color:var(--text-secondary);">${n} <span style="color:var(--gold);font-weight:700;">${placement.pcts?placement.pcts[i]+'%':'—'}</span></div>
+      `).join('')}
+    </div>
+  </div>
+
+  <button type="button" class="add-exercise-btn" style="margin-top:8px;" onclick="openPlacement()">🔄 Refaire le test de placement</button>
+  `;
+}
+
+function updateLeagueFromTraining(successPct) {
+  const rank = DB.get('rankGlobal');
+  if (!rank) return;
+  const gain = successPct >= 70 ? 3 : successPct >= 50 ? 1 : -1;
+  rank.lp = Math.min(100, Math.max(0, rank.lp + gain));
+  // Promotion
+  if (rank.lp >= 100) {
+    if (rank.division > 1) {
+      rank.division--;
+      rank.lp = 0;
+    } else if (rank.leagueIdx < LEAGUES.length-1) {
+      rank.leagueIdx++;
+      rank.division = LEAGUES[rank.leagueIdx].divisions;
+      rank.lp = 0;
+    }
+  }
+  // Relégation
+  if (rank.lp <= 0 && rank.leagueIdx > 0) {
+    if (rank.division < LEAGUES[rank.leagueIdx].divisions) {
+      rank.division++;
+      rank.lp = 75;
+    } else {
+      rank.leagueIdx--;
+      rank.division = 1;
+      rank.lp = 75;
+    }
+  }
+  DB.set('rankGlobal', rank);
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+
+function confirmValidation() {
+  const type = document.getElementById('valType').value;
+  const details = document.getElementById('valDetails').value.trim();
+  const date = document.getElementById('valDate').value;
+  if (!details) return;
+  DB.set('validated', type + ' — ' + details + (date?' ('+date+')':''));
+  closeModal('validateModal');
+  renderLeague();
+  addXP(200, 'Rang homologué ! 🏆');
+}
+
+
 // ══════════════════════════════════════════
 // BOOT
 // ══════════════════════════════════════════
@@ -2089,6 +2547,152 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="modal-actions">
       <button type="button" class="modal-cancel" onclick="closeModal('addObjModal')">Annuler</button>
       <button type="button" class="modal-confirm" onclick="confirmAddObj()">Créer</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ PLACEMENT TEST ══ -->
+<div class="placement-overlay" id="placementOverlay">
+  <div class="pl-wrap">
+    <div class="pl-header">
+      <span class="pl-badge">🎯</span>
+      <div class="pl-title">Test de placement</div>
+      <div class="pl-sub">5 épreuves · 15–20 min · Détermine ta ligue de départ</div>
+    </div>
+    <div class="pl-step-indicator">
+      <div class="pl-step-dot active" id="pldot0"></div>
+      <div class="pl-step-dot" id="pldot1"></div>
+      <div class="pl-step-dot" id="pldot2"></div>
+      <div class="pl-step-dot" id="pldot3"></div>
+      <div class="pl-step-dot" id="pldot4"></div>
+    </div>
+
+    <!-- Step 0: Passe Bande -->
+    <div class="pl-step active" id="plstep0">
+      <div class="pl-step-title">① Passe Bande</div>
+      <div class="pl-step-desc">20 tentatives — tape ✓ ou ✗ après chaque passe</div>
+      <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar0" style="width:0%"></div></div>
+      <div class="pl-counter">
+        <div class="pl-counter-num" id="plcount0">0</div>
+        <div class="pl-counter-label">tentatives / 20</div>
+      </div>
+      <div class="pl-buttons">
+        <button type="button" class="pl-btn-success" onclick="plRecord(0,true)">✓ Réussie</button>
+        <button type="button" class="pl-btn-fail" onclick="plRecord(0,false)">✗ Ratée</button>
+      </div>
+      <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore0">Réussites : 0</div>
+    </div>
+
+    <!-- Step 1: Passe Croisée -->
+    <div class="pl-step" id="plstep1">
+      <div class="pl-step-title">② Passe Croisée</div>
+      <div class="pl-step-desc">20 tentatives</div>
+      <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar1" style="width:0%"></div></div>
+      <div class="pl-counter">
+        <div class="pl-counter-num" id="plcount1">0</div>
+        <div class="pl-counter-label">tentatives / 20</div>
+      </div>
+      <div class="pl-buttons">
+        <button type="button" class="pl-btn-success" onclick="plRecord(1,true)">✓ Réussie</button>
+        <button type="button" class="pl-btn-fail" onclick="plRecord(1,false)">✗ Ratée</button>
+      </div>
+      <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore1">Réussites : 0</div>
+    </div>
+
+    <!-- Step 2: Tir Principal -->
+    <div class="pl-step" id="plstep2">
+      <div class="pl-step-title">③ Tir Principal</div>
+      <div class="pl-step-desc">Choisis ton tir préféré, puis 20 tentatives</div>
+      <div id="plTirPicker">
+        <div class="pl-tir-grid">
+          <div class="pl-tir-opt" onclick="selectPlTir(this,'Tirer courte')">Tirer courte</div>
+          <div class="pl-tir-opt" onclick="selectPlTir(this,'Tirer longue')">Tirer longue</div>
+          <div class="pl-tir-opt" onclick="selectPlTir(this,'Tirer croisée')">Tirer croisée</div>
+          <div class="pl-tir-opt" onclick="selectPlTir(this,'Pousser courte')">Pousser courte</div>
+          <div class="pl-tir-opt" onclick="selectPlTir(this,'Pousser longue')">Pousser longue</div>
+          <div class="pl-tir-opt" onclick="selectPlTir(this,'Fixe')">Fixe</div>
+        </div>
+        <button type="button" class="btn-primary" onclick="startPlTir()" id="plTirStart" style="opacity:0.4;pointer-events:none;">Commencer →</button>
+      </div>
+      <div id="plTirTest" style="display:none;">
+        <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar2" style="width:0%"></div></div>
+        <div class="pl-counter">
+          <div class="pl-counter-num" id="plcount2">0</div>
+          <div class="pl-counter-label">tentatives / 20</div>
+        </div>
+        <div class="pl-buttons">
+          <button type="button" class="pl-btn-success" onclick="plRecord(2,true)">✓ But</button>
+          <button type="button" class="pl-btn-fail" onclick="plRecord(2,false)">✗ Raté</button>
+        </div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore2">Buts : 0</div>
+      </div>
+    </div>
+
+    <!-- Step 3: Contrôle -->
+    <div class="pl-step" id="plstep3">
+      <div class="pl-step-title">④ Contrôle</div>
+      <div class="pl-step-desc">20 réceptions — la balle reste sous contrôle ?</div>
+      <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar3" style="width:0%"></div></div>
+      <div class="pl-counter">
+        <div class="pl-counter-num" id="plcount3">0</div>
+        <div class="pl-counter-label">tentatives / 20</div>
+      </div>
+      <div class="pl-buttons">
+        <button type="button" class="pl-btn-success" onclick="plRecord(3,true)">✓ Contrôlé</button>
+        <button type="button" class="pl-btn-fail" onclick="plRecord(3,false)">✗ Raté</button>
+      </div>
+      <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore3">Réussites : 0</div>
+    </div>
+
+    <!-- Step 4: Défense -->
+    <div class="pl-step" id="plstep4">
+      <div class="pl-step-title">⑤ Défense</div>
+      <div class="pl-step-desc">20 tirs reçus — arrêtes-tu la balle ?</div>
+      <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar4" style="width:0%"></div></div>
+      <div class="pl-counter">
+        <div class="pl-counter-num" id="plcount4">0</div>
+        <div class="pl-counter-label">tentatives / 20</div>
+      </div>
+      <div class="pl-buttons">
+        <button type="button" class="pl-btn-success" onclick="plRecord(4,true)">✓ Arrêt</button>
+        <button type="button" class="pl-btn-fail" onclick="plRecord(4,false)">✗ But encaissé</button>
+      </div>
+      <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore4">Arrêts : 0</div>
+    </div>
+
+    <!-- Step 5: Results -->
+    <div class="pl-step" id="plstep5">
+      <div style="text-align:center;margin-bottom:24px;">
+        <span style="font-size:64px;" id="plResultBadge">🥉</span>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;margin:8px 0 4px;" id="plResultLeague">Bronze</div>
+        <div style="font-size:14px;color:var(--text-secondary);" id="plResultDiv">Division II</div>
+      </div>
+      <div id="plResultCards"></div>
+      <button type="button" class="btn-primary" onclick="confirmPlacement()" style="margin-top:8px;">🚀 Commencer l'aventure</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: Validation réelle -->
+<div class="modal-overlay" id="validateModal">
+  <div class="modal">
+    <div class="modal-title">Homologation</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Prouve ta valeur en compétition réelle pour homologuer ton rang.</div>
+    <div class="modal-field"><label>Type de preuve</label>
+      <select id="valType">
+        <option value="Tournoi">Résultat tournoi</option>
+        <option value="ELO">Classement ELO officiel</option>
+        <option value="Division">Montée de division</option>
+        <option value="International">Participation internationale</option>
+      </select>
+    </div>
+    <div class="modal-field"><label>Détails</label><input type="text" id="valDetails" placeholder="Ex: Top 4 tournoi régional Ath"></div>
+    <div class="modal-field"><label>Date</label><input type="date" id="valDate"></div>
+    <div class="modal-actions">
+      <button type="button" class="modal-cancel" onclick="closeModal('validateModal')">Annuler</button>
+      <button type="button" class="modal-confirm" onclick="confirmValidation()">Homologuer ✅</button>
     </div>
   </div>
 </div>
