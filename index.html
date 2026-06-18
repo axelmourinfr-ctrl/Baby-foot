@@ -597,107 +597,116 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
     <div class="pl-header">
       <span class="pl-badge">🎯</span>
       <div class="pl-title">Test de Placement</div>
-      <div class="pl-sub">6 épreuves · 15–20 min</div>
+      <div class="pl-sub">7 épreuves avec chronomètre réaliste</div>
     </div>
     <div style="text-align:right;margin-bottom:12px;">
       <button type="button" onclick="resetAll()" style="background:transparent;border:1px solid var(--red);color:var(--red);font-size:12px;font-weight:700;padding:5px 12px;border-radius:4px;cursor:pointer;">🔄 Recommencer à zéro</button>
     </div>
+
+    <!-- Step dots -->
     <div class="pl-step-indicator">
-      <div class="pl-step-dot active" id="pldot0"></div><div class="pl-step-dot" id="pldot1"></div>
-      <div class="pl-step-dot" id="pldot2"></div><div class="pl-step-dot" id="pldot3"></div>
-      <div class="pl-step-dot" id="pldot4"></div><div class="pl-step-dot" id="pldot5"></div>
+      <div class="pl-step-dot active" id="pldot0"></div>
+      <div class="pl-step-dot" id="pldot1"></div>
+      <div class="pl-step-dot" id="pldot2"></div>
+      <div class="pl-step-dot" id="pldot3"></div>
+      <div class="pl-step-dot" id="pldot4"></div>
+      <div class="pl-step-dot" id="pldot5"></div>
+      <div class="pl-step-dot" id="pldot6"></div>
     </div>
-    <div class="pl-step active" id="plstep0">
-      <div class="pl-step-title">① Passe Bande</div><div class="pl-step-desc">20 tentatives depuis le milieu</div>
-      <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar0" style="width:0%"></div></div>
-      <div class="pl-counter"><div class="pl-counter-num" id="plcount0">0</div><div class="pl-counter-label">tentatives / 20</div></div>
-      <div class="pl-buttons"><button type="button" class="pl-btn-success" onclick="plRecord(0,true)">✓ Réussie</button><button type="button" class="pl-btn-fail" onclick="plRecord(0,false)">✗ Ratée</button></div>
-      <div style="font-size:13px;color:var(--gold);text-align:center;" id="plscore0">Réussites : 0</div>
+
+    <!-- Step -1: Table selection -->
+    <div class="pl-step active" id="plstep-1">
+      <div class="pl-step-title">Choisis ta table</div>
+      <div class="pl-step-desc">Le test s'adapte aux règles de ta table</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+        <div class="role-card selected" id="table-jupiter" onclick="selectPlTable('jupiter')">
+          <div style="font-size:28px;margin-bottom:6px;">🏓</div>
+          <div style="font-size:18px;font-weight:900;color:var(--text-primary);">Jupiter</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Passe à l'arrêt · 35 sec/barre</div>
+        </div>
+        <div class="role-card" id="table-other" onclick="selectPlTable('other')">
+          <div style="font-size:28px;margin-bottom:6px;">⚽</div>
+          <div style="font-size:18px;font-weight:900;color:var(--text-primary);">Bonzini / Tornado / Autre</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Passe en mouvement · 25 sec milieu · 35 sec att/déf</div>
+        </div>
+      </div>
+      <button type="button" class="btn-primary" onclick="startPlacement()">Commencer →</button>
+    </div>
+
+    <!-- Steps 0-6: Épreuves avec timer -->
+    <div class="pl-step" id="plstep0">
+      <div class="pl-step-title">① Passe Bande</div>
+      <div class="pl-step-desc">20 tentatives · Milieu</div>
+      <div id="plContent0"></div>
     </div>
     <div class="pl-step" id="plstep1">
-      <div class="pl-step-title">② Passe Croisée</div><div class="pl-step-desc">20 tentatives depuis le milieu</div>
-      <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar1" style="width:0%"></div></div>
-      <div class="pl-counter"><div class="pl-counter-num" id="plcount1">0</div><div class="pl-counter-label">tentatives / 20</div></div>
-      <div class="pl-buttons"><button type="button" class="pl-btn-success" onclick="plRecord(1,true)">✓ Réussie</button><button type="button" class="pl-btn-fail" onclick="plRecord(1,false)">✗ Ratée</button></div>
-      <div style="font-size:13px;color:var(--gold);text-align:center;" id="plscore1">Réussites : 0</div>
+      <div class="pl-step-title">② Passe Croisée</div>
+      <div class="pl-step-desc">20 tentatives · Milieu</div>
+      <div id="plContent1"></div>
     </div>
     <div class="pl-step" id="plstep2">
-      <div class="pl-step-title">③ Passe Défense Favorite</div><div class="pl-step-desc">Choisis ta passe défense préférée</div>
+      <div class="pl-step-title">③ Passe Défense Favorite</div>
+      <div class="pl-step-desc">Choisis ta passe défense préférée · 20 tentatives</div>
       <div id="plPasseDefPicker">
         <div class="pl-tir-grid">
-          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Bande défense')">Bande</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Centre défense')">Centre</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Directe défense')">Directe</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Relance bande')">Relance bande</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Relance centre')">Relance centre</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Passe')">Passe</div>
         </div>
         <button type="button" class="btn-primary" id="plPasseDefStart" onclick="startPlStep(2)" style="opacity:0.4;pointer-events:none;">Commencer →</button>
       </div>
-      <div id="plPasseDefTest" style="display:none;">
-        <div style="font-size:13px;color:var(--gold);text-align:center;margin-bottom:12px;" id="plPasseDefLabel"></div>
-        <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar2" style="width:0%"></div></div>
-        <div class="pl-counter"><div class="pl-counter-num" id="plcount2">0</div><div class="pl-counter-label">tentatives / 20</div></div>
-        <div class="pl-buttons"><button type="button" class="pl-btn-success" onclick="plRecord(2,true)">✓ Réussie</button><button type="button" class="pl-btn-fail" onclick="plRecord(2,false)">✗ Ratée</button></div>
-        <div style="font-size:13px;color:var(--gold);text-align:center;" id="plscore2">Réussites : 0</div>
-      </div>
+      <div id="plContent2" style="display:none;"></div>
     </div>
     <div class="pl-step" id="plstep3">
-      <div class="pl-step-title">④ Tir Défense Favori</div><div class="pl-step-desc">Choisis ton tir depuis la défense</div>
+      <div class="pl-step-title">④ Tir Défense Favori</div>
+      <div class="pl-step-desc">Choisis ton tir depuis la défense · 20 tentatives</div>
       <div id="plTirDefPicker">
         <div class="pl-tir-grid">
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer courte déf.')">Tirer courte</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer longue déf.')">Tirer longue</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer croisée déf.')">Tirer croisée</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser courte déf.')">Pousser courte</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser longue déf.')">Pousser longue</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser décroisée déf.')">Pousser décroisée</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer courte')">Tirer courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer longue')">Tirer longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer croisée')">Tirer croisée</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser courte')">Pousser courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser longue')">Pousser longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser décroisée')">Pousser décroisée</div>
         </div>
         <button type="button" class="btn-primary" id="plTirDefStart" onclick="startPlStep(3)" style="opacity:0.4;pointer-events:none;">Commencer →</button>
       </div>
-      <div id="plTirDefTest" style="display:none;">
-        <div style="font-size:13px;color:var(--gold);text-align:center;margin-bottom:12px;" id="plTirDefLabel"></div>
-        <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar3" style="width:0%"></div></div>
-        <div class="pl-counter"><div class="pl-counter-num" id="plcount3">0</div><div class="pl-counter-label">tentatives / 20</div></div>
-        <div class="pl-buttons"><button type="button" class="pl-btn-success" onclick="plRecord(3,true)">✓ But</button><button type="button" class="pl-btn-fail" onclick="plRecord(3,false)">✗ Raté</button></div>
-        <div style="font-size:13px;color:var(--gold);text-align:center;" id="plscore3">Buts : 0</div>
-      </div>
+      <div id="plContent3" style="display:none;"></div>
     </div>
     <div class="pl-step" id="plstep4">
-      <div class="pl-step-title">⑤ Tir Attaque Favori</div><div class="pl-step-desc">Choisis ton tir depuis l'attaque</div>
+      <div class="pl-step-title">⑤ 3 Tirs Attaque Favoris</div>
+      <div class="pl-step-desc">Choisis 3 tirs · 30 tentatives (10 par tir · ordre aléatoire)</div>
       <div id="plTirAttPicker">
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">Sélectionne exactement 3 tirs :</div>
         <div class="pl-tir-grid">
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer courte att.')">Tirer courte</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer longue att.')">Tirer longue</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer croisée att.')">Tirer croisée</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Pousser courte att.')">Pousser courte</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Pousser longue att.')">Pousser longue</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Fixe att.')">Fixe</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Tirer courte')">Tirer courte</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Tirer longue')">Tirer longue</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Tirer croisée')">Tirer croisée</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Pousser courte')">Pousser courte</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Pousser longue')">Pousser longue</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Pousser décroisée')">Pousser décroisée</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Fixe')">Fixe</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Aller-retour tirer')">Aller-retour</div>
         </div>
-        <button type="button" class="btn-primary" id="plTirAttStart" onclick="startPlStep(4)" style="opacity:0.4;pointer-events:none;">Commencer →</button>
+        <div id="plTirAttSelected" style="font-size:12px;color:var(--gold);margin:10px 0;">0/3 sélectionnés</div>
+        <button type="button" class="btn-primary" id="plTirAttStart" onclick="startPlTirAtt()" style="opacity:0.4;pointer-events:none;">Commencer →</button>
       </div>
-      <div id="plTirAttTest" style="display:none;">
-        <div style="font-size:13px;color:var(--gold);text-align:center;margin-bottom:12px;" id="plTirAttLabel"></div>
-        <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar4" style="width:0%"></div></div>
-        <div class="pl-counter"><div class="pl-counter-num" id="plcount4">0</div><div class="pl-counter-label">tentatives / 20</div></div>
-        <div class="pl-buttons"><button type="button" class="pl-btn-success" onclick="plRecord(4,true)">✓ But</button><button type="button" class="pl-btn-fail" onclick="plRecord(4,false)">✗ Raté</button></div>
-        <div style="font-size:13px;color:var(--gold);text-align:center;" id="plscore4">Buts : 0</div>
-      </div>
+      <div id="plContent4" style="display:none;"></div>
     </div>
     <div class="pl-step" id="plstep5">
-      <div class="pl-step-title">⑥ Test Réactivité</div><div class="pl-step-desc">L'app affiche une action — exécute-la puis dis si tu as réussi</div>
+      <div class="pl-step-title">⑥ Réactivité</div>
+      <div class="pl-step-desc">20 actions aléatoires · Toutes zones</div>
       <div id="plReactStart">
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;"><div style="font-size:32px;margin-bottom:8px;">🎲</div><div style="font-size:14px;color:var(--text-secondary);">20 actions solo tirées au hasard</div></div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;">
+          <div style="font-size:32px;margin-bottom:8px;">🎲</div>
+          <div style="font-size:14px;color:var(--text-secondary);">L'app affiche une action — exécute-la puis dis si tu as réussi</div>
+        </div>
         <button type="button" class="btn-primary" onclick="startReact()">Commencer →</button>
       </div>
-      <div id="plReactTest" style="display:none;">
-        <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar5" style="width:0%"></div></div>
-        <div style="background:var(--bg-card);border:2px solid var(--gold);border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;min-height:100px;display:flex;align-items:center;justify-content:center;">
-          <div><div style="font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;" id="plReactZone">ZONE</div>
-          <div style="font-size:26px;font-weight:900;color:var(--gold);" id="plReactAction">—</div></div>
-        </div>
-        <div class="pl-counter"><div class="pl-counter-num" id="plcount5">0</div><div class="pl-counter-label">actions / 20</div></div>
-        <div class="pl-buttons"><button type="button" class="pl-btn-success" onclick="plRecord(5,true)">✓ Réussie</button><button type="button" class="pl-btn-fail" onclick="plRecord(5,false)">✗ Ratée</button></div>
-        <div style="font-size:13px;color:var(--gold);text-align:center;" id="plscore5">Réussites : 0</div>
-      </div>
+      <div id="plContent5" style="display:none;"></div>
     </div>
+
+    <!-- Results -->
     <div class="pl-step" id="plstep6">
       <div style="text-align:center;margin-bottom:24px;">
         <span style="font-size:64px;" id="plResultBadge">🥉</span>
@@ -709,6 +718,7 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
       <button type="button" class="btn-primary" onclick="confirmPlacement()">🚀 Commencer l'aventure</button>
       <button type="button" onclick="openPlacement()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-bright);color:var(--text-secondary);font-size:14px;font-weight:700;text-transform:uppercase;border-radius:4px;cursor:pointer;margin-top:8px;">🔄 Refaire le test</button>
     </div>
+
   </div>
 </div>
 
@@ -1207,14 +1217,15 @@ const LEAGUES = [
 const REACT_ACTIONS = [
   { zone:'DÉFENSE', action:'Relance bande' },
   { zone:'DÉFENSE', action:'Relance centre' },
-  { zone:'DÉFENSE', action:'Relance directe' },
-  { zone:'DÉFENSE', action:'Tirer longue défense' },
-  { zone:'DÉFENSE', action:'Pousser courte défense' },
-  { zone:'DÉFENSE', action:'Pousser longue défense' },
-  { zone:'DÉFENSE', action:'Pousser décroisée défense' },
+  { zone:'DÉFENSE', action:'Passe (défense)' },
+  { zone:'DÉFENSE', action:'Tirer longue' },
+  { zone:'DÉFENSE', action:'Pousser courte' },
+  { zone:'DÉFENSE', action:'Pousser longue' },
+  { zone:'DÉFENSE', action:'Pousser décroisée' },
   { zone:'MILIEU',  action:'Passe bande' },
   { zone:'MILIEU',  action:'Passe croisée' },
   { zone:'MILIEU',  action:'Passe droite' },
+  { zone:'MILIEU',  action:'Passe décroisée' },
   { zone:'ATTAQUE', action:'Tirer courte' },
   { zone:'ATTAQUE', action:'Tirer longue' },
   { zone:'ATTAQUE', action:'Tirer croisée' },
@@ -1222,8 +1233,7 @@ const REACT_ACTIONS = [
   { zone:'ATTAQUE', action:'Pousser longue' },
   { zone:'ATTAQUE', action:'Pousser décroisée' },
   { zone:'ATTAQUE', action:'Fixe' },
-  { zone:'DÉFENSE', action:'Tirer croisée défense' },
-  { zone:'MILIEU',  action:'Passe décroisée' },
+  { zone:'DÉFENSE', action:'Tirer croisée' },
   { zone:'ATTAQUE', action:'Aller-retour tirer' },
 ];
 
@@ -1389,10 +1399,33 @@ function autoCheckObjectives() { autoCheckMissions(); }
 
 // ── js/training.js ──
 // ══════════════════════════════════════════
-// TRAINING
+// TRAINING — Mode classique + Mode chrono
 // ══════════════════════════════════════════
 let currentCat = 'passes';
 let pendingExCat = 'passes';
+
+// ── Mode chrono state ──
+let chronoState = {
+  active: false,
+  exerciseId: null,
+  exerciseName: null,
+  exerciseType: null,
+  table: 'other',
+  totalReps: 20,
+  currentRep: 0,
+  results: [], // {success, time, penalty}
+  timerLimit: 35,
+  timerStart: null,
+  timerInterval: null,
+  waiting: true // waiting for "Prêt" press
+};
+
+function getTimerLimit(cat, table) {
+  if(table === 'jupiter') {
+    return cat === 'passes' ? 35 : 35;
+  }
+  return cat === 'passes' ? 25 : 35;
+}
 
 function switchCat(cat, el) {
   document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
@@ -1406,8 +1439,26 @@ function renderTraining(cat) {
   const list = exercises[cat] || [];
   const ts = DB.get('trainStats') || {};
   const labels = { passes:['Tentatives','Réussites'], goals:['Tentatives','Buts'], saves:['Tentatives','Arrêts'] };
-  let html = '<div class="exercise-list">';
-  list.forEach(ex=>{
+
+  let html = `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+    <div class="qa-btn accent" onclick="showChronoSetup('${cat}')">
+      <div class="qa-btn-icon">⏱️</div>
+      <div class="qa-btn-label">Mode Chrono</div>
+      <div class="qa-btn-sub">Avec timer réaliste</div>
+    </div>
+    <div class="qa-btn" onclick="document.getElementById('classicMode').style.display='block';document.getElementById('chronoSetup').style.display='none';">
+      <div class="qa-btn-icon">📋</div>
+      <div class="qa-btn-label">Mode Classique</div>
+      <div class="qa-btn-sub">Saisie totaux</div>
+    </div>
+  </div>
+  <div id="chronoSetup" style="display:none;"></div>
+  <div id="chronoSession" style="display:none;"></div>
+  <div id="classicMode">
+    <div class="exercise-list">`;
+
+  list.forEach(ex => {
     const s = ts[ex.id]||{tried:0,ok:0};
     const pct = s.tried>0 ? Math.round(s.ok/s.tried*100) : null;
     const pc = pct===null?'':pct>=70?' good':pct>=40?' mid':' low';
@@ -1416,8 +1467,9 @@ function renderTraining(cat) {
     <div class="exercise-card">
       <div class="exercise-header">
         <div class="exercise-name">${ex.name}</div>
-        <div class="exercise-pct${pc}" id="pct-${ex.id}">${pct===null?'—':pct+'%'}</div>
+        <div class="exercise-pct${pc}">${pct===null?'—':pct+'%'}</div>
       </div>
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">Total : ${s.tried} essais · ${s.ok} réussites</div>
       <div class="exercise-inputs">
         <div class="ex-input-wrap"><label>${l1}</label>
           <input type="number" id="tried-${ex.id}" placeholder="0" min="0" oninput="updatePct('${ex.id}','${ex.type}')">
@@ -1427,13 +1479,367 @@ function renderTraining(cat) {
         </div>
       </div>
       <div class="ex-bar"><div class="ex-bar-fill" id="bar-${ex.id}" style="width:${pct||0}%"></div></div>
-      <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Total : ${s.tried} essais · ${s.ok} réussites</div>
-      <button type="button" class="ex-save-btn" onclick="saveExercise('${ex.id}','${ex.type}')">Enregistrer +XP</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;">
+        <button type="button" class="ex-save-btn" onclick="saveExercise('${ex.id}','${ex.type}')">💾 Enregistrer</button>
+        <button type="button" class="ex-save-btn" style="border-color:var(--cyan-dim);color:var(--cyan);" onclick="showChronoSetup('${currentCat}','${ex.id}')">⏱️ Chrono</button>
+      </div>
     </div>`;
   });
-  html += '</div>';
-  html += `<button type="button" class="add-exercise-btn" onclick="openAddExercise('${cat}')">+ Ajouter un exercice</button>`;
+
+  html += `</div>
+    <button type="button" class="add-exercise-btn" onclick="openAddExercise('${cat}')">+ Ajouter un exercice</button>
+  </div>`;
+
   document.getElementById('trainingContent').innerHTML = html;
+}
+
+function showChronoSetup(cat, preselectedId) {
+  document.getElementById('classicMode').style.display = 'none';
+  document.getElementById('chronoSession').style.display = 'none';
+  const exercises = DB.get('exercises') || DEFAULT_EXERCISES;
+  const list = exercises[cat] || [];
+
+  const setupEl = document.getElementById('chronoSetup');
+  setupEl.style.display = 'block';
+  setupEl.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--gold-dim);border-radius:8px;padding:16px;margin-bottom:12px;">
+      <div class="section-title" style="margin-bottom:12px;">⏱️ Configuration Chrono</div>
+
+      <div class="modal-field" style="margin-bottom:12px;">
+        <label>Table pratiquée</label>
+        <select id="chrono-table" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:15px;padding:10px 12px;border-radius:4px;outline:none;" onchange="updateChronoTimer()">
+          <option value="jupiter">Jupiter (15 sec · passe à l'arrêt OK)</option>
+          <option value="other" selected>Bonzini / Tornado / Autre (10-15 sec · passe en mouvement)</option>
+        </select>
+      </div>
+
+      <div class="modal-field" style="margin-bottom:12px;">
+        <label>Exercice</label>
+        <select id="chrono-exercise" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:15px;padding:10px 12px;border-radius:4px;outline:none;">
+          ${list.map(ex => `<option value="${ex.id}" data-type="${ex.type}" ${ex.id===preselectedId?'selected':''}>${ex.name}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="modal-field" style="margin-bottom:12px;">
+        <label>Nombre de tentatives</label>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+          ${[10,20,30,50].map(n=>`<button type="button" id="reps-${n}" onclick="selectReps(${n})" style="padding:10px;background:${n===20?'var(--gold)':'var(--bg-surface)'};color:${n===20?'#000':'var(--text-primary)'};border:1px solid var(--border-bright);border-radius:4px;font-size:15px;font-weight:700;cursor:pointer;">${n}</button>`).join('')}
+        </div>
+      </div>
+
+      <div style="background:var(--bg-surface);border-radius:6px;padding:10px;margin-bottom:14px;font-size:12px;color:var(--text-secondary);">
+        ⏱️ Timer : <span id="chrono-timer-info" style="color:var(--gold);font-weight:700;">35 secondes</span> par tentative
+        <div style="margin-top:4px;font-size:11px;color:var(--text-muted);">Le timer démarre quand tu appuies sur "Prêt !"</div>
+      </div>
+
+      <button type="button" class="btn-primary" onclick="startChronoSession()">🚀 Lancer la session</button>
+      <button type="button" class="add-exercise-btn" style="margin-top:8px;" onclick="renderTraining(currentCat)">← Retour</button>
+    </div>`;
+
+  // Default selected reps
+  window._chronoReps = 20;
+  updateChronoTimer();
+}
+
+function selectReps(n) {
+  window._chronoReps = n;
+  [10,20,30,50].forEach(r => {
+    const btn = document.getElementById('reps-'+r);
+    if(btn) {
+      btn.style.background = r===n ? 'var(--gold)' : 'var(--bg-surface)';
+      btn.style.color = r===n ? '#000' : 'var(--text-primary)';
+    }
+  });
+}
+
+function updateChronoTimer() {
+  const table = document.getElementById('chrono-table')?.value || 'other';
+  const cat = currentCat;
+  const limit = getTimerLimit(cat, table);
+  const infoEl = document.getElementById('chrono-timer-info');
+  if(infoEl) infoEl.textContent = limit + ' secondes';
+}
+
+function startChronoSession() {
+  const exSelect = document.getElementById('chrono-exercise');
+  const exId = exSelect?.value;
+  const exName = exSelect?.options[exSelect.selectedIndex]?.text;
+  const exType = exSelect?.options[exSelect.selectedIndex]?.dataset.type || 'passes';
+  const table = document.getElementById('chrono-table')?.value || 'other';
+  const totalReps = window._chronoReps || 20;
+  const timerLimit = getTimerLimit(currentCat, table);
+
+  chronoState = {
+    active: true,
+    exerciseId: exId,
+    exerciseName: exName,
+    exerciseType: exType,
+    cat: currentCat,
+    table,
+    totalReps,
+    currentRep: 0,
+    results: [],
+    timerLimit,
+    timerStart: null,
+    timerInterval: null,
+    waiting: true
+  };
+
+  document.getElementById('chronoSetup').style.display = 'none';
+  renderChronoSession();
+}
+
+function renderChronoSession() {
+  const s = chronoState;
+  const sessionEl = document.getElementById('chronoSession');
+  sessionEl.style.display = 'block';
+
+  const resultDots = Array(s.totalReps).fill(null).map((_, i) => {
+    if(i >= s.results.length) return `<div style="width:12px;height:12px;border-radius:50%;background:var(--border);display:inline-block;margin:2px;"></div>`;
+    const r = s.results[i];
+    const color = r.success ? (r.penalty ? '#FF9500' : 'var(--green)') : 'var(--red)';
+    return `<div style="width:12px;height:12px;border-radius:50%;background:${color};display:inline-block;margin:2px;" title="${r.success?'✓':'✗'}${r.penalty?' (pénalité)':''}"></div>`;
+  }).join('');
+
+  const successCount = s.results.filter(r=>r.success).length;
+  const pct = s.results.length > 0 ? Math.round(successCount/s.results.length*100) : 0;
+
+  sessionEl.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;">
+
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">⏱️ Mode Chrono</div>
+          <div style="font-size:18px;font-weight:900;color:var(--text-primary);">${s.exerciseName}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:28px;font-weight:900;color:var(--gold);">${s.currentRep}/${s.totalReps}</div>
+          <div style="font-size:13px;color:var(--text-muted);">${successCount} réussites · ${pct}%</div>
+        </div>
+      </div>
+
+      <!-- Result dots -->
+      <div style="text-align:center;margin-bottom:16px;padding:8px;background:var(--bg-surface);border-radius:6px;">
+        ${resultDots}
+      </div>
+
+      <!-- Timer display -->
+      <div id="chrono-display" style="text-align:center;margin-bottom:16px;">
+        ${s.waiting && s.currentRep === 0 ? `
+          <div style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;">Place ta balle et prépare-toi</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Tu as <strong style="color:var(--gold);">${s.timerLimit} secondes</strong> par tentative</div>
+          <button type="button" onclick="chronoReady()" style="width:100%;padding:18px;background:var(--green);border:none;color:#000;font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;border-radius:8px;cursor:pointer;">
+            ✋ PRÊT !
+          </button>
+        ` : s.waiting ? `
+          <div style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;">Replace la balle et prépare la tentative ${s.currentRep+1}</div>
+          <button type="button" onclick="chronoReady()" style="width:100%;padding:18px;background:var(--green);border:none;color:#000;font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;border-radius:8px;cursor:pointer;">
+            ✋ PRÊT !
+          </button>
+        ` : `
+          <div style="background:var(--bg-surface);border-radius:8px;padding:16px;margin-bottom:12px;">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;letter-spacing:2px;text-transform:uppercase;">TEMPS RESTANT</div>
+            <div id="chrono-timer-val" style="font-size:64px;font-weight:900;color:var(--gold);line-height:1;">${s.timerLimit}</div>
+            <div style="height:6px;background:var(--border);border-radius:3px;margin-top:8px;overflow:hidden;">
+              <div id="chrono-timer-bar" style="height:100%;background:var(--green);border-radius:3px;width:100%;transition:width 0.1s;"></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <button type="button" onclick="chronoRecord(true)" style="padding:20px;background:rgba(0,230,118,0.1);border:2px solid var(--green);border-radius:8px;color:var(--green);font-size:24px;font-weight:900;cursor:pointer;">✓ Réussi</button>
+            <button type="button" onclick="chronoRecord(false)" style="padding:20px;background:rgba(255,59,48,0.1);border:2px solid var(--red);border-radius:8px;color:var(--red);font-size:24px;font-weight:900;cursor:pointer;">✗ Raté</button>
+          </div>
+        `}
+      </div>
+
+      <!-- Stop button -->
+      <button type="button" onclick="stopChronoSession()" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-bright);color:var(--text-muted);font-size:13px;font-weight:700;text-transform:uppercase;border-radius:4px;cursor:pointer;margin-top:8px;">
+        Arrêter la session
+      </button>
+    </div>`;
+}
+
+function chronoReady() {
+  chronoState.waiting = false;
+  chronoState.timerStart = Date.now();
+
+  // Start countdown
+  let elapsed = 0;
+  chronoState.timerInterval = setInterval(() => {
+    elapsed = (Date.now() - chronoState.timerStart) / 1000;
+    const remaining = Math.max(0, chronoState.timerLimit - elapsed);
+    const pct = (remaining / chronoState.timerLimit) * 100;
+
+    const timerVal = document.getElementById('chrono-timer-val');
+    const timerBar = document.getElementById('chrono-timer-bar');
+    if(timerVal) timerVal.textContent = Math.ceil(remaining);
+    if(timerBar) {
+      timerBar.style.width = pct + '%';
+      timerBar.style.background = remaining > chronoState.timerLimit*0.5 ? 'var(--green)' : remaining > chronoState.timerLimit*0.25 ? '#FF9500' : 'var(--red)';
+    }
+    if(timerVal) timerVal.style.color = remaining > chronoState.timerLimit*0.5 ? 'var(--gold)' : remaining > chronoState.timerLimit*0.25 ? '#FF9500' : 'var(--red)';
+
+    if(remaining <= 0) {
+      clearInterval(chronoState.timerInterval);
+      // Temps dépassé - vibrer si possible
+      if(navigator.vibrate) navigator.vibrate([100,50,100]);
+    }
+  }, 100);
+
+  renderChronoSession();
+}
+
+function chronoRecord(success) {
+  clearInterval(chronoState.timerInterval);
+
+  const elapsed = chronoState.timerStart ? (Date.now() - chronoState.timerStart) / 1000 : 0;
+  const penalty = elapsed > chronoState.timerLimit;
+
+  // Score avec pénalité si dépassement
+  const effectiveSuccess = success && !penalty ? true : success && penalty ? 'penalty' : false;
+
+  chronoState.results.push({
+    success: success,
+    penalty: penalty,
+    time: Math.round(elapsed * 10) / 10,
+    rep: chronoState.currentRep + 1
+  });
+
+  chronoState.currentRep++;
+  chronoState.waiting = true;
+  chronoState.timerStart = null;
+
+  if(chronoState.currentRep >= chronoState.totalReps) {
+    finishChronoSession();
+  } else {
+    renderChronoSession();
+  }
+}
+
+function finishChronoSession() {
+  const s = chronoState;
+  clearInterval(s.timerInterval);
+
+  // Calculate stats
+  const total = s.results.length;
+  const successes = s.results.filter(r=>r.success && !r.penalty).length;
+  const successesPenalty = s.results.filter(r=>r.success && r.penalty).length;
+  const fails = s.results.filter(r=>!r.success).length;
+  const pct = Math.round(successes/total*100);
+  const avgTime = Math.round(s.results.reduce((a,r)=>a+r.time,0)/total*10)/10;
+
+  // Constance score
+  const first5 = s.results.slice(0,5).filter(r=>r.success).length;
+  const last5  = s.results.slice(-5).filter(r=>r.success).length;
+  const mid    = s.results.slice(5,-5).filter(r=>r.success).length;
+  const midTotal = Math.max(1, total - 10);
+  const constanceBonus = last5 >= first5 ? 3 : last5 < first5 - 2 ? -5 : 0;
+  const regularityBonus = Math.abs(last5 - first5) <= 1 ? 5 : 0;
+  const adjustedPct = Math.min(100, Math.max(0, pct + constanceBonus + regularityBonus));
+
+  // Heat map
+  const heatmap = s.results.map(r => {
+    const color = !r.success ? 'var(--red)' : r.penalty ? '#FF9500' : 'var(--green)';
+    return `<div style="width:14px;height:14px;border-radius:3px;background:${color};display:inline-block;margin:2px;" title="T${r.rep}: ${r.success?'✓':'✗'} (${r.time}s)"></div>`;
+  }).join('');
+
+  // Save to trainStats
+  const ts = DB.get('trainStats') || {};
+  const prev = ts[s.exerciseId] || { tried:0, ok:0, type:s.exerciseType };
+  ts[s.exerciseId] = { tried:prev.tried+total, ok:prev.ok+successes+successesPenalty, type:s.exerciseType };
+  DB.set('trainStats', ts);
+
+  // XP
+  const xpGain = Math.max(10, Math.round(total*0.5) + (pct>=70?15:0) + regularityBonus*2);
+  addXP(xpGain, 'Chrono · '+s.exerciseName+' · '+pct+'%');
+  DB.push('history', {type:'training',ts:Date.now(),exerciseId:s.exerciseId,tried:total,ok:successes,xp:xpGain,chrono:true,avgTime});
+
+  // Save chrono history for comparison
+  const chronoHist = DB.get('chronoHistory') || [];
+  chronoHist.push({ exerciseId:s.exerciseId, name:s.exerciseName, date:Date.now(), pct, adjustedPct, avgTime, results:s.results });
+  if(chronoHist.length > 50) chronoHist.shift();
+  DB.set('chronoHistory', chronoHist);
+
+  // Previous best for comparison
+  const prevSessions = chronoHist.slice(0,-1).filter(h=>h.exerciseId===s.exerciseId);
+  const prevBest = prevSessions.length > 0 ? Math.max(...prevSessions.map(h=>h.pct)) : null;
+  const prevAvg  = prevSessions.length > 0 ? Math.round(prevSessions.reduce((a,h)=>a+h.avgTime,0)/prevSessions.length*10)/10 : null;
+
+  const sessionEl = document.getElementById('chronoSession');
+  sessionEl.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--gold-dim);border-radius:8px;padding:16px;margin-bottom:12px;">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Session terminée</div>
+        <div style="font-size:22px;font-weight:900;color:var(--text-primary);">${s.exerciseName}</div>
+        <div style="font-size:48px;font-weight:900;color:${pct>=70?'var(--green)':pct>=40?'#FF9500':'var(--red)'};">${pct}%</div>
+        ${constanceBonus !== 0 || regularityBonus !== 0 ? `<div style="font-size:12px;color:var(--cyan);margin-top:4px;">Score ajusté : ${adjustedPct}% (constance ${constanceBonus>=0?'+':''}${constanceBonus}% ${regularityBonus>0?'régularité +'+regularityBonus+'%':''})</div>` : ''}
+      </div>
+
+      <!-- Stats grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div class="stats-pill"><div class="stats-pill-val" style="color:var(--green);">${successes}</div><div class="stats-pill-lbl">Réussites</div></div>
+        <div class="stats-pill"><div class="stats-pill-val" style="color:#FF9500;">${successesPenalty}</div><div class="stats-pill-lbl">Pénalités</div></div>
+        <div class="stats-pill"><div class="stats-pill-val" style="color:var(--red);">${fails}</div><div class="stats-pill-lbl">Ratés</div></div>
+      </div>
+
+      <!-- Timing -->
+      <div style="background:var(--bg-surface);border-radius:6px;padding:10px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:var(--text-secondary);">Temps moyen</span>
+          <span style="color:var(--gold);font-weight:700;">${avgTime}s</span>
+        </div>
+        ${prevAvg ? `<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px;">
+          <span style="color:var(--text-muted);">Session précédente</span>
+          <span style="color:${avgTime<prevAvg?'var(--green)':'var(--red)'};font-weight:700;">${prevAvg}s ${avgTime<prevAvg?'↓ plus rapide':'↑ plus lent'}</span>
+        </div>` : ''}
+        ${prevBest !== null ? `<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px;">
+          <span style="color:var(--text-muted);">Meilleur % précédent</span>
+          <span style="color:${pct>=prevBest?'var(--green)':'var(--text-muted)'};font-weight:700;">${prevBest}% ${pct>=prevBest?'🏆 Nouveau record !':''}</span>
+        </div>` : ''}
+      </div>
+
+      <!-- Constance analysis -->
+      <div style="background:var(--bg-surface);border-radius:6px;padding:10px;margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Analyse constance</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span style="color:var(--text-secondary);">5 premières (chauffe)</span>
+          <span style="color:var(--gold);">${first5}/5</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span style="color:var(--text-secondary);">Milieu de série</span>
+          <span style="color:var(--gold);">${mid}/${midTotal}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;">
+          <span style="color:var(--text-secondary);">5 dernières (niveau réel)</span>
+          <span style="color:${last5>=first5?'var(--green)':'var(--red)'}">${last5}/5 ${last5>=first5?'✓':last5<first5-2?'⚠️ chute':''}</span>
+        </div>
+      </div>
+
+      <!-- Heatmap -->
+      <div style="background:var(--bg-surface);border-radius:6px;padding:10px;margin-bottom:16px;">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Carte des tentatives</div>
+        <div style="text-align:center;">${heatmap}</div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:6px;font-size:10px;color:var(--text-muted);">
+          <span>🟢 Réussi</span><span>🟠 Réussi+pénalité</span><span>🔴 Raté</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button type="button" onclick="showChronoSetup(currentCat)" style="padding:12px;background:var(--gold);border:none;color:#000;font-size:14px;font-weight:700;text-transform:uppercase;border-radius:6px;cursor:pointer;">🔄 Refaire</button>
+        <button type="button" onclick="renderTraining(currentCat)" style="padding:12px;background:transparent;border:1px solid var(--border-bright);color:var(--text-secondary);font-size:14px;font-weight:700;text-transform:uppercase;border-radius:6px;cursor:pointer;">← Retour</button>
+      </div>
+    </div>`;
+
+  autoCheckObjectives();
+  checkBadges();
+  updateCoach();
+  renderDashboard();
+}
+
+function stopChronoSession() {
+  clearInterval(chronoState.timerInterval);
+  chronoState.active = false;
+  renderTraining(currentCat);
 }
 
 function updatePct(id, type) {
@@ -1461,10 +1867,7 @@ function saveExercise(id, type) {
   addXP(xpGain, 'Entraînement · '+tried+' rép.');
   DB.push('history',{type:'training',ts:Date.now(),exerciseId:id,tried,ok,xp:xpGain});
   if(tried>0) updateLeagueFromTraining(Math.round(ok/tried*100));
-  renderDashboard();
-  checkBadges();
-  autoCheckObjectives();
-  updateCoach();
+  renderDashboard(); checkBadges(); autoCheckObjectives(); updateCoach();
 }
 
 function openAddExercise(cat) {
@@ -1501,10 +1904,10 @@ const matchFields = {
     {key:'recovered',  label:'Balles récupérées'},
   ],
   def:[
-    {key:'saves',      label:'Arrêts'},
-    {key:'passTried',  label:'Passes tentées'},
-    {key:'passOk',     label:'Passes réussies'},
-    {key:'lostRelance',label:'Relances perdues'},
+    {key:'saves',        label:'Arrêts'},
+    {key:'passTried',    label:'Passes tentées'},
+    {key:'passOk',       label:'Passes réussies'},
+    {key:'lostRelance',  label:'Relances perdues'},
     {key:'goalsConceded',label:'Buts encaissés'},
   ]
 };
@@ -1543,10 +1946,7 @@ function saveMatch() {
   DB.set('matchStats',ms);
   DB.push('history',{type:'match',ts:Date.now(),role:matchRole,counts:{...matchCounts},xp:xpGain});
   renderMatch(matchRole);
-  renderDashboard();
-  checkBadges();
-  autoCheckObjectives();
-  updateCoach();
+  renderDashboard(); checkBadges(); autoCheckObjectives(); updateCoach();
   navTo('dash');
 }
 
@@ -1554,223 +1954,443 @@ function saveMatch() {
 // ══════════════════════════════════════════
 // LEAGUE SYSTEM
 // ══════════════════════════════════════════
-let plData = { scores:[0,0,0,0,0,0], tries:[0,0,0,0,0,0], step:0, choices:{passeDef:'',tirDef:'',tirAtt:''} };
+let plData = {
+  scores:[0,0,0,0,0,0,0], tries:[0,0,0,0,0,0,0], step:0,
+  choices:{passeDef:'',tirDef:'',tirAtt1:'',tirAtt2:'',tirAtt3:''},
+  results:[[],[],[],[],[],[],[]],  // detailed results per step
+  table:'other',
+  timerInterval:null, timerStart:null, timerLimit:35,
+  waiting:true
+};
 let reactQueue = []; let reactIdx = 0;
 
+function getPlTimerLimit(step, table) {
+  // step 0,1 = passes milieu, step 2 = passe def, step 3 = tir def, step 4,5,6 = tirs att, step 7 = react
+  if(table === 'jupiter') return 35;
+  if(step <= 1) return 25; // milieu autres tables = 10 sec + marge
+  return 35;
+}
+
 function openPlacement() {
-  plData = { scores:[0,0,0,0,0,0], tries:[0,0,0,0,0,0], step:0, choices:{passeDef:'',tirDef:'',tirAtt:''} };
-  reactQueue = [...REACT_ACTIONS].sort(()=>Math.random()-0.5);
-  reactIdx = 0;
-  for(let i=0;i<6;i++){
-    const c=document.getElementById('plcount'+i); if(c) c.textContent='0';
-    const b=document.getElementById('plbar'+i);   if(b) b.style.width='0%';
-    const s=document.getElementById('plscore'+i); if(s) s.textContent='Réussites : 0';
-  }
-  for(let i=0;i<=6;i++) document.getElementById('plstep'+i)?.classList.remove('active');
+  // Reset state
+  plData = {
+    scores:[0,0,0,0,0,0], tries:[0,0,0,0,0,0], step:-1,
+    choices:{passeDef:'',tirDef:'',tirAtt1:'',tirAtt2:'',tirAtt3:''},
+    results:[[],[],[],[],[],[]], table:'other',
+    timerInterval:null, timerStart:null, timerLimit:35, waiting:true,
+    tirAttQueue:[], tirAttCurrent:0, tirAttPerShot:{}
+  };
+  reactQueue=[...REACT_ACTIONS].sort(()=>Math.random()-0.5);
+  reactIdx=0;
+
+  // Reset all steps
+  for(let i=-1;i<=6;i++) document.getElementById('plstep'+i)?.classList.remove('active');
   for(let i=0;i<6;i++){ const d=document.getElementById('pldot'+i); if(d){d.classList.remove('done','active');} }
-  document.getElementById('plstep0').classList.add('active');
-  document.getElementById('pldot0').classList.add('active');
-  ['plPasseDefPicker','plTirDefPicker','plTirAttPicker'].forEach(id=>{ const e=document.getElementById(id);if(e)e.style.display='block'; });
-  ['plPasseDefTest','plTirDefTest','plTirAttTest','plReactTest'].forEach(id=>{ const e=document.getElementById(id);if(e)e.style.display='none'; });
+
+  // Reset pickers
+  ['plPasseDefPicker','plTirDefPicker','plTirAttPicker'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.style.display='block';
+  });
+  [0,1,2,3,4,5].forEach(i=>{ const e=document.getElementById('plContent'+i); if(e){e.style.display='none';e.innerHTML='';} });
   const rs=document.getElementById('plReactStart'); if(rs) rs.style.display='block';
   document.querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
-  ['plPasseDefStart','plTirDefStart','plTirAttStart'].forEach(id=>{ const b=document.getElementById(id); if(b){b.style.opacity='0.4';b.style.pointerEvents='none';} });
+  ['plPasseDefStart','plTirDefStart','plTirAttStart'].forEach(id=>{
+    const b=document.getElementById(id); if(b){b.style.opacity='0.4';b.style.pointerEvents='none';}
+  });
+  document.getElementById('plTirAttSelected').textContent='0/3 sélectionnés';
+  window._plTirAttSelected = [];
+
+  // Reset table selection
+  document.getElementById('table-jupiter')?.classList.remove('selected');
+  document.getElementById('table-other')?.classList.add('selected');
+
+  document.getElementById('plstep-1').classList.add('active');
   document.getElementById('placementOverlay').classList.add('open');
   document.getElementById('placementOverlay').scrollTo({top:0});
+}
+
+function selectPlTable(table) {
+  plData.table = table;
+  document.getElementById('table-jupiter').classList.toggle('selected', table==='jupiter');
+  document.getElementById('table-other').classList.toggle('selected', table==='other');
+}
+
+function startPlacement() {
+  document.getElementById('plstep-1').classList.remove('active');
+  document.getElementById('pldot0').classList.add('active');
+  document.getElementById('plstep0').classList.add('active');
+  plData.step = 0;
+  renderPlStep(0);
+  document.getElementById('placementOverlay').scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderPlStep(step) {
+  const limit = getPlTimerLimit(step, plData.table);
+  plData.timerLimit = limit;
+  const contentEl = document.getElementById('plContent'+step);
+  if(!contentEl) return;
+  contentEl.style.display='block';
+  contentEl.innerHTML = renderPlTimer(step);
+}
+
+function renderPlTimer(step) {
+  const s = plData;
+  const results = s.results[step] || [];
+  const total = step === 4 ? 30 : 20;
+  const done = results.length;
+  const successes = results.filter(r=>r.success).length;
+  const pct = done > 0 ? Math.round(successes/done*100) : 0;
+
+  const dots = Array(total).fill(null).map((_,i) => {
+    if(i >= done) return `<div style="width:10px;height:10px;border-radius:50%;background:var(--border);display:inline-block;margin:1px;"></div>`;
+    const r = results[i];
+    const color = !r.success ? 'var(--red)' : r.penalty ? '#FF9500' : 'var(--green)';
+    return `<div style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;margin:1px;"></div>`;
+  }).join('');
+
+  // For step 4 (3 tirs), show which shot we're on
+  let shotLabel = '';
+  if(step === 4 && plData.tirAttQueue) {
+    const shotIdx = Math.floor(done / 10);
+    const shotName = plData.tirAttQueue[shotIdx];
+    const shotNum = (done % 10) + 1;
+    if(shotName) shotLabel = `<div style="font-size:12px;color:var(--cyan);margin-bottom:8px;">Tir ${shotIdx+1}/3 : <strong>${shotName}</strong> (${shotNum}/10)</div>`;
+  }
+
+  if(s.waiting) {
+    return `
+      <div style="text-align:center;margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px;">
+          <span>${done}/${total}</span><span>${successes} réussites · ${pct}%</span>
+        </div>
+        <div style="text-align:center;margin-bottom:10px;">${dots}</div>
+        ${shotLabel}
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
+          ${done===0?'Place ta balle et prépare-toi':'Replace la balle · tentative '+(done+1)+'/'+total}
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">
+          ⏱️ <strong style="color:var(--gold);">${s.timerLimit} sec</strong> démarrent au "Prêt !"
+        </div>
+        <button type="button" onclick="plReady(${step})" style="width:100%;padding:18px;background:var(--green);border:none;color:#000;font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;border-radius:8px;cursor:pointer;">
+          ✋ PRÊT !
+        </button>
+      </div>`;
+  } else {
+    return `
+      <div style="text-align:center;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px;">
+          <span>${done}/${total}</span><span>${successes} réussites · ${pct}%</span>
+        </div>
+        <div style="text-align:center;margin-bottom:10px;">${dots}</div>
+        ${shotLabel}
+        <div style="background:var(--bg-surface);border-radius:8px;padding:14px;margin-bottom:12px;">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;letter-spacing:2px;text-transform:uppercase;">TEMPS RESTANT</div>
+          <div id="pl-timer-val-${step}" style="font-size:56px;font-weight:900;color:var(--gold);line-height:1;">${s.timerLimit}</div>
+          <div style="height:6px;background:var(--border);border-radius:3px;margin-top:8px;overflow:hidden;">
+            <div id="pl-timer-bar-${step}" style="height:100%;background:var(--green);border-radius:3px;width:100%;"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button type="button" onclick="plRecord(${step},true)" style="padding:18px;background:rgba(0,230,118,0.1);border:2px solid var(--green);border-radius:8px;color:var(--green);font-size:22px;font-weight:900;cursor:pointer;">✓</button>
+          <button type="button" onclick="plRecord(${step},false)" style="padding:18px;background:rgba(255,59,48,0.1);border:2px solid var(--red);border-radius:8px;color:var(--red);font-size:22px;font-weight:900;cursor:pointer;">✗</button>
+        </div>
+      </div>`;
+  }
+}
+
+function plReady(step) {
+  plData.waiting = false;
+  plData.timerStart = Date.now();
+  clearInterval(plData.timerInterval);
+
+  plData.timerInterval = setInterval(() => {
+    const elapsed = (Date.now() - plData.timerStart) / 1000;
+    const remaining = Math.max(0, plData.timerLimit - elapsed);
+    const pct = (remaining / plData.timerLimit) * 100;
+    const valEl = document.getElementById('pl-timer-val-'+step);
+    const barEl = document.getElementById('pl-timer-bar-'+step);
+    if(valEl) {
+      valEl.textContent = Math.ceil(remaining);
+      valEl.style.color = remaining > plData.timerLimit*0.5 ? 'var(--gold)' : remaining > plData.timerLimit*0.25 ? '#FF9500' : 'var(--red)';
+    }
+    if(barEl) {
+      barEl.style.width = pct+'%';
+      barEl.style.background = remaining > plData.timerLimit*0.5 ? 'var(--green)' : remaining > plData.timerLimit*0.25 ? '#FF9500' : 'var(--red)';
+    }
+    if(remaining <= 0) {
+      clearInterval(plData.timerInterval);
+      if(navigator.vibrate) navigator.vibrate([100,50,100]);
+    }
+  }, 100);
+
+  const contentEl = document.getElementById('plContent'+step);
+  if(contentEl) contentEl.innerHTML = renderPlTimer(step);
 }
 
 function selectPlChoice(type, el, name) {
   el.closest('.pl-tir-grid').querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
   el.classList.add('selected'); plData.choices[type]=name;
-  const btnMap={passeDef:'plPasseDefStart',tirDef:'plTirDefStart',tirAtt:'plTirAttStart'};
+  const btnMap={passeDef:'plPasseDefStart',tirDef:'plTirDefStart'};
   const btn=document.getElementById(btnMap[type]); if(btn){btn.style.opacity='1';btn.style.pointerEvents='auto';}
 }
 
+function selectPlTirAtt(el, name) {
+  if(!window._plTirAttSelected) window._plTirAttSelected = [];
+  if(el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    window._plTirAttSelected = window._plTirAttSelected.filter(n=>n!==name);
+  } else {
+    if(window._plTirAttSelected.length >= 3) return; // max 3
+    el.classList.add('selected');
+    window._plTirAttSelected.push(name);
+  }
+  const count = window._plTirAttSelected.length;
+  document.getElementById('plTirAttSelected').textContent = count+'/3 sélectionnés — '+window._plTirAttSelected.join(', ');
+  const btn = document.getElementById('plTirAttStart');
+  if(btn){ btn.style.opacity=count===3?'1':'0.4'; btn.style.pointerEvents=count===3?'auto':'none'; }
+}
+
+function startPlTirAtt() {
+  // Build queue: 10 of each, shuffled together
+  plData.choices.tirAtt1 = window._plTirAttSelected[0];
+  plData.choices.tirAtt2 = window._plTirAttSelected[1];
+  plData.choices.tirAtt3 = window._plTirAttSelected[2];
+  // Create ordered queue: 10x each, randomized
+  const queue = [];
+  window._plTirAttSelected.forEach(shot => { for(let i=0;i<10;i++) queue.push(shot); });
+  plData.tirAttQueue = queue.sort(()=>Math.random()-0.5);
+  plData.tirAttPerShot = {};
+  window._plTirAttSelected.forEach(s => plData.tirAttPerShot[s] = {ok:0,tried:0});
+
+  document.getElementById('plTirAttPicker').style.display='none';
+  document.getElementById('plContent4').style.display='block';
+  plData.waiting = true;
+  document.getElementById('plContent4').innerHTML = renderPlTimer(4);
+}
+
 function startPlStep(step) {
-  const pMap={2:'plPasseDefPicker',3:'plTirDefPicker',4:'plTirAttPicker'};
-  const tMap={2:'plPasseDefTest',3:'plTirDefTest',4:'plTirAttTest'};
-  const lMap={2:'plPasseDefLabel',3:'plTirDefLabel',4:'plTirAttLabel'};
-  const cMap={2:'passeDef',3:'tirDef',4:'tirAtt'};
+  const pMap={2:'plPasseDefPicker',3:'plTirDefPicker'};
   if(pMap[step]) document.getElementById(pMap[step]).style.display='none';
-  if(tMap[step]) document.getElementById(tMap[step]).style.display='block';
-  if(lMap[step]) document.getElementById(lMap[step]).textContent='▶ '+plData.choices[cMap[step]];
+  document.getElementById('plContent'+step).style.display='block';
+  plData.waiting = true;
+  renderPlStep(step);
+}
+
+function plRecord(step, success) {
+  clearInterval(plData.timerInterval);
+  const total = step === 4 ? 30 : 20;
+  if(!plData.results[step]) plData.results[step] = [];
+  if(plData.results[step].length >= total) return;
+
+  const elapsed = plData.timerStart ? (Date.now()-plData.timerStart)/1000 : 0;
+  const penalty = elapsed > plData.timerLimit;
+
+  plData.results[step].push({ success, penalty, time:Math.round(elapsed*10)/10 });
+  plData.tries[step]++;
+  if(success) plData.scores[step]++;
+
+  // Track per-shot stats for tir att
+  if(step === 4 && plData.tirAttQueue) {
+    const shotName = plData.tirAttQueue[plData.results[step].length-1];
+    if(shotName && plData.tirAttPerShot[shotName]) {
+      plData.tirAttPerShot[shotName].tried++;
+      if(success) plData.tirAttPerShot[shotName].ok++;
+    }
+  }
+
+  // Update dot indicators
+  const dotEl = document.getElementById('pldot'+step);
+
+  plData.waiting = true;
+  plData.timerStart = null;
+
+  if(plData.results[step].length >= total) {
+    setTimeout(()=>plNextStep(step), 400);
+  } else {
+    const contentEl = document.getElementById('plContent'+step);
+    if(contentEl) contentEl.innerHTML = renderPlTimer(step);
+  }
 }
 
 function startReact() {
   document.getElementById('plReactStart').style.display='none';
-  document.getElementById('plReactTest').style.display='block';
-  showNextReact();
+  document.getElementById('plContent5').style.display='block';
+  plData.waiting = true;
+  renderReactStep();
 }
 
-function showNextReact() {
-  if(reactIdx<reactQueue.length){
-    const a=reactQueue[reactIdx];
-    document.getElementById('plReactZone').textContent=a.zone;
-    document.getElementById('plReactAction').textContent=a.action;
-  }
+function renderReactStep() {
+  const done = plData.results[5]?.length || 0;
+  const successes = plData.results[5]?.filter(r=>r.success).length || 0;
+  const action = reactQueue[reactIdx];
+  const dots = Array(20).fill(null).map((_,i) => {
+    if(i >= done) return `<div style="width:10px;height:10px;border-radius:50%;background:var(--border);display:inline-block;margin:1px;"></div>`;
+    const r = plData.results[5][i];
+    return `<div style="width:10px;height:10px;border-radius:50%;background:${r.success?'var(--green)':'var(--red)'};display:inline-block;margin:1px;"></div>`;
+  }).join('');
+
+  document.getElementById('plContent5').innerHTML = `
+    <div style="text-align:center;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px;">
+        <span>${done}/20</span><span>${successes} réussites</span>
+      </div>
+      <div style="text-align:center;margin-bottom:10px;">${dots}</div>
+      ${plData.waiting && action ? `
+        <div style="background:var(--bg-card);border:2px solid var(--gold);border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;">
+          <div style="font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">${action.zone}</div>
+          <div style="font-size:24px;font-weight:900;color:var(--gold);">${action.action}</div>
+        </div>
+        <button type="button" onclick="plReactReady()" style="width:100%;padding:16px;background:var(--green);border:none;color:#000;font-size:20px;font-weight:900;text-transform:uppercase;border-radius:8px;cursor:pointer;">✋ PRÊT !</button>
+      ` : `
+        <div style="background:var(--bg-card);border:2px solid var(--gold);border-radius:8px;padding:20px;text-align:center;margin-bottom:12px;">
+          <div style="font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;" id="plReactZone">${action?.zone||''}</div>
+          <div style="font-size:24px;font-weight:900;color:var(--gold);" id="plReactAction">${action?.action||''}</div>
+        </div>
+        <div style="background:var(--bg-surface);border-radius:6px;padding:10px;margin-bottom:12px;">
+          <div id="pl-timer-val-5" style="font-size:40px;font-weight:900;color:var(--gold);text-align:center;">35</div>
+          <div style="height:4px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden;">
+            <div id="pl-timer-bar-5" style="height:100%;background:var(--green);border-radius:2px;width:100%;"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button type="button" onclick="plRecord(5,true)" style="padding:16px;background:rgba(0,230,118,0.1);border:2px solid var(--green);border-radius:8px;color:var(--green);font-size:22px;font-weight:900;cursor:pointer;">✓</button>
+          <button type="button" onclick="plRecord(5,false)" style="padding:16px;background:rgba(255,59,48,0.1);border:2px solid var(--red);border-radius:8px;color:var(--red);font-size:22px;font-weight:900;cursor:pointer;">✗</button>
+        </div>
+      `}
+    </div>`;
 }
 
-function plRecord(step, success) {
-  if(plData.tries[step]>=20) return;
-  plData.tries[step]++; if(success) plData.scores[step]++;
-  const pct=Math.round(plData.tries[step]/20*100);
-  const c=document.getElementById('plcount'+step); if(c) c.textContent=plData.tries[step];
-  const b=document.getElementById('plbar'+step);   if(b) b.style.width=pct+'%';
-  const labels=['Réussites','Réussites','Réussites','Buts','Buts','Réussites'];
-  const s=document.getElementById('plscore'+step); if(s) s.textContent=labels[step]+' : '+plData.scores[step];
-  if(step===5){ reactIdx++; if(plData.tries[5]<20) showNextReact(); }
-  if(plData.tries[step]>=20) setTimeout(()=>plNextStep(step),500);
+function plReactReady() {
+  plData.waiting = false;
+  plData.timerStart = Date.now();
+  clearInterval(plData.timerInterval);
+  plData.timerInterval = setInterval(() => {
+    const elapsed = (Date.now()-plData.timerStart)/1000;
+    const remaining = Math.max(0, 35-elapsed);
+    const pct = (remaining/35)*100;
+    const v=document.getElementById('pl-timer-val-5');
+    const b=document.getElementById('pl-timer-bar-5');
+    if(v){ v.textContent=Math.ceil(remaining); v.style.color=remaining>17?'var(--gold)':remaining>8?'#FF9500':'var(--red)'; }
+    if(b){ b.style.width=pct+'%'; b.style.background=remaining>17?'var(--green)':remaining>8?'#FF9500':'var(--red)'; }
+    if(remaining<=0) clearInterval(plData.timerInterval);
+  }, 100);
+  renderReactStep();
 }
 
 function plNextStep(step) {
-  document.getElementById('plstep'+step)?.classList.remove('active');
+  clearInterval(plData.timerInterval);
   const dot=document.getElementById('pldot'+step); if(dot){dot.classList.remove('active');dot.classList.add('done');}
-  const next=step+1;
-  document.getElementById('plstep'+next)?.classList.add('active');
+  document.getElementById('plstep'+step)?.classList.remove('active');
+
+  const next = step+1;
+  if(next >= 6) { showPlacementResult(); return; }
   document.getElementById('pldot'+next)?.classList.add('active');
+  document.getElementById('plstep'+next)?.classList.add('active');
+  plData.step = next;
+  plData.waiting = true;
   document.getElementById('placementOverlay').scrollTo({top:0,behavior:'smooth'});
-  if(next===6) showPlacementResult();
+
+  // For react step, init differently
+  if(next === 5) {
+    // Already handled by startReact button
+  } else if(!['plPasseDefPicker','plTirDefPicker','plTirAttPicker'].some(id => {
+    const e=document.getElementById(id); return e && e.style.display!=='none' && next===parseInt(id.replace('plPasseDefPicker','2').replace('plTirDefPicker','3').replace('plTirAttPicker','4'));
+  })) {
+    if(next <= 1) renderPlStep(next);
+  }
+}
+
+function getPlConstanceScore(results) {
+  if(!results || results.length < 10) return 0;
+  const first5 = results.slice(0,5).filter(r=>r.success).length;
+  const last5  = results.slice(-5).filter(r=>r.success).length;
+  if(last5 >= first5) return last5 < first5 ? 0 : 3;
+  if(last5 < first5 - 2) return -5;
+  return 0;
 }
 
 function showPlacementResult() {
-  const pcts=plData.scores.map((s,i)=>plData.tries[i]>0?Math.round(s/plData.tries[i]*100):0);
+  // Scores pondérés avec constance
+  const steps = [0,1,2,3,4,5];
+  const pcts = steps.map(i => {
+    const results = plData.results[i] || [];
+    const total = i===4?30:20;
+    const ok = results.filter(r=>r.success).length;
+    return results.length>0 ? Math.round(ok/results.length*100) : 0;
+  });
+
+  // Apply constance bonuses
+  const adjustedPcts = pcts.map((p,i) => {
+    const bonus = getPlConstanceScore(plData.results[i]);
+    return Math.min(100, Math.max(0, p + bonus));
+  });
+
   const weights=[0.20,0.20,0.15,0.15,0.20,0.10];
-  const globalScore=pcts.reduce((sum,p,i)=>sum+p*weights[i],0);
-  const passAvg=(pcts[0]+pcts[1]+pcts[2])/3;
+  const globalScore = adjustedPcts.reduce((sum,p,i)=>sum+p*weights[i],0);
+  const passAvg=(adjustedPcts[0]+adjustedPcts[1]+adjustedPcts[2])/3;
   const capped=passAvg<25?Math.min(globalScore,34):globalScore;
+
   let leagueIdx=0; LEAGUES.forEach((l,i)=>{ if(capped>=l.minScore) leagueIdx=i; });
   const league=LEAGUES[leagueIdx];
   const nextMin=leagueIdx<LEAGUES.length-1?LEAGUES[leagueIdx+1].minScore:100;
   const rangeSize=Math.max(1,nextMin-league.minScore);
   const divFraction=Math.min(1,(capped-league.minScore)/rangeSize);
   const division=Math.max(1,Math.min(league.divisions,Math.ceil((1-divFraction)*league.divisions)));
+
   document.getElementById('plResultBadge').textContent=league.emoji;
   document.getElementById('plResultLeague').textContent=league.name;
   document.getElementById('plResultLeague').style.color=league.color;
   document.getElementById('plResultDiv').textContent='Division '+['I','II','III'][division-1];
   document.getElementById('plResultScore').textContent='Score global : '+Math.round(capped)+'%';
-  const names=['Passe Bande','Passe Croisée','Passe Déf. ('+plData.choices.passeDef+')','Tir Déf. ('+plData.choices.tirDef+')','Tir Att. ('+plData.choices.tirAtt+')','Réactivité'];
-  document.getElementById('plResultCards').innerHTML=pcts.map((p,i)=>`
-    <div class="pl-result-card">
+
+  const names=[
+    'Passe Bande','Passe Croisée',
+    'Passe Déf. ('+plData.choices.passeDef+')',
+    'Tir Déf. ('+plData.choices.tirDef+')',
+    'Tirs Att. ('+[plData.choices.tirAtt1,plData.choices.tirAtt2,plData.choices.tirAtt3].filter(Boolean).join(', ')+')',
+    'Réactivité'
+  ];
+
+  let resultHTML = pcts.map((p,i)=>{
+    const bonus = getPlConstanceScore(plData.results[i]);
+    return `<div class="pl-result-card">
       <div class="pl-result-label">${names[i]}</div>
-      <div class="pl-result-pct" style="color:${p>=70?'#00E676':p>=40?'#FF9500':'#FF3B30'}">${p}%</div>
-    </div>`).join('');
+      <div style="text-align:right;">
+        <div class="pl-result-pct" style="color:${p>=70?'#00E676':p>=40?'#FF9500':'#FF3B30'}">${p}%</div>
+        ${bonus!==0?`<div style="font-size:10px;color:${bonus>0?'var(--green)':'var(--red)'};">constance ${bonus>0?'+':''}${bonus}%</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Per-shot breakdown for tir att
+  if(Object.keys(plData.tirAttPerShot||{}).length > 0) {
+    resultHTML += `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:8px;">
+      <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Détail tirs attaque</div>
+      ${Object.entries(plData.tirAttPerShot).map(([shot,stats])=>`
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+          <span style="color:var(--text-secondary);">${shot}</span>
+          <span style="color:${stats.tried>0&&stats.ok/stats.tried>=0.7?'var(--green)':stats.tried>0&&stats.ok/stats.tried>=0.4?'#FF9500':'var(--red)'};">
+            ${stats.ok}/${stats.tried} (${stats.tried>0?Math.round(stats.ok/stats.tried*100):0}%)
+          </span>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  document.getElementById('plResultCards').innerHTML = resultHTML;
+
   const lp=Math.round(divFraction*100)%100;
-  const attIdx=Math.max(0,Math.min(leagueIdx,Math.round(leagueIdx*(pcts[4]/100))));
-  const defIdx=Math.max(0,Math.min(leagueIdx,Math.round(leagueIdx*(pcts[2]/100))));
-  const history=DB.get('history')||[];
-  const oldPlacement=DB.get('placement');
-  if(oldPlacement) DB.push('placementHistory',{...oldPlacement});
-  DB.set('placement',{leagueIdx,division,lp,globalScore:Math.round(capped),pcts,choices:plData.choices,date:Date.now()});
+  const attIdx=Math.max(0,Math.min(leagueIdx,Math.round(leagueIdx*(adjustedPcts[4]/100))));
+  const defIdx=Math.max(0,Math.min(leagueIdx,Math.round(leagueIdx*(adjustedPcts[2]/100))));
+  const oldPl=DB.get('placement'); if(oldPl) DB.push('placementHistory',oldPl);
+  DB.set('placement',{leagueIdx,division,lp,globalScore:Math.round(capped),pcts,adjustedPcts,choices:plData.choices,table:plData.table,date:Date.now()});
   DB.set('rankGlobal',{leagueIdx,division,lp});
   DB.set('rankAttack',{leagueIdx:attIdx,division:Math.min(3,league.divisions),lp:40});
   DB.set('rankDefense',{leagueIdx:defIdx,division:Math.min(3,league.divisions),lp:40});
-}
 
-function confirmPlacement() {
-  document.getElementById('placementOverlay').classList.remove('open');
-  renderLeague(); renderDashboard();
-  addXP(100,'Test de placement complété !');
-  checkBadges();
-}
-
-function renderLeague() {
-  const el=document.getElementById('leagueContent'); if(!el) return;
-  const rankG=DB.get('rankGlobal');
-  const rankA=DB.get('rankAttack');
-  const rankD=DB.get('rankDefense');
-  const validated=DB.get('validated');
-  if(!rankG){
-    el.innerHTML=`<div style="text-align:center;padding:40px 20px;">
-      <div style="font-size:64px;margin-bottom:16px;">🎯</div>
-      <div style="font-size:24px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">TEST DE PLACEMENT</div>
-      <div style="font-size:14px;color:var(--text-secondary);margin-bottom:24px;">Détermine ta ligue de départ en 15 minutes.</div>
-      <button type="button" class="btn-primary" onclick="openPlacement()">Commencer le test →</button>
-    </div>`; return;
-  }
-  const lg=LEAGUES[rankG.leagueIdx];
-  const la=LEAGUES[rankA?rankA.leagueIdx:0];
-  const ld=LEAGUES[rankD?rankD.leagueIdx:0];
-  const dn=['I','II','III'];
-  const placement=DB.get('placement')||{};
-  const pcts=placement.pcts||[0,0,0,0,0,0];
-  const seasonEnd=(placement.date||Date.now())+90*24*3600*1000;
-  const daysLeft=Math.max(0,Math.ceil((seasonEnd-Date.now())/(24*3600*1000)));
-  const valLabel=validated?(typeof validated==='object'?validated.label:validated):null;
-  const valPhoto=validated&&typeof validated==='object'?validated.photo:null;
-
-  // What to improve to rank up
-  const nextLeague=LEAGUES[Math.min(rankG.leagueIdx+1,LEAGUES.length-1)];
-  const scoreNeeded=nextLeague.minScore;
-  const currentScore=placement.globalScore||0;
-  const gap=Math.max(0,scoreNeeded-currentScore);
-  const weakest=pcts.indexOf(Math.min(...pcts));
-  const weakNames=['Passe Bande','Passe Croisée','Passe Défense','Tir Défense','Tir Attaque','Réactivité'];
-
-  // Placement history
-  const placementHistory=DB.get('placementHistory')||[];
-
-  el.innerHTML=`
-  <div class="section-title">Rang Global</div>
-  <div class="league-card" style="border:1px solid ${lg.color}40;">
-    <span class="league-badge-big">${lg.emoji}</span>
-    <div class="league-name" style="color:${lg.color}">${lg.name} ${dn[(rankG.division||1)-1]}</div>
-    <div class="league-division">Score placement : ${currentScore}%</div>
-    <div class="league-points"><span>${rankG.lp||0} LP</span><span style="color:var(--text-muted)">/ 100</span></div>
-    <div class="lp-bar"><div class="lp-fill" style="width:${rankG.lp||0}%;background:${lg.color}"></div></div>
-  </div>
-
-  <!-- POURQUOI CETTE LIGUE -->
-  <div class="section-title">Pourquoi ${lg.name} ?</div>
-  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:16px;">
-    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Tes scores au test de placement :</div>
-    ${['Passe Bande','Passe Croisée','Passe Défense','Tir Défense','Tir Attaque','Réactivité'].map((n,i)=>`
-      <div style="margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
-          <span style="color:${i===weakest?'var(--red)':'var(--text-secondary)'};">${n}${i===weakest?' ← point faible':''}</span>
-          <span style="color:${pcts[i]>=70?'var(--green)':pcts[i]>=40?'#FF9500':'var(--red)'};">${pcts[i]}%</span>
-        </div>
-        <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
-          <div style="height:100%;background:${pcts[i]>=70?'var(--green)':pcts[i]>=40?'#FF9500':'var(--red)'};border-radius:2px;width:${pcts[i]}%;"></div>
-        </div>
-      </div>`).join('')}
-  </div>
-
-  <!-- POUR MONTER -->
-  ${rankG.leagueIdx<LEAGUES.length-1?`
-  <div class="section-title">Pour atteindre ${nextLeague.emoji} ${nextLeague.name}</div>
-  <div style="background:var(--bg-card);border:1px solid ${nextLeague.color}40;border-radius:6px;padding:14px;margin-bottom:16px;">
-    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">Il te faut un score global de <strong style="color:${nextLeague.color}">${scoreNeeded}%</strong> (actuellement ${currentScore}%, manque ${gap}%)</div>
-    <div style="font-size:13px;color:var(--text-primary);margin-bottom:6px;">🎯 Priorité : améliorer <strong style="color:var(--gold)">${weakNames[weakest]}</strong> (${pcts[weakest]}%)</div>
-    <div style="font-size:12px;color:var(--text-muted);">Refais le test de placement après t'être entraîné sur ce point.</div>
-  </div>`:'<div style="background:var(--bg-card);border:1px solid var(--gold);border-radius:6px;padding:14px;margin-bottom:16px;text-align:center;font-size:14px;color:var(--gold);">🏆 Tu es au rang maximum !</div>'}
-
-  <div class="${valLabel?'validation-banner validated':'validation-banner unvalidated'}">
-    <span>${valLabel?'✅':'⚪'}</span>
-    <span>${valLabel?'Homologué — '+valLabel:'Non homologué — compétition réelle requise'}</span>
-  </div>
-  ${valPhoto?`<div style="margin-bottom:8px;border-radius:6px;overflow:hidden;border:1px solid var(--green);"><img src="${valPhoto}" style="width:100%;max-height:150px;object-fit:contain;background:#000;" alt="Preuve"></div>`:''}
-  <button type="button" class="validate-btn" onclick="openModal('validateModal')">🏆 ${valLabel?'Mettre à jour':'Homologuer mon rang'}</button>
-
-  <div class="section-title" style="margin-top:4px;">Spécialisations</div>
-  <div class="ranks-grid">
-    <div class="rank-mini"><div class="rank-mini-icon">${lg.emoji}</div><div class="rank-mini-label">Global</div><div class="rank-mini-val">${lg.name}</div><div class="rank-mini-div">${dn[(rankG.division||1)-1]}</div></div>
-    <div class="rank-mini"><div class="rank-mini-icon">${la.emoji}</div><div class="rank-mini-label">Attaque</div><div class="rank-mini-val">${la.name}</div><div class="rank-mini-div">${dn[(rankA?.division||1)-1]}</div></div>
-    <div class="rank-mini"><div class="rank-mini-icon">${ld.emoji}</div><div class="rank-mini-label">Défense</div><div class="rank-mini-val">${ld.name}</div><div class="rank-mini-div">${dn[(rankD?.division||1)-1]}</div></div>
-  </div>
-
-  <div class="section-title">Saison</div>
-  <div class="season-card"><div class="season-label">Temps restant</div><div class="season-val">${daysLeft} jours</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Promotion / Maintien / Relégation à la fin</div></div>
-
-  ${placementHistory.length>0?`
-  <div class="section-title" style="margin-top:8px;">Historique des tests</div>
-  ${placementHistory.slice(-3).reverse().map(p=>`
-    <div class="history-item">
-      <div><div class="history-date">${new Date(p.date).toLocaleDateString('fr-BE')}</div>
-      <div class="history-desc">${LEAGUES[p.leagueIdx]?.emoji} ${LEAGUES[p.leagueIdx]?.name} — ${p.globalScore}%</div></div>
-    </div>`).join('')}`:''}
-
-  <button type="button" class="add-exercise-btn" style="margin-top:8px;" onclick="openPlacement()">🔄 Refaire le test de placement</button>`;
+  // Show result step
+  for(let i=0;i<6;i++) document.getElementById('plstep'+i)?.classList.remove('active');
+  document.getElementById('plstep6')?.classList.add('active');
+  document.getElementById('placementOverlay').scrollTo({top:0,behavior:'smooth'});
 }
 
 function updateLeagueFromTraining(pct) {
