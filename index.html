@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>BABYFOOT COACH RPG</title>
+<title>BabyFoot Coach RPG</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
+
   :root {
     --bg-deep: #080C12;
     --bg-card: #0E1520;
@@ -938,6 +939,110 @@
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+  /* ── VIDEO SEMI-AUTO ── */
+  .video-upload-zone {
+    border: 2px dashed var(--border-bright); border-radius: 8px;
+    padding: 30px 20px; text-align: center; background: var(--bg-card);
+    cursor: pointer; transition: border-color 0.2s; position: relative;
+    margin-bottom: 16px;
+  }
+  .video-upload-zone:hover { border-color: var(--gold); }
+  .video-upload-zone input { position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%; }
+  .video-player-wrap { margin-bottom: 16px; }
+  .video-player-wrap video { width:100%;border-radius:6px;background:#000; }
+  .video-timeline {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px; margin-bottom: 16px;
+  }
+  .video-time {
+    font-family: 'Roboto Mono', monospace; font-size: 24px;
+    font-weight: 600; color: var(--gold); text-align: center;
+    margin-bottom: 12px;
+  }
+  .video-event-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+  }
+  .v-evt-btn {
+    padding: 12px 6px; border-radius: 6px; border: 1.5px solid var(--border-bright);
+    background: var(--bg-surface); cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+    font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+    color: var(--text-secondary); transition: all 0.15s; text-align: center;
+  }
+  .v-evt-btn:active { transform: scale(0.95); }
+  .v-evt-btn.passe { border-color: var(--cyan-dim); color: var(--cyan); }
+  .v-evt-btn.passe:active { background: rgba(0,212,255,0.15); }
+  .v-evt-btn.but { border-color: var(--green); color: var(--green); }
+  .v-evt-btn.but:active { background: rgba(0,230,118,0.15); }
+  .v-evt-btn.arret { border-color: var(--gold-dim); color: var(--gold); }
+  .v-evt-btn.arret:active { background: rgba(201,168,76,0.15); }
+  .v-evt-btn.tir { border-color: #FF9500; color: #FF9500; }
+  .v-evt-btn.tir:active { background: rgba(255,149,0,0.15); }
+  .v-evt-btn.erreur { border-color: var(--red); color: var(--red); }
+  .v-evt-btn.erreur:active { background: rgba(255,59,48,0.15); }
+  .v-evt-btn.relance { border-color: #AA00FF; color: #AA00FF; }
+  .v-evt-btn.relance:active { background: rgba(170,0,255,0.15); }
+  .video-events-log {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px; margin-bottom: 16px;
+    max-height: 200px; overflow-y: auto;
+  }
+  .v-event-item {
+    display: flex; align-items: center; gap: 8px; padding: 6px 0;
+    border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .v-event-item:last-child { border-bottom: none; }
+  .v-event-time {
+    font-family: 'Roboto Mono', monospace; font-size: 11px;
+    color: var(--text-muted); min-width: 40px;
+  }
+  .v-event-type { font-weight: 600; font-family: 'Barlow Condensed', sans-serif; font-size:14px; }
+  .v-event-del { margin-left:auto; color:var(--text-muted); cursor:pointer; font-size:14px; padding:2px 6px; }
+  .video-stats-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px; }
+
+  /* ── COACH IA ── */
+  .coach-ia-input {
+    background: var(--bg-card); border: 1px solid var(--border-bright);
+    border-radius: 8px; padding: 14px; margin-bottom: 12px;
+  }
+  .coach-ia-input textarea {
+    width: 100%; background: transparent; border: none;
+    color: var(--text-primary); font-family: 'Barlow', sans-serif;
+    font-size: 15px; resize: none; outline: none; min-height: 80px;
+    line-height: 1.5;
+  }
+  .coach-ia-response {
+    background: linear-gradient(135deg, #0A1628 0%, var(--bg-card) 100%);
+    border: 1px solid var(--cyan-dim); border-radius: 8px;
+    padding: 16px; margin-bottom: 12px; display: none;
+  }
+  .coach-ia-response.visible { display: block; }
+  .coach-ia-response p { font-size: 14px; color: var(--text-primary); line-height: 1.6; margin-bottom: 8px; }
+  .coach-ia-response p:last-child { margin-bottom: 0; }
+  .coach-ia-response strong { color: var(--gold); }
+  .coach-ia-loader {
+    display: none; text-align: center; padding: 20px;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 14px;
+    color: var(--cyan); letter-spacing: 2px;
+  }
+  .coach-ia-loader.visible { display: block; }
+  .coach-ia-program {
+    background: var(--bg-card); border: 1px solid var(--gold-dim);
+    border-radius: 8px; padding: 16px; margin-bottom: 12px;
+    display: none;
+  }
+  .coach-ia-program.visible { display: block; }
+  .program-day {
+    border-bottom: 1px solid var(--border); padding: 10px 0;
+  }
+  .program-day:last-child { border-bottom: none; }
+  .program-day-title {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 16px;
+    font-weight: 700; color: var(--gold); margin-bottom: 4px;
+  }
+  .program-day-content { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
 </style>
 </head>
 <body>
@@ -947,49 +1052,29 @@
   <div class="ob-wrap">
     <div class="ob-logo">Babyfoot Coach</div>
     <div class="ob-title">LEVEL<br><span>UP</span><br>YOUR<br>GAME</div>
-    <div class="ob-sub">Entraîne-toi comme un pro. Progresse comme un joueur RPG.</div>
-
+    <div class="ob-sub">Entraîne-toi comme un pro. Progresse comme un RPG.</div>
     <div class="ob-dots">
       <div class="ob-dot active" id="dot0"></div>
       <div class="ob-dot" id="dot1"></div>
       <div class="ob-dot" id="dot2"></div>
     </div>
-
-    <!-- Step 0: Name -->
+    <!-- Step 0 -->
     <div class="ob-step active" id="step0">
       <div class="ob-step-label">Étape 1 / 3</div>
       <div class="ob-step-title">Qui es-tu ?</div>
-      <div class="ob-field">
-        <label>Ton nom / pseudo</label>
-        <input type="text" id="ob-name" placeholder="Ex: Axel, Le Mur, ..." maxlength="30">
-      </div>
-      <div class="ob-field">
-        <label>Main dominante</label>
-        <select id="ob-hand">
-          <option value="">— Choisir —</option>
-          <option value="Droitier">Droitier</option>
-          <option value="Gaucher">Gaucher</option>
-          <option value="Ambidextre">Ambidextre</option>
-        </select>
-      </div>
-      <div class="ob-field">
-        <label>Poste préféré</label>
-        <select id="ob-pos">
-          <option value="">— Choisir —</option>
-          <option value="Défenseur">Défenseur</option>
-          <option value="Attaquant">Attaquant</option>
-          <option value="Polyvalent">Polyvalent</option>
-        </select>
-      </div>
+      <div class="ob-field"><label>Ton nom / pseudo</label><input type="text" id="ob-name" placeholder="Ex: Axel, Le Mur ..." maxlength="30"></div>
+      <div class="ob-field"><label>Main dominante</label>
+        <select id="ob-hand"><option value="">— Choisir —</option><option>Droitier</option><option>Gaucher</option><option>Ambidextre</option></select></div>
+      <div class="ob-field"><label>Poste préféré</label>
+        <select id="ob-pos"><option value="">— Choisir —</option><option>Défenseur</option><option>Attaquant</option><option>Polyvalent</option></select></div>
       <button type="button" class="btn-primary" onclick="obNext(0)">Continuer →</button>
     </div>
-
-    <!-- Step 1: Avatar -->
+    <!-- Step 1 -->
     <div class="ob-step" id="step1">
       <div class="ob-step-label">Étape 2 / 3</div>
       <div class="ob-step-title">Ton avatar</div>
       <div style="margin-bottom:12px;">
-        <img id="photoPreview" alt="Photo">
+        <img id="photoPreview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:none;border:2px solid var(--gold);" alt="">
         <div class="ob-photo-upload" id="photoUploadZone">
           <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(this)">
           📷 Ajouter une photo (optionnel)
@@ -1008,275 +1093,103 @@
       </div>
       <button type="button" class="btn-primary" onclick="obNext(1)">Continuer →</button>
     </div>
-
-    <!-- Step 2: Tables -->
+    <!-- Step 2 -->
     <div class="ob-step" id="step2">
       <div class="ob-step-label">Étape 3 / 3</div>
       <div class="ob-step-title">Niveau & Tables</div>
-      <div class="ob-field">
-        <label>Niveau actuel (auto-évaluation)</label>
-        <select id="ob-level">
-          <option value="Débutant">Débutant</option>
-          <option value="Intermédiaire" selected>Intermédiaire</option>
-          <option value="Confirmé">Confirmé</option>
-          <option value="Expert">Expert</option>
-          <option value="Elite">Elite</option>
-        </select>
-      </div>
-      <div class="ob-field">
-        <label>Tables pratiquées (séparées par virgule)</label>
-        <input type="text" id="ob-tables" placeholder="Ex: Bonzini, Tornado, Garlando">
-      </div>
-      <div class="ob-field">
-        <label>ELO réel (laisser vide si inconnu)</label>
-        <input type="number" id="ob-elo" placeholder="Ex: 1250">
-      </div>
-      <div class="ob-field">
-        <label>Objectif principal</label>
-        <input type="text" id="ob-goal" placeholder="Ex: Monter en division 2">
-      </div>
+      <div class="ob-field"><label>Niveau actuel</label>
+        <select id="ob-level"><option>Débutant</option><option selected>Intermédiaire</option><option>Confirmé</option><option>Expert</option><option>Elite</option></select></div>
+      <div class="ob-field"><label>Tables pratiquées</label><input type="text" id="ob-tables" placeholder="Ex: Bonzini, Tornado, Garlando"></div>
+      <div class="ob-field"><label>ELO réel (optionnel)</label><input type="number" id="ob-elo" placeholder="Ex: 1250"></div>
+      <div class="ob-field"><label>Objectif principal</label><input type="text" id="ob-goal" placeholder="Ex: Monter en division 2"></div>
       <button type="button" class="btn-primary" onclick="finishOnboarding()">🚀 Commencer</button>
     </div>
   </div>
 </div>
 
 <!-- ══ XP TOAST ══ -->
-<div class="xp-toast" id="xpToast">+0 XP</div>
+<div class="xp-toast" id="xpToast"></div>
 
 <!-- ══ APP ══ -->
 <div id="app">
-
-  <!-- TOP BAR -->
+  <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-logo">BFC·RPG</div>
     <div class="topbar-right">
-      <div class="topbar-xp">
-        <span id="tb-xp">0 XP</span>
-        <span style="color:var(--text-muted)">·</span>
-        <span id="tb-lvl" style="color:var(--gold)">NV.1</span>
-      </div>
+      <div class="topbar-xp"><span id="tb-xp">0 XP</span><span style="color:var(--text-muted)">·</span><span id="tb-lvl" style="color:var(--gold)">NV.1</span></div>
       <div class="topbar-avatar" id="topbarAvatar" onclick="navTo('profile')">⚽</div>
     </div>
   </div>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN -->
   <div class="main-content">
 
     <!-- DASHBOARD -->
     <div class="screen active" id="screen-dash">
       <div class="dash-hero">
-        <div class="dash-hero-greeting" id="dash-greeting">Bon entraînement</div>
+        <div class="dash-hero-greeting" id="dash-greeting">Bienvenue</div>
         <div class="dash-hero-name" id="dash-name">—</div>
-        <div class="dash-hero-rank" id="dash-rank">Apprenti</div>
+        <div class="dash-hero-rank" id="dash-rank">—</div>
         <div class="dash-xp-bar-wrap">
-          <div class="dash-xp-label">
-            <span id="dash-xp-cur">0 XP</span>
-            <span id="dash-xp-next">100 XP</span>
-          </div>
-          <div class="dash-xp-bar">
-            <div class="dash-xp-fill" id="dash-xp-fill" style="width:0%"></div>
-          </div>
+          <div class="dash-xp-label"><span id="dash-xp-cur">0 XP</span><span id="dash-xp-next">100 XP</span></div>
+          <div class="dash-xp-bar"><div class="dash-xp-fill" id="dash-xp-fill" style="width:0%"></div></div>
         </div>
-        <div class="dash-level-badge">
-          <div class="dash-level-num" id="dash-level">1</div>
-          <div class="dash-level-lbl">Niv.</div>
-        </div>
+        <div class="dash-level-badge"><div class="dash-level-num" id="dash-level">1</div><div class="dash-level-lbl">Niv.</div></div>
       </div>
-
       <div class="section-title">Aujourd'hui</div>
       <div class="stat-grid">
-        <div class="stat-card highlight">
-          <div class="stat-card-label">Sessions</div>
-          <div class="stat-card-value" id="stat-sessions">0</div>
-          <div class="stat-card-sub">entraînements</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-label">Matchs</div>
-          <div class="stat-card-value" id="stat-matches">0</div>
-          <div class="stat-card-sub">joués</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-label">Passes OK</div>
-          <div class="stat-card-value" id="stat-passes">—</div>
-          <div class="stat-card-sub">ce mois</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-label">Buts</div>
-          <div class="stat-card-value" id="stat-goals">—</div>
-          <div class="stat-card-sub">ce mois</div>
-        </div>
+        <div class="stat-card highlight"><div class="stat-card-label">Sessions</div><div class="stat-card-value" id="stat-sessions">0</div><div class="stat-card-sub">aujourd'hui</div></div>
+        <div class="stat-card"><div class="stat-card-label">Matchs</div><div class="stat-card-value" id="stat-matches">0</div><div class="stat-card-sub">aujourd'hui</div></div>
+        <div class="stat-card"><div class="stat-card-label">% Passes</div><div class="stat-card-value" id="stat-passes">—</div><div class="stat-card-sub">global</div></div>
+        <div class="stat-card"><div class="stat-card-label">Buts</div><div class="stat-card-value" id="stat-goals">—</div><div class="stat-card-sub">total</div></div>
       </div>
-
       <div class="section-title">Actions rapides</div>
       <div class="quick-actions">
-        <div class="qa-btn accent" onclick="navTo('training')">
-          <div class="qa-btn-icon">🏃</div>
-          <div class="qa-btn-label">Entraînement</div>
-          <div class="qa-btn-sub">Logger une session</div>
-        </div>
-        <div class="qa-btn" onclick="navTo('match')">
-          <div class="qa-btn-icon">⚽</div>
-          <div class="qa-btn-label">Match</div>
-          <div class="qa-btn-sub">Encoder rapidement</div>
-        </div>
-        <div class="qa-btn" onclick="navTo('stats')">
-          <div class="qa-btn-icon">📊</div>
-          <div class="qa-btn-label">Stats</div>
-          <div class="qa-btn-sub">Voir ma progression</div>
-        </div>
-        <div class="qa-btn" onclick="navTo('profile')">
-          <div class="qa-btn-icon">🏆</div>
-          <div class="qa-btn-label">Profil</div>
-          <div class="qa-btn-sub">Titres & badges</div>
-        </div>
+        <div class="qa-btn accent" onclick="navTo('training')"><div class="qa-btn-icon">🏃</div><div class="qa-btn-label">Training</div><div class="qa-btn-sub">Logger une session</div></div>
+        <div class="qa-btn" onclick="navTo('match')"><div class="qa-btn-icon">⚽</div><div class="qa-btn-label">Match</div><div class="qa-btn-sub">Encoder rapidement</div></div>
+        <div class="qa-btn" onclick="navTo('video')"><div class="qa-btn-icon">🎬</div><div class="qa-btn-label">Vidéo</div><div class="qa-btn-sub">Analyser un match</div></div>
+        <div class="qa-btn" onclick="navTo('coach')"><div class="qa-btn-icon">🤖</div><div class="qa-btn-label">Coach IA</div><div class="qa-btn-sub">Analyse personnalisée</div></div>
       </div>
-
-      <div class="section-title">Coach IA</div>
+      <div class="section-title">Coach</div>
       <div class="coach-card">
-        <div class="coach-card-head">
-          <div class="coach-icon">🎯</div>
-          <div class="coach-card-title">Analyse du jour</div>
-        </div>
-        <div class="coach-msg" id="coach-msg">Commence ton premier entraînement pour recevoir une analyse personnalisée.</div>
+        <div class="coach-card-head"><div class="coach-icon">🎯</div><div class="coach-card-title">Analyse du jour</div></div>
+        <div class="coach-msg" id="coach-msg">Commence ton premier entraînement pour recevoir une analyse.</div>
       </div>
-
-      <div class="section-title">Badges</div>
-      <div class="badges-row" id="badges-row">
-        <div class="badge-chip"><span class="badge-icon">🔒</span> Le Facteur</div>
-        <div class="badge-chip"><span class="badge-icon">🔒</span> Mur Défensif</div>
-        <div class="badge-chip"><span class="badge-icon">🔒</span> Machine à Buts</div>
-        <div class="badge-chip"><span class="badge-icon">🔒</span> Polyvalent</div>
-        <div class="badge-chip"><span class="badge-icon">🔒</span> Globe-Trotter</div>
-      </div>
+      <div class="section-title">Badges récents</div>
+      <div class="badges-row" id="badges-row"></div>
     </div>
 
     <!-- TRAINING -->
     <div class="screen" id="screen-training">
       <div class="section-title" style="margin-bottom:4px">Entraînement</div>
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Chaque session = XP. Log tes répétitions.</div>
-
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Chaque session = XP. Les totaux s'accumulent.</div>
       <div class="training-cats" id="trainingCats">
         <div class="cat-tab active" onclick="switchCat('passes',this)">Passes</div>
         <div class="cat-tab" onclick="switchCat('attack',this)">Attaque</div>
         <div class="cat-tab" onclick="switchCat('defense',this)">Défense</div>
       </div>
-
       <div id="trainingContent"></div>
     </div>
 
     <!-- MATCH -->
     <div class="screen" id="screen-match">
       <div class="section-title" style="margin-bottom:4px">Encoder un match</div>
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Mode rapide — moins d'une minute.</div>
-
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Mode rapide — moins de 30 secondes.</div>
       <div class="match-role-picker">
-        <div class="role-card selected" id="role-att" onclick="selectRole('att')">
-          <div class="role-card-icon">⚔️</div>
-          <div class="role-card-name">Attaquant</div>
-        </div>
-        <div class="role-card" id="role-def" onclick="selectRole('def')">
-          <div class="role-card-icon">🛡️</div>
-          <div class="role-card-name">Défenseur</div>
-        </div>
+        <div class="role-card selected" id="role-att" onclick="selectRole('att')"><div class="role-card-icon">⚔️</div><div class="role-card-name">Attaquant</div></div>
+        <div class="role-card" id="role-def" onclick="selectRole('def')"><div class="role-card-icon">🛡️</div><div class="role-card-name">Défenseur</div></div>
       </div>
-
       <div class="match-form" id="matchForm"></div>
-
       <button type="button" class="match-submit" onclick="saveMatch()">Valider le match</button>
     </div>
 
-    <!-- STATS -->
-    <div class="screen" id="screen-stats">
-      <div class="section-title" style="margin-bottom:4px">Statistiques</div>
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Ta progression globale.</div>
-
-      <div class="stats-overview">
-        <div class="stats-pill">
-          <div class="stats-pill-val" id="s-total-sessions">0</div>
-          <div class="stats-pill-lbl">Sessions</div>
-        </div>
-        <div class="stats-pill">
-          <div class="stats-pill-val" id="s-total-matches">0</div>
-          <div class="stats-pill-lbl">Matchs</div>
-        </div>
-        <div class="stats-pill">
-          <div class="stats-pill-val" id="s-total-xp">0</div>
-          <div class="stats-pill-lbl">XP Total</div>
-        </div>
-      </div>
-
-      <div class="section-title">Passes milieu</div>
-      <div class="stat-grid" style="margin-bottom:16px;">
-        <div class="stat-card">
-          <div class="stat-card-label">Tentatives</div>
-          <div class="stat-card-value" id="s-pass-att">0</div>
-        </div>
-        <div class="stat-card highlight">
-          <div class="stat-card-label">% Réussite</div>
-          <div class="stat-card-value" id="s-pass-pct">—</div>
-        </div>
-      </div>
-
-      <div class="section-title">Attaque</div>
-      <div class="stat-grid" style="margin-bottom:16px;">
-        <div class="stat-card">
-          <div class="stat-card-label">Tirs tentés</div>
-          <div class="stat-card-value" id="s-att-tries">0</div>
-        </div>
-        <div class="stat-card highlight">
-          <div class="stat-card-label">% Conversion</div>
-          <div class="stat-card-value" id="s-att-pct">—</div>
-        </div>
-      </div>
-
-      <div class="section-title">Progression XP</div>
-      <div class="chart-wrap">
-        <div class="chart-title">XP par jour (7 derniers jours)</div>
-        <canvas id="chartXP" style="width:100%;height:120px;"></canvas>
-      </div>
-
-      <div class="section-title">% Réussite passes</div>
-      <div class="chart-wrap">
-        <div class="chart-title">Évolution sur 10 sessions</div>
-        <canvas id="chartPass" style="width:100%;height:120px;"></canvas>
-      </div>
-
-      <div class="section-title">Historique</div>
-      <div id="historyList"></div>
-    </div>
-
-    <!-- PROFILE -->
-    <div class="screen" id="screen-profile">
-      <div class="profile-hero">
-        <div class="profile-avatar" id="prof-avatar">⚽</div>
-        <div class="profile-name" id="prof-name">—</div>
-        <div class="profile-rank" id="prof-rank">Apprenti</div>
-        <div class="profile-tags" id="prof-tags"></div>
-      </div>
-
-      <div class="section-title">Titres Défense</div>
-      <div class="title-grid" id="titles-def"></div>
-
-      <div class="section-title" style="margin-top:16px;">Titres Attaque</div>
-      <div class="title-grid" id="titles-att"></div>
-
-      <div class="section-title" style="margin-top:16px;">Titres Multi-table</div>
-      <div class="title-grid" id="titles-multi"></div>
-
-      <button type="button" class="profile-edit-btn" onclick="openEditProfile()">✏️ Modifier le profil</button>
-    </div>
-
-
-
     <!-- LEAGUE -->
-    <div class="screen" id="screen-league">
-      <div id="leagueContent"></div>
-    </div>
+    <div class="screen" id="screen-league"><div id="leagueContent"></div></div>
 
     <!-- OBJECTIVES -->
     <div class="screen" id="screen-objectives">
       <div class="section-title" style="margin-bottom:4px">Objectifs</div>
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Accomplis tes objectifs pour gagner de l'XP bonus.</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Les objectifs se complètent <strong style="color:var(--gold)">automatiquement</strong> quand tu atteins les stats.</div>
       <div class="obj-tabs">
         <div class="obj-tab active" onclick="switchObjTab('daily',this)">Journalier</div>
         <div class="obj-tab" onclick="switchObjTab('weekly',this)">Hebdo</div>
@@ -1287,1501 +1200,116 @@
       <button type="button" class="add-obj-btn" onclick="openAddObj()">+ Ajouter un objectif</button>
     </div>
 
+    <!-- CAREER -->
+    <div class="screen" id="screen-career"><div id="careerContent"></div></div>
+
+    <!-- VIDEO -->
+    <div class="screen" id="screen-video"><div id="videoContent"></div></div>
+
+    <!-- COACH IA -->
+    <div class="screen" id="screen-coach"><div id="coachIAContent"></div></div>
+
+    <!-- STATS -->
+    <div class="screen" id="screen-stats">
+      <div class="section-title" style="margin-bottom:4px">Statistiques</div>
+      <div class="stats-overview">
+        <div class="stats-pill"><div class="stats-pill-val" id="s-total-sessions">0</div><div class="stats-pill-lbl">Sessions</div></div>
+        <div class="stats-pill"><div class="stats-pill-val" id="s-total-matches">0</div><div class="stats-pill-lbl">Matchs</div></div>
+        <div class="stats-pill"><div class="stats-pill-val" id="s-total-xp">0</div><div class="stats-pill-lbl">XP</div></div>
+      </div>
+      <div class="section-title">Passes milieu</div>
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat-card"><div class="stat-card-label">Tentatives</div><div class="stat-card-value" id="s-pass-att">0</div></div>
+        <div class="stat-card highlight"><div class="stat-card-label">% Réussite</div><div class="stat-card-value" id="s-pass-pct">—</div></div>
+      </div>
+      <div class="section-title">Attaque</div>
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat-card"><div class="stat-card-label">Tirs tentés</div><div class="stat-card-value" id="s-att-tries">0</div></div>
+        <div class="stat-card highlight"><div class="stat-card-label">% Conversion</div><div class="stat-card-value" id="s-att-pct">—</div></div>
+      </div>
+      <div class="section-title">Progression XP</div>
+      <div class="chart-wrap"><div class="chart-title">XP par jour</div><canvas id="chartXP" style="width:100%;height:120px;"></canvas></div>
+      <div class="section-title">% Passes</div>
+      <div class="chart-wrap"><div class="chart-title">Évolution sur 10 sessions</div><canvas id="chartPass" style="width:100%;height:120px;"></canvas></div>
+      <div class="section-title">Historique</div>
+      <div id="historyList"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="screen-profile">
+      <div class="profile-hero">
+        <div class="profile-avatar" id="prof-avatar">⚽</div>
+        <div class="profile-name" id="prof-name">—</div>
+        <div class="profile-rank" id="prof-rank">—</div>
+        <div class="profile-tags" id="prof-tags"></div>
+      </div>
+      <div class="section-title">Titres Défense</div><div class="title-grid" id="titles-def"></div>
+      <div class="section-title" style="margin-top:16px;">Titres Attaque</div><div class="title-grid" id="titles-att"></div>
+      <div class="section-title" style="margin-top:16px;">Titres Multi-table</div><div class="title-grid" id="titles-multi"></div>
+      <div class="section-title" style="margin-top:16px;">Badges</div><div id="prof-badges"></div>
+      <button type="button" class="profile-edit-btn" onclick="openEditProfile()">✏️ Modifier le profil</button>
+      <button type="button" class="profile-edit-btn" style="border-color:var(--red);color:var(--red);margin-top:6px;" onclick="resetAll()">🔄 Recommencer à zéro</button>
+    </div>
+
   </div><!-- /main-content -->
 
   <!-- BOTTOM NAV -->
   <div class="bottom-nav">
     <div class="nav-item active" id="nav-dash" onclick="navTo('dash')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Accueil
     </div>
     <div class="nav-item" id="nav-training" onclick="navTo('training')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M6 4v16M18 4v16M6 12h12"/>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4v16M18 4v16M6 12h12"/></svg>
       Training
     </div>
     <div class="nav-item" id="nav-match" onclick="navTo('match')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 8v4l3 3"/>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
       Match
     </div>
     <div class="nav-item" id="nav-league" onclick="navTo('league')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M12 2l3 6.5L22 9.3l-5 4.9 1.2 6.8L12 17.7l-6.2 3.3L7 14.2 2 9.3l7-.8z"/>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 6.5L22 9.3l-5 4.9 1.2 6.8L12 17.7l-6.2 3.3L7 14.2 2 9.3l7-.8z"/></svg>
       Ligue
     </div>
-    <div class="nav-item" id="nav-objectives" onclick="navTo('objectives')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-      </svg>
-      Objectifs
+    <div class="nav-item" id="nav-more" onclick="toggleMoreMenu()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+      Plus
     </div>
-    <div class="nav-item" id="nav-profile" onclick="navTo('profile')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-      </svg>
-      Profil
-    </div>
+  </div>
+
+  <!-- MORE MENU -->
+  <div id="moreMenu" style="display:none;position:fixed;bottom:70px;right:12px;background:var(--bg-card);border:1px solid var(--border-bright);border-radius:8px;overflow:hidden;z-index:200;min-width:160px;">
+    <div onclick="navTo('objectives');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🎯 Objectifs</div>
+    <div onclick="navTo('career');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🏆 Carrière</div>
+    <div onclick="navTo('video');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🎬 Vidéo</div>
+    <div onclick="navTo('coach');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🤖 Coach IA</div>
+    <div onclick="navTo('stats');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">📊 Stats</div>
+    <div onclick="navTo('profile');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">👤 Profil</div>
   </div>
 
 </div><!-- /app -->
-
-<!-- MODAL: Edit Profile -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal">
-    <div class="modal-title">Modifier le profil</div>
-    <div class="modal-field"><label>Nom / Pseudo</label><input type="text" id="edit-name" maxlength="30"></div>
-    <div class="modal-field"><label>Main dominante</label>
-      <input type="text" id="edit-hand" placeholder="Droitier, Gaucher...">
-    </div>
-    <div class="modal-field"><label>Poste préféré</label>
-      <input type="text" id="edit-pos" placeholder="Défenseur, Attaquant...">
-    </div>
-    <div class="modal-field"><label>Tables pratiquées</label><input type="text" id="edit-tables"></div>
-    <div class="modal-field"><label>ELO réel</label><input type="number" id="edit-elo"></div>
-    <div class="modal-field"><label>Objectif</label><input type="text" id="edit-goal"></div>
-    <div class="modal-actions">
-      <button type="button" class="modal-cancel" onclick="closeModal('editModal')">Annuler</button>
-      <button type="button" class="modal-confirm" onclick="saveProfile()">Sauvegarder</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: Add Exercise -->
-<div class="modal-overlay" id="addExModal">
-  <div class="modal">
-    <div class="modal-title">Ajouter un exercice</div>
-    <div class="modal-field"><label>Nom de l'exercice</label><input type="text" id="newExName" placeholder="Ex: Tir coupé gauche..."></div>
-    <div class="modal-field">
-      <label>Unité mesurée</label>
-      <select id="newExType" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:15px;padding:10px 12px;border-radius:4px;outline:none;">
-        <option value="passes">Passes (tentatives / réussites)</option>
-        <option value="goals">Buts (tentatives / buts)</option>
-        <option value="saves">Arrêts (tentatives / réussites)</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button type="button" class="modal-cancel" onclick="closeModal('addExModal')">Annuler</button>
-      <button type="button" class="modal-confirm" onclick="confirmAddExercise()">Ajouter</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// ══════════════════════════════════════════
-// STORAGE LAYER (abstracted for future migration)
-// ══════════════════════════════════════════
-const DB = {
-  get: (k) => { try { return JSON.parse(localStorage.getItem('bfc_'+k)); } catch(e) { return null; } },
-  set: (k,v) => localStorage.setItem('bfc_'+k, JSON.stringify(v)),
-  push: (k,v) => { const a = DB.get(k)||[]; a.push(v); DB.set(k,a); return a; }
-};
-
-// ══════════════════════════════════════════
-// DEFAULT DATA
-// ══════════════════════════════════════════
-const DEFAULT_EXERCISES = {
-  passes: [
-    { id:'p1', name:'Bande', type:'passes' },
-    { id:'p2', name:'Croisée', type:'passes' },
-    { id:'p3', name:'Droite', type:'passes' },
-  ],
-  attack: [
-    { id:'a1', name:'Tirer courte', type:'goals' },
-    { id:'a2', name:'Tirer longue', type:'goals' },
-    { id:'a3', name:'Tirer croisée courte', type:'goals' },
-    { id:'a4', name:'Tirer croisée longue', type:'goals' },
-    { id:'a5', name:'Tirer décroisée', type:'goals' },
-    { id:'a6', name:'Pousser courte', type:'goals' },
-    { id:'a7', name:'Pousser longue', type:'goals' },
-    { id:'a8', name:'Fixe', type:'goals' },
-    { id:'a9', name:'Aller-retour tirer', type:'goals' },
-  ],
-  defense: [
-    { id:'d1', name:'Relance bande', type:'saves' },
-    { id:'d2', name:'Relance centre', type:'saves' },
-    { id:'d3', name:'Relance directe', type:'saves' },
-  ]
-};
-
-const RPG = {
-  ranks: [
-    { name:'Apprenti Gardien', xp:0 },
-    { name:'Gardien', xp:200 },
-    { name:'Rempart', xp:500 },
-    { name:'Muraille', xp:1000 },
-    { name:'Forteresse', xp:2000 },
-    { name:'Bastion', xp:4000 },
-    { name:'Légende Défensive', xp:8000 },
-  ],
-  titlesDefense: ['Apprenti Gardien','Gardien','Rempart','Muraille','Forteresse','Bastion','Légende Défensive'],
-  titlesAttack: ['Buteur','Finisseur','Chasseur','Tireur d\'Élite','Bourreau','Machine à Buts','Légende Offensive'],
-  titlesMulti: ['Voyageur','Aventurier','Polyvalent','Maître Multi-table','Ambassadeur International'],
-  defenseReqs: [0, 100, 300, 700, 1500, 3000, 6000],
-  attackReqs: [0, 100, 300, 700, 1500, 3000, 6000],
-  multiReqs: [0, 2, 5, 10, 20],
-  levelXP: (lvl) => 100 * lvl * lvl,
-  getLevel: (xp) => {
-    let lvl = 1;
-    while (RPG.levelXP(lvl) <= xp) lvl++;
-    return lvl - 1;
-  }
-};
-
-// ══════════════════════════════════════════
-// ONBOARDING
-// ══════════════════════════════════════════
-let obAvatar = '⚽';
-let obPhotoData = null;
-let currentStep = 0;
-
-function selectAvatar(el) {
-  document.querySelectorAll('.avatar-opt').forEach(e => e.classList.remove('selected'));
-  el.classList.add('selected');
-  obAvatar = el.dataset.emoji;
-  obPhotoData = null;
-}
-
-function handlePhoto(inp) {
-  const file = inp.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    obPhotoData = e.target.result;
-    const prev = document.getElementById('photoPreview');
-    prev.src = obPhotoData;
-    prev.style.display = 'block';
-    document.getElementById('photoUploadZone').querySelector('div') && null;
-  };
-  reader.readAsDataURL(file);
-}
-
-function obNext(step) {
-  if (step === 0) {
-    const name = document.getElementById('ob-name').value.trim();
-    if (!name) {
-      const inp = document.getElementById('ob-name');
-      inp.style.borderColor = '#FF3B30';
-      inp.placeholder = 'Obligatoire !';
-      setTimeout(() => { inp.style.borderColor = ''; inp.placeholder = 'Ex: Axel, Le Mur, ...'; }, 2000);
-      return;
-    }
-  }
-  const cur = document.getElementById('step'+step);
-  const dot = document.getElementById('dot'+step);
-  if (cur) cur.classList.remove('active');
-  if (dot) dot.classList.remove('active');
-  const next = step + 1;
-  const nextEl = document.getElementById('step'+next);
-  const nextDot = document.getElementById('dot'+next);
-  if (nextEl) nextEl.classList.add('active');
-  if (nextDot) nextDot.classList.add('active');
-  currentStep = next;
-  // Scroll to top on mobile
-  document.getElementById('onboarding').scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function finishOnboarding() {
-  const profile = {
-    name: document.getElementById('ob-name').value.trim(),
-    hand: document.getElementById('ob-hand').value,
-    pos: document.getElementById('ob-pos').value,
-    level: document.getElementById('ob-level').value,
-    tables: document.getElementById('ob-tables').value,
-    elo: document.getElementById('ob-elo').value,
-    goal: document.getElementById('ob-goal').value,
-    avatar: obAvatar,
-    photo: obPhotoData,
-    createdAt: Date.now()
-  };
-  DB.set('profile', profile);
-  if (!DB.get('xp')) DB.set('xp', 0);
-  if (!DB.get('exercises')) DB.set('exercises', DEFAULT_EXERCISES);
-  if (!DB.get('history')) DB.set('history', []);
-  if (!DB.get('matchStats')) DB.set('matchStats', { att:{passTried:0,passOk:0,shotTried:0,goals:0,recovered:0}, def:{saves:0,passTried:0,passOk:0,lostRelance:0,goalsConceded:0} });
-  if (!DB.get('trainStats')) DB.set('trainStats', {});
-
-  document.getElementById('onboarding').style.display = 'none';
-  document.getElementById('app').classList.add('visible');
-  initApp();
-  // Trigger placement test after short delay
-  setTimeout(() => {
-    if (!DB.get('rankGlobal')) openPlacement();
-  }, 800);
-}
-
-// ══════════════════════════════════════════
-// APP INIT
-// ══════════════════════════════════════════
-function initApp() {
-  const profile = DB.get('profile');
-  if (!profile) { document.getElementById('onboarding').style.display='flex'; return; }
-
-  document.getElementById('onboarding').style.display = 'none';
-  document.getElementById('app').classList.add('visible');
-
-  renderTopbar();
-  renderDashboard();
-  renderTraining('passes');
-  renderMatch('att');
-  renderStats();
-  renderProfile();
-  renderObjectives();
-  checkBadges();
-  updateCoach();
-}
-
-function renderTopbar() {
-  const xp = DB.get('xp') || 0;
-  const lvl = RPG.getLevel(xp);
-  document.getElementById('tb-xp').textContent = xp + ' XP';
-  document.getElementById('tb-lvl').textContent = 'NV.' + lvl;
-
-  const profile = DB.get('profile');
-  const av = document.getElementById('topbarAvatar');
-  if (profile.photo) {
-    av.innerHTML = `<img src="${profile.photo}" alt="">`;
-  } else {
-    av.textContent = profile.avatar || '⚽';
-  }
-}
-
-// ══════════════════════════════════════════
-// DASHBOARD
-// ══════════════════════════════════════════
-function renderDashboard() {
-  const profile = DB.get('profile');
-  const xp = DB.get('xp') || 0;
-  const lvl = RPG.getLevel(xp);
-  const rank = getRank(xp);
-  const history = DB.get('history') || [];
-
-  const h = new Date().getHours();
-  let greeting = h < 12 ? 'Bon matin' : h < 18 ? 'Bon après-midi' : 'Bonne soirée';
-
-  document.getElementById('dash-greeting').textContent = greeting;
-  document.getElementById('dash-name').textContent = profile.name;
-  const rankG = DB.get('rankGlobal');
-  const leagueStr = rankG ? LEAGUES[rankG.leagueIdx].emoji + ' ' + LEAGUES[rankG.leagueIdx].name + ' ' + ['I','II','III'][rankG.division-1] : rank.name;
-  document.getElementById('dash-rank').textContent = leagueStr;
-  document.getElementById('dash-level').textContent = lvl;
-
-  const curLvlXP = RPG.levelXP(lvl);
-  const nextLvlXP = RPG.levelXP(lvl + 1);
-  const pct = Math.min(100, Math.round(((xp - curLvlXP) / (nextLvlXP - curLvlXP)) * 100));
-  document.getElementById('dash-xp-cur').textContent = xp + ' XP';
-  document.getElementById('dash-xp-next').textContent = nextLvlXP + ' XP';
-  document.getElementById('dash-xp-fill').style.width = pct + '%';
-
-  // Today's stats
-  const today = new Date().toDateString();
-  const todaySessions = history.filter(h => new Date(h.ts).toDateString() === today && h.type === 'training').length;
-  const todayMatches = history.filter(h => new Date(h.ts).toDateString() === today && h.type === 'match').length;
-  document.getElementById('stat-sessions').textContent = todaySessions;
-  document.getElementById('stat-matches').textContent = todayMatches;
-
-  const trainStats = DB.get('trainStats') || {};
-  let totalPassOk = 0, totalPassTried = 0, totalGoals = 0, totalShotTried = 0;
-  Object.values(trainStats).forEach(ex => {
-    if (ex.type === 'passes') { totalPassOk += ex.ok||0; totalPassTried += ex.tried||0; }
-    if (ex.type === 'goals') { totalGoals += ex.ok||0; totalShotTried += ex.tried||0; }
-  });
-  document.getElementById('stat-passes').textContent = totalPassTried > 0 ? Math.round(totalPassOk/totalPassTried*100)+'%' : '—';
-  document.getElementById('stat-goals').textContent = totalGoals || '—';
-}
-
-function getRank(xp) {
-  let rank = RPG.ranks[0];
-  for (const r of RPG.ranks) { if (xp >= r.xp) rank = r; }
-  return rank;
-}
-
-// ══════════════════════════════════════════
-// TRAINING
-// ══════════════════════════════════════════
-let currentCat = 'passes';
-let pendingExCat = 'passes';
-
-function switchCat(cat, el) {
-  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  currentCat = cat;
-  renderTraining(cat);
-}
-
-function renderTraining(cat) {
-  const exercises = DB.get('exercises') || DEFAULT_EXERCISES;
-  const list = exercises[cat] || [];
-  const trainStats = DB.get('trainStats') || {};
-
-  const labels = { passes: ['Tentatives','Réussites'], goals: ['Tentatives','Buts'], saves: ['Tentatives','Arrêts'] };
-
-  let html = '<div class="exercise-list">';
-  list.forEach(ex => {
-    const stats = trainStats[ex.id] || { tried:0, ok:0 };
-    const pct = stats.tried > 0 ? Math.round(stats.ok / stats.tried * 100) : null;
-    const pctClass = pct === null ? '' : pct >= 70 ? 'good' : pct >= 40 ? 'mid' : 'low';
-    const pctStr = pct === null ? '—' : pct + '%';
-    const [l1, l2] = labels[ex.type] || ['Tentatives','Réussites'];
-    html += `
-    <div class="exercise-card">
-      <div class="exercise-header">
-        <div class="exercise-name">${ex.name}</div>
-        <div class="exercise-pct ${pctClass}" id="pct-${ex.id}">${pctStr}</div>
-      </div>
-      <div class="exercise-inputs">
-        <div class="ex-input-wrap">
-          <label>${l1}</label>
-          <input type="number" id="tried-${ex.id}" value="${stats.tried||''}" placeholder="0" min="0" oninput="updatePct('${ex.id}','${ex.type}')">
-        </div>
-        <div class="ex-input-wrap">
-          <label>${l2}</label>
-          <input type="number" id="ok-${ex.id}" value="${stats.ok||''}" placeholder="0" min="0" oninput="updatePct('${ex.id}','${ex.type}')">
-        </div>
-      </div>
-      <div class="ex-bar"><div class="ex-bar-fill" id="bar-${ex.id}" style="width:${pct||0}%"></div></div>
-      <button type="button" class="ex-save-btn" onclick="saveExercise('${ex.id}','${ex.type}')">Enregistrer +XP</button>
-    </div>`;
-  });
-  html += '</div>';
-  html += `<button type="button" class="add-exercise-btn" onclick="openAddExercise('${cat}')">+ Ajouter un exercice</button>`;
-  document.getElementById('trainingContent').innerHTML = html;
-}
-
-function updatePct(id, type) {
-  const tried = parseInt(document.getElementById('tried-'+id)?.value) || 0;
-  const ok = parseInt(document.getElementById('ok-'+id)?.value) || 0;
-  const pct = tried > 0 ? Math.round(ok/tried*100) : null;
-  const pctEl = document.getElementById('pct-'+id);
-  const barEl = document.getElementById('bar-'+id);
-  if (pctEl) {
-    pctEl.textContent = pct === null ? '—' : pct + '%';
-    pctEl.className = 'exercise-pct' + (pct === null ? '' : pct >= 70 ? ' good' : pct >= 40 ? ' mid' : ' low');
-  }
-  if (barEl) barEl.style.width = (pct||0) + '%';
-}
-
-function saveExercise(id, type) {
-  const tried = parseInt(document.getElementById('tried-'+id)?.value) || 0;
-  const ok = parseInt(document.getElementById('ok-'+id)?.value) || 0;
-  if (tried === 0) return;
-
-  const trainStats = DB.get('trainStats') || {};
-  const prev = trainStats[id] || { tried:0, ok:0, type };
-  trainStats[id] = { tried: prev.tried + tried, ok: prev.ok + ok, type };
-  DB.set('trainStats', trainStats);
-
-  // Clear inputs
-  document.getElementById('tried-'+id).value = '';
-  document.getElementById('ok-'+id).value = '';
-
-  // XP
-  const xpGain = Math.max(5, Math.round(tried * 0.5) + (ok >= tried * 0.7 ? 10 : 0));
-  addXP(xpGain, `Entraînement · ${tried} rép.`);
-
-  DB.push('history', { type:'training', ts:Date.now(), exerciseId:id, tried, ok, xp:xpGain });
-  if (tried > 0) updateLeagueFromTraining(Math.round(ok/tried*100));
-  renderDashboard();
-  checkBadges();
-  autoCheckObjectives();
-  updateCoach();
-}
-
-function openAddExercise(cat) {
-  pendingExCat = cat;
-  document.getElementById('newExName').value = '';
-  document.getElementById('addExModal').classList.add('open');
-}
-
-function confirmAddExercise() {
-  const name = document.getElementById('newExName').value.trim();
-  const type = document.getElementById('newExType').value;
-  if (!name) return;
-
-  const exercises = DB.get('exercises') || DEFAULT_EXERCISES;
-  const id = 'custom_' + Date.now();
-  exercises[pendingExCat] = exercises[pendingExCat] || [];
-  exercises[pendingExCat].push({ id, name, type });
-  DB.set('exercises', exercises);
-  closeModal('addExModal');
-  renderTraining(pendingExCat);
-}
-
-// ══════════════════════════════════════════
-// MATCH
-// ══════════════════════════════════════════
-let matchRole = 'att';
-let matchCounts = {};
-
-const matchFields = {
-  att: [
-    { key:'passTried', label:'Passes tentées' },
-    { key:'passOk', label:'Passes réussies' },
-    { key:'shotTried', label:'Tirs tentés' },
-    { key:'goals', label:'Buts marqués' },
-    { key:'recovered', label:'Balles récupérées' },
-  ],
-  def: [
-    { key:'saves', label:'Arrêts' },
-    { key:'passTried', label:'Passes tentées' },
-    { key:'passOk', label:'Passes réussies' },
-    { key:'lostRelance', label:'Relances perdues' },
-    { key:'goalsConceded', label:'Buts encaissés' },
-  ]
-};
-
-function selectRole(role) {
-  matchRole = role;
-  document.getElementById('role-att').classList.toggle('selected', role==='att');
-  document.getElementById('role-def').classList.toggle('selected', role==='def');
-  renderMatch(role);
-}
-
-function renderMatch(role) {
-  matchCounts = {};
-  matchFields[role].forEach(f => matchCounts[f.key] = 0);
-  let html = '';
-  matchFields[role].forEach(f => {
-    html += `
-    <div class="match-stat-input">
-      <div class="msi-label">${f.label}</div>
-      <div class="msi-controls">
-        <button class="msi-btn" onclick="matchAdj('${f.key}',-1)">−</button>
-        <div class="msi-val" id="msi-${f.key}">0</div>
-        <button class="msi-btn" onclick="matchAdj('${f.key}',1)">+</button>
-      </div>
-    </div>`;
-  });
-  document.getElementById('matchForm').innerHTML = html;
-}
-
-function matchAdj(key, delta) {
-  matchCounts[key] = Math.max(0, (matchCounts[key]||0) + delta);
-  document.getElementById('msi-'+key).textContent = matchCounts[key];
-}
-
-function saveMatch() {
-  const xpGain = 30 + (matchRole==='att' ? (matchCounts.goals||0)*5 : (matchCounts.saves||0)*3);
-  addXP(xpGain, 'Match · ' + (matchRole==='att' ? 'Attaquant' : 'Défenseur'));
-
-  const ms = DB.get('matchStats') || { att:{}, def:{} };
-  Object.entries(matchCounts).forEach(([k,v]) => {
-    ms[matchRole][k] = (ms[matchRole][k]||0) + v;
-  });
-  DB.set('matchStats', ms);
-  DB.push('history', { type:'match', ts:Date.now(), role:matchRole, counts:{...matchCounts}, xp:xpGain });
-
-  // Reset
-  renderMatch(matchRole);
-  renderDashboard();
-  renderStats();
-  checkBadges();
-  updateCoach();
-  navTo('dash');
-}
-
-// ══════════════════════════════════════════
-// STATS
-// ══════════════════════════════════════════
-function renderStats() {
-  const history = DB.get('history') || [];
-  const xp = DB.get('xp') || 0;
-  const trainStats = DB.get('trainStats') || {};
-
-  document.getElementById('s-total-sessions').textContent = history.filter(h=>h.type==='training').length;
-  document.getElementById('s-total-matches').textContent = history.filter(h=>h.type==='match').length;
-  document.getElementById('s-total-xp').textContent = xp;
-
-  let totalPassOk=0, totalPassTried=0, totalGoals=0, totalShotTried=0;
-  Object.values(trainStats).forEach(ex => {
-    if (ex.type==='passes') { totalPassOk+=ex.ok||0; totalPassTried+=ex.tried||0; }
-    if (ex.type==='goals') { totalGoals+=ex.ok||0; totalShotTried+=ex.tried||0; }
-  });
-  document.getElementById('s-pass-att').textContent = totalPassTried;
-  document.getElementById('s-pass-pct').textContent = totalPassTried>0 ? Math.round(totalPassOk/totalPassTried*100)+'%' : '—';
-  document.getElementById('s-att-tries').textContent = totalShotTried;
-  document.getElementById('s-att-pct').textContent = totalShotTried>0 ? Math.round(totalGoals/totalShotTried*100)+'%' : '—';
-
-  // History list
-  const sorted = [...history].sort((a,b) => b.ts-a.ts).slice(0, 20);
-  if (sorted.length === 0) {
-    document.getElementById('historyList').innerHTML = `
-    <div class="empty-state">
-      <div class="empty-state-icon">📋</div>
-      <div class="empty-state-text">Aucune activité pour l'instant</div>
-    </div>`;
-    return;
-  }
-  let html = '';
-  sorted.forEach(h => {
-    const d = new Date(h.ts);
-    const ds = d.toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
-    const desc = h.type==='match' ? `Match · ${h.role==='att'?'Attaquant':'Défenseur'}` : `Entraînement · ${h.tried||0} rép.`;
-    html += `<div class="history-item"><div class="history-left"><div class="history-date">${ds}</div><div class="history-desc">${desc}</div></div><div class="history-xp">+${h.xp} XP</div></div>`;
-  });
-  document.getElementById('historyList').innerHTML = html;
-}
-
-// ══════════════════════════════════════════
-// PROFILE
-// ══════════════════════════════════════════
-function renderProfile() {
-  const profile = DB.get('profile');
-  const xp = DB.get('xp') || 0;
-  const rank = getRank(xp);
-  const trainStats = DB.get('trainStats') || {};
-  const matchStats = DB.get('matchStats') || { att:{}, def:{} };
-
-  const av = document.getElementById('prof-avatar');
-  if (profile.photo) av.innerHTML = `<img src="${profile.photo}" alt="">`;
-  else av.textContent = profile.avatar || '⚽';
-
-  document.getElementById('prof-name').textContent = profile.name;
-  document.getElementById('prof-rank').textContent = rank.name;
-
-  const tags = [];
-  if (profile.pos) tags.push(profile.pos);
-  if (profile.hand) tags.push(profile.hand);
-  if (profile.level) tags.push(profile.level);
-  if (profile.elo) tags.push('ELO ' + profile.elo);
-  document.getElementById('prof-tags').innerHTML = tags.map(t => `<div class="profile-tag">${t}</div>`).join('');
-
-  // Compute totals for titles
-  let totalArrêts = (matchStats.def.saves||0);
-  let totalButs = (matchStats.att.goals||0);
-  Object.values(trainStats).forEach(ex => {
-    if (ex.type==='saves') totalArrêts += ex.ok||0;
-    if (ex.type==='goals') totalButs += ex.ok||0;
-  });
-
-  // Defense titles
-  let defLevel = 0;
-  RPG.defenseReqs.forEach((req, i) => { if (totalArrêts >= req) defLevel = i; });
-  renderTitles('titles-def', RPG.titlesDefense, defLevel, RPG.defenseReqs, totalArrêts, 'arrêts');
-
-  // Attack titles
-  let attLevel = 0;
-  RPG.attackReqs.forEach((req, i) => { if (totalButs >= req) attLevel = i; });
-  renderTitles('titles-att', RPG.titlesAttack, attLevel, RPG.attackReqs, totalButs, 'buts');
-
-  // Multi titles
-  const history = DB.get('history') || [];
-  const matchCount = history.filter(h=>h.type==='match').length;
-  let multiLevel = 0;
-  RPG.multiReqs.forEach((req, i) => { if (matchCount >= req) multiLevel = i; });
-  renderTitles('titles-multi', RPG.titlesMulti, multiLevel, RPG.multiReqs, matchCount, 'matchs');
-}
-
-function renderTitles(containerId, titles, currentLevel, reqs, value, unit) {
-  let html = '';
-  titles.forEach((title, i) => {
-    const unlocked = i <= currentLevel;
-    const validated = false; // Phase 2: real validation
-    html += `
-    <div class="title-row ${unlocked?'unlocked':''} ${validated?'validated':''}">
-      <div class="title-info">
-        <div class="title-name">${unlocked?'🏆 ':''} ${title}</div>
-        <div class="title-req">${reqs[i]} ${unit} requis · Actuel: ${value}</div>
-      </div>
-      <span class="title-badge ${unlocked?'unlocked-b':'locked'}">${unlocked?'Débloqué':'Verrouillé'}</span>
-    </div>`;
-  });
-  document.getElementById(containerId).innerHTML = html;
-}
-
-// ══════════════════════════════════════════
-// XP SYSTEM
-// ══════════════════════════════════════════
-function addXP(amount, label) {
-  const prev = DB.get('xp') || 0;
-  const newXP = prev + amount;
-  DB.set('xp', newXP);
-
-  // Toast
-  const toast = document.getElementById('xpToast');
-  toast.textContent = '+' + amount + ' XP — ' + label;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2500);
-
-  renderTopbar();
-}
-
-// ══════════════════════════════════════════
-// BADGES
-// ══════════════════════════════════════════
-const BADGES = [
-  { id:'firsttrain', label:'Première fois', icon:'👶', check: (ts,ms,hist) => hist.filter(h=>h.type==='training').length >= 1 },
-  { id:'streak3', label:'En feu — 3 jours', icon:'🔥', check: (ts,ms,hist) => {
-    const days = [...new Set(hist.filter(h=>h.type==='training').map(h=>new Date(h.ts).toDateString()))];
-    if(days.length<3) return false;
-    const today = new Date(); let streak=0;
-    for(let i=0;i<7;i++){
-      const d = new Date(today); d.setDate(d.getDate()-i);
-      if(days.includes(d.toDateString())) streak++; else break;
-    }
-    return streak>=3;
-  }},
-  { id:'perfect', label:'Parfait', icon:'💯', check: (ts) => Object.values(ts).some(ex=>ex.tried>=10&&ex.ok>=ex.tried) },
-  { id:'early', label:'Lève-tôt', icon:'🌅', check: (ts,ms,hist) => hist.some(h=>new Date(h.ts).getHours()<8) },
-  { id:'night', label:'Nocturne', icon:'🦉', check: (ts,ms,hist) => hist.some(h=>new Date(h.ts).getHours()>=22) },
-  { id:'placement', label:'Placé', icon:'🎯', check: () => !!DB.get('rankGlobal') },
-  { id:'level5', label:'Décollage', icon:'🚀', check: () => RPG.getLevel(DB.get('xp')||0) >= 5 },
-  { id:'gold', label:'Rang Or+', icon:'🥇', check: () => { const r=DB.get('rankGlobal'); return r && r.leagueIdx>=2; } },
-  // Original badges
-
-  { id:'facteur', label:'Le Facteur', icon:'📬', check: (ts, ms) => {
-    let total = 0;
-    Object.values(ts).forEach(ex => { if(ex.type==='passes') total += ex.ok||0; });
-    return total >= 1000;
-  }},
-  { id:'mur', label:'Mur Défensif', icon:'🧱', check: (ts, ms) => {
-    let total = (ms?.def?.saves||0);
-    Object.values(ts).forEach(ex => { if(ex.type==='saves') total += ex.ok||0; });
-    return total >= 1000;
-  }},
-  { id:'machine', label:'Machine à Buts', icon:'🔥', check: (ts, ms) => {
-    let total = (ms?.att?.goals||0);
-    Object.values(ts).forEach(ex => { if(ex.type==='goals') total += ex.ok||0; });
-    return total >= 1000;
-  }},
-  { id:'polyvalent', label:'Polyvalent', icon:'⚡', check: (ts, ms, hist) => {
-    const a = hist.filter(h=>h.type==='match'&&h.role==='att').length;
-    const d = hist.filter(h=>h.type==='match'&&h.role==='def').length;
-    return a >= 100 && d >= 100;
-  }},
-  { id:'globe', label:'Globe-Trotter', icon:'🌍', check: (ts, ms, hist) => {
-    const tables = (DB.get('profile')?.tables||'').split(',').filter(Boolean);
-    return tables.length >= 2 && hist.filter(h=>h.type==='match').length >= 10;
-  }},
-];
-
-
-// ══════════════════════════════════════════
-// AUTO-COMPLETE OBJECTIVES
-// ══════════════════════════════════════════
-function autoCheckObjectives() {
-  const objectives = DB.get('objectives');
-  if (!objectives) return;
-  const trainStats = DB.get('trainStats') || {};
-  const matchStats = DB.get('matchStats') || { att:{}, def:{} };
-  const history = DB.get('history') || [];
-
-  // Compute current totals
-  let totalPasses=0, totalPassOk=0, totalGoals=0, totalGoalTried=0,
-      totalSaves=0, totalSaveTried=0, totalSessions=0, totalMatches=0;
-
-  Object.values(trainStats).forEach(ex => {
-    if(ex.type==='passes'){ totalPasses+=ex.tried||0; totalPassOk+=ex.ok||0; }
-    if(ex.type==='goals'){ totalGoalTried+=ex.tried||0; totalGoals+=ex.ok||0; }
-    if(ex.type==='saves'){ totalSaveTried+=ex.tried||0; totalSaves+=ex.ok||0; }
-  });
-  totalGoals += matchStats.att.goals||0;
-  totalSaves += matchStats.def.saves||0;
-  totalSessions = history.filter(h=>h.type==='training').length;
-  totalMatches = history.filter(h=>h.type==='match').length;
-
-  // Week/month helpers
-  const now = Date.now();
-  const weekAgo = now - 7*24*3600*1000;
-  const monthAgo = now - 30*24*3600*1000;
-  const todayStr = new Date().toDateString();
-
-  const sessionsToday = history.filter(h=>h.type==='training' && new Date(h.ts).toDateString()===todayStr).length;
-  const matchesToday = history.filter(h=>h.type==='match' && new Date(h.ts).toDateString()===todayStr).length;
-  const sessionsWeek = history.filter(h=>h.type==='training' && h.ts>weekAgo).length;
-  const goalsWeek = history.filter(h=>h.type==='training' && h.ts>weekAgo).reduce((s,h)=>s+(h.type==='training'?h.ok||0:0),0);
-  const sessionsMonth = history.filter(h=>h.type==='training' && h.ts>monthAgo).length;
-  const matchesMonth = history.filter(h=>h.type==='match' && h.ts>monthAgo).length;
-
-  // Keyword matcher
-  const matchers = [
-    { regex:/(\d+)\s*passe/i,   getValue: (n) => totalPassOk >= n },
-    { regex:/(\d+)\s*but/i,     getValue: (n) => totalGoals >= n },
-    { regex:/(\d+)\s*arrêt/i,   getValue: (n) => totalSaves >= n },
-    { regex:/(\d+)\s*session/i, getValue: (n) => n<=3 ? sessionsToday>=n : sessionsWeek>=n },
-    { regex:/(\d+)\s*match/i,   getValue: (n) => n<=2 ? matchesToday>=n : matchesMonth>=n },
-    { regex:/(\d+)\s*entraîn/i, getValue: (n) => sessionsWeek>=n },
-  ];
-
-  let anyCompleted = false;
-  let changed = false;
-  ['daily','weekly','monthly','custom'].forEach(period => {
-    (objectives[period]||[]).forEach(obj => {
-      if (obj.done) return;
-      const title = obj.title.toLowerCase();
-      for(const m of matchers) {
-        const match = title.match(m.regex);
-        if(match && m.getValue(parseInt(match[1]))) {
-          obj.done = true;
-          obj.autoCompleted = true;
-          changed = true;
-          anyCompleted = true;
-          setTimeout(() => {
-            showToast('🎯 Objectif accompli : ' + obj.title, false);
-            addXP(obj.xp, 'Objectif auto : ' + obj.title);
-          }, 500);
-          break;
-        }
-      }
-    });
-  });
-
-  if(changed) {
-    DB.set('objectives', objectives);
-    if(document.getElementById('screen-objectives').classList.contains('active')) renderObjectives();
-  }
-}
-
-function checkBadges() {
-  const ts = DB.get('trainStats') || {};
-  const ms = DB.get('matchStats') || { att:{}, def:{} };
-  const hist = DB.get('history') || [];
-  const unlocked = DB.get('badges') || {};
-
-  BADGES.forEach(b => {
-    if (!unlocked[b.id] && b.check(ts, ms, hist)) {
-      unlocked[b.id] = true;
-      DB.set('badges', unlocked);
-      showToast('🏅 Badge débloqué : ' + b.label, true);
-    }
-  });
-
-  renderBadges(unlocked);
-}
-
-function renderBadges(unlocked) {
-  const row = document.getElementById('badges-row');
-  if (!row) return;
-  row.innerHTML = BADGES.map(b => `
-    <div class="badge-chip ${unlocked[b.id]?'unlocked':''}">
-      <span class="badge-icon">${unlocked[b.id]?b.icon:'🔒'}</span>
-      ${b.label}
-    </div>
-  `).join('');
-}
-
-function showToast(msg, isBadge=false) {
-  const toast = document.getElementById('xpToast');
-  toast.textContent = msg;
-  if (isBadge) toast.style.background = '#00E676'; else toast.style.background = '';
-  toast.classList.add('show');
-  setTimeout(() => { toast.classList.remove('show'); toast.style.background=''; }, 3000);
-}
-
-// ══════════════════════════════════════════
-// COACH
-// ══════════════════════════════════════════
-function updateCoach() {
-  const ts = DB.get('trainStats') || {};
-  const hist = DB.get('history') || [];
-  const msgs = [];
-
-  // Analyse passes
-  let passOk=0, passTried=0;
-  Object.entries(ts).forEach(([id, ex]) => {
-    if (ex.type==='passes') { passOk+=ex.ok||0; passTried+=ex.tried||0; }
-  });
-  if (passTried > 20) {
-    const pct = Math.round(passOk/passTried*100);
-    if (pct < 50) msgs.push(`Tes passes milieu sont à <strong>${pct}%</strong> — c'est ton point faible prioritaire. Recommandation : <strong>100 passes croisées aujourd'hui.</strong>`);
-    else if (pct >= 80) msgs.push(`Excellent ! Tes passes atteignent <strong>${pct}%</strong>. Maintiens ce niveau et attaque les exercices d'attaque.`);
-    else msgs.push(`Tes passes sont à <strong>${pct}%</strong>. Progresse — l'objectif est 70%+.`);
-  }
-
-  // Sessions récentes
-  const last7 = hist.filter(h => Date.now()-h.ts < 7*24*3600*1000 && h.type==='training').length;
-  if (last7 === 0 && hist.length > 0) msgs.push(`Aucun entraînement cette semaine. <strong>Reprends dès aujourd'hui</strong> pour maintenir ta progression !`);
-  else if (last7 >= 5) msgs.push(`<strong>${last7} sessions</strong> cette semaine — tu es en feu ! Continue.`);
-
-  if (msgs.length === 0) {
-    msgs.push('Commence ton premier entraînement pour recevoir une analyse personnalisée.');
-  }
-
-  document.getElementById('coach-msg').innerHTML = msgs[0];
-}
-
-// ══════════════════════════════════════════
-// NAVIGATION
-// ══════════════════════════════════════════
-function navTo(screen) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-  document.getElementById('screen-'+screen).classList.add('active');
-  const nav = document.getElementById('nav-'+screen);
-  if (nav) nav.classList.add('active');
-
-  if (screen === 'stats') { renderStats(); setTimeout(renderCharts, 150); }
-  if (screen === 'profile') renderProfile();
-  if (screen === 'dash') renderDashboard();
-  if (screen === 'objectives') renderObjectives();
-  if (screen === 'league') renderLeague();
-}
-
-// ══════════════════════════════════════════
-// PROFILE EDIT
-// ══════════════════════════════════════════
-function openEditProfile() {
-  const p = DB.get('profile');
-  document.getElementById('edit-name').value = p.name || '';
-  document.getElementById('edit-hand').value = p.hand || '';
-  document.getElementById('edit-pos').value = p.pos || '';
-  document.getElementById('edit-tables').value = p.tables || '';
-  document.getElementById('edit-elo').value = p.elo || '';
-  document.getElementById('edit-goal').value = p.goal || '';
-  document.getElementById('editModal').classList.add('open');
-}
-
-function saveProfile() {
-  const p = DB.get('profile');
-  p.name = document.getElementById('edit-name').value.trim() || p.name;
-  p.hand = document.getElementById('edit-hand').value;
-  p.pos = document.getElementById('edit-pos').value;
-  p.tables = document.getElementById('edit-tables').value;
-  p.elo = document.getElementById('edit-elo').value;
-  p.goal = document.getElementById('edit-goal').value;
-  DB.set('profile', p);
-  closeModal('editModal');
-  renderProfile();
-  renderDashboard();
-  renderTopbar();
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
-
-// ══════════════════════════════════════════
-// OBJECTIVES SYSTEM
-// ══════════════════════════════════════════
-const DEFAULT_OBJECTIVES = {
-  daily: [
-    { id:'d_passes', title:'Faire 50 passes', period:'daily', xp:20, done:false, createdAt: Date.now() },
-    { id:'d_match', title:'Jouer 1 match', period:'daily', xp:15, done:false, createdAt: Date.now() },
-  ],
-  weekly: [
-    { id:'w_train', title:"5 sessions d'entraînement", period:'weekly', xp:50, done:false, createdAt: Date.now() },
-    { id:'w_goals', title:'Marquer 20 buts en exercice', period:'weekly', xp:40, done:false, createdAt: Date.now() },
-  ],
-  monthly: [
-    { id:'m_passes', title:'Réussir 500 passes', period:'monthly', xp:100, done:false, createdAt: Date.now() },
-    { id:'m_matches', title:'Jouer 10 matchs', period:'monthly', xp:80, done:false, createdAt: Date.now() },
-  ],
-  custom: []
-};
-
-let currentObjTab = 'daily';
-
-function switchObjTab(tab, el) {
-  currentObjTab = tab;
-  document.querySelectorAll('.obj-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  renderObjectives();
-}
-
-function renderObjectives() {
-  const objectives = DB.get('objectives') || DEFAULT_OBJECTIVES;
-  const list = objectives[currentObjTab] || [];
-  const el = document.getElementById('objList');
-  if (!el) return;
-
-  if (list.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🎯</div><div class="empty-state-text">Aucun objectif — ajoutes-en un !</div></div>`;
-    return;
-  }
-
-  const periodLabel = { daily:'Aujourd\'hui', weekly:'Cette semaine', monthly:'Ce mois', custom:'Personnalisé' };
-  el.innerHTML = list.map(obj => `
-    <div class="obj-item ${obj.done?'done':''}" id="obj-${obj.id}">
-      <div class="obj-check" onclick="toggleObj('${obj.id}','${currentObjTab}')">
-        ${obj.done ? '✓' : ''}
-      </div>
-      <div class="obj-info">
-        <div class="obj-title">${obj.title}</div>
-        <div class="obj-meta">${periodLabel[obj.period]||''}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-        <div class="obj-xp">+${obj.xp} XP</div>
-        <div style="font-size:10px;color:var(--text-muted);cursor:pointer;" onclick="deleteObj('${obj.id}','${currentObjTab}')">✕</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function toggleObj(id, tab) {
-  const objectives = DB.get('objectives') || DEFAULT_OBJECTIVES;
-  const list = objectives[tab] || [];
-  const obj = list.find(o => o.id === id);
-  if (!obj) return;
-  if (!obj.done) {
-    obj.done = true;
-    addXP(obj.xp, 'Objectif accompli !');
-  } else {
-    obj.done = false;
-  }
-  DB.set('objectives', objectives);
-  renderObjectives();
-}
-
-function deleteObj(id, tab) {
-  const objectives = DB.get('objectives') || DEFAULT_OBJECTIVES;
-  objectives[tab] = (objectives[tab]||[]).filter(o => o.id !== id);
-  DB.set('objectives', objectives);
-  renderObjectives();
-}
-
-function openAddObj() {
-  document.getElementById('newObjTitle').value = '';
-  document.getElementById('newObjXP').value = '50';
-  document.getElementById('newObjPeriod').value = currentObjTab;
-  document.getElementById('addObjModal').classList.add('open');
-}
-
-function confirmAddObj() {
-  const title = document.getElementById('newObjTitle').value.trim();
-  const period = document.getElementById('newObjPeriod').value;
-  const xp = parseInt(document.getElementById('newObjXP').value) || 50;
-  if (!title) return;
-
-  const objectives = DB.get('objectives') || DEFAULT_OBJECTIVES;
-  if (!objectives[period]) objectives[period] = [];
-  objectives[period].push({ id:'obj_'+Date.now(), title, period, xp, done:false, createdAt:Date.now() });
-  DB.set('objectives', objectives);
-  closeModal('addObjModal');
-  currentObjTab = period;
-  document.querySelectorAll('.obj-tab').forEach((t,i) => {
-    const tabs = ['daily','weekly','monthly','custom'];
-    t.classList.toggle('active', tabs[i]===period);
-  });
-  renderObjectives();
-}
-
-// ══════════════════════════════════════════
-// CHART (Canvas-based, no library)
-// ══════════════════════════════════════════
-function drawProgressChart(canvasId, data, label, color) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas || data.length < 2) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width = canvas.offsetWidth;
-  const H = canvas.height = 120;
-  ctx.clearRect(0, 0, W, H);
-
-  const max = Math.max(...data, 1);
-  const pad = { t:10, b:20, l:10, r:10 };
-  const cw = W - pad.l - pad.r;
-  const ch = H - pad.t - pad.b;
-
-  // Grid lines
-  ctx.strokeStyle = '#1E2D40'; ctx.lineWidth = 1;
-  [0, 0.5, 1].forEach(f => {
-    const y = pad.t + ch * (1 - f);
-    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W-pad.r, y); ctx.stroke();
-  });
-
-  // Fill
-  const pts = data.map((v, i) => ({
-    x: pad.l + (i / (data.length-1)) * cw,
-    y: pad.t + ch * (1 - v/max)
-  }));
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, H - pad.b);
-  pts.forEach(p => ctx.lineTo(p.x, p.y));
-  ctx.lineTo(pts[pts.length-1].x, H - pad.b);
-  ctx.closePath();
-  const grad = ctx.createLinearGradient(0, pad.t, 0, H);
-  grad.addColorStop(0, color + '55');
-  grad.addColorStop(1, color + '00');
-  ctx.fillStyle = grad; ctx.fill();
-
-  // Line
-  ctx.beginPath();
-  pts.forEach((p,i) => i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
-  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-  ctx.lineJoin = 'round'; ctx.stroke();
-
-  // Dots
-  pts.forEach(p => {
-    ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
-    ctx.fillStyle = color; ctx.fill();
-  });
-}
-
-function renderCharts() {
-  const history = DB.get('history') || [];
-  // Last 7 training sessions XP
-  const trainHist = history.filter(h=>h.type==='training').slice(-14);
-  
-  // Group by day, sum XP
-  const dayMap = {};
-  trainHist.forEach(h => {
-    const d = new Date(h.ts).toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'});
-    dayMap[d] = (dayMap[d]||0) + (h.xp||0);
-  });
-  const dayData = Object.values(dayMap).slice(-7);
-  setTimeout(() => drawProgressChart('chartXP', dayData.length>1?dayData:[0,0], 'XP', '#C9A84C'), 100);
-
-  // Pass % over sessions
-  const passHist = history.filter(h=>h.type==='training' && h.tried>0).slice(-10);
-  const pctData = passHist.map(h => h.ok && h.tried ? Math.round(h.ok/h.tried*100) : 0);
-  setTimeout(() => drawProgressChart('chartPass', pctData.length>1?pctData:[0,0], '%', '#00D4FF'), 100);
-}
-
-
-
-// ══════════════════════════════════════════
-// LEAGUE SYSTEM
-// ══════════════════════════════════════════
-const LEAGUES = [
-  { id:'bronze',      name:'Bronze',       emoji:'🥉', color:'#CD7F32', divisions:3, lpPerDiv:100, minScore:0   },
-  { id:'silver',      name:'Argent',       emoji:'🥈', color:'#C0C0C0', divisions:3, lpPerDiv:100, minScore:20  },
-  { id:'gold',        name:'Or',           emoji:'🥇', color:'#FFD700', divisions:3, lpPerDiv:100, minScore:35  },
-  { id:'platinum',    name:'Platine',      emoji:'💎', color:'#00E5FF', divisions:3, lpPerDiv:100, minScore:50  },
-  { id:'diamond',     name:'Diamant',      emoji:'💠', color:'#00B0FF', divisions:3, lpPerDiv:100, minScore:68  },
-  { id:'master',      name:'Maître',       emoji:'👑', color:'#AA00FF', divisions:3, lpPerDiv:100, minScore:80  },
-  { id:'grandmaster', name:'Grand Maître', emoji:'🔥', color:'#FF4500', divisions:2, lpPerDiv:100, minScore:90  },
-  { id:'legend',      name:'Légende',      emoji:'🏆', color:'#C9A84C', divisions:1, lpPerDiv:100, minScore:96  },
-];
-
-// Placement state
-let plData = { scores:[0,0,0,0,0,0], tries:[0,0,0,0,0,0], step:0, choices:{passeDef:'',tirDef:'',tirAtt:''} };
-
-// Reactive test actions bank
-const REACT_ACTIONS = [
-  { zone:'DÉFENSE', action:'Poussée décroisée' },
-  { zone:'DÉFENSE', action:'Relance bande' },
-  { zone:'DÉFENSE', action:'Tir long' },
-  { zone:'DÉFENSE', action:'Pousser courte' },
-  { zone:'DÉFENSE', action:'Relance centre' },
-  { zone:'MILIEU', action:'Passe bande' },
-  { zone:'MILIEU', action:'Passe croisée' },
-  { zone:'MILIEU', action:'Passe directe' },
-  { zone:'MILIEU', action:'Contrôle balle' },
-  { zone:'MILIEU', action:'Relance rapide' },
-  { zone:'ATTAQUE', action:'Tirer croisée' },
-  { zone:'ATTAQUE', action:'Pousser longue' },
-  { zone:'ATTAQUE', action:'Tirer courte' },
-  { zone:'ATTAQUE', action:'Fixe' },
-  { zone:'ATTAQUE', action:'Pousser décroisée' },
-  { zone:'DÉFENSE', action:'Pousser longue' },
-  { zone:'MILIEU', action:'Passe rapide bande' },
-  { zone:'ATTAQUE', action:'Tirer longue' },
-  { zone:'DÉFENSE', action:'Tir croisé défense' },
-  { zone:'MILIEU', action:'Passe décroisée' },
-];
-let reactQueue = [];
-let reactIdx = 0;
-
-function openPlacement() {
-  plData = { scores:[0,0,0,0,0,0], tries:[0,0,0,0,0,0], step:0, choices:{passeDef:'',tirDef:'',tirAtt:''} };
-  reactQueue = [...REACT_ACTIONS].sort(()=>Math.random()-0.5);
-  reactIdx = 0;
-
-  for(let i=0;i<6;i++){
-    const c=document.getElementById('plcount'+i); if(c) c.textContent='0';
-    const b=document.getElementById('plbar'+i); if(b) b.style.width='0%';
-    const s=document.getElementById('plscore'+i); if(s) s.textContent='Réussites : 0';
-  }
-  for(let i=0;i<=6;i++){ const s=document.getElementById('plstep'+i); if(s) s.classList.remove('active'); }
-  for(let i=0;i<6;i++){ const d=document.getElementById('pldot'+i); if(d){ d.classList.remove('done','active'); } }
-  document.getElementById('plstep0').classList.add('active');
-  document.getElementById('pldot0').classList.add('active');
-
-  // Reset pickers
-  ['plPasseDefPicker','plTirDefPicker','plTirAttPicker'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.style.display='block';
-  });
-  ['plPasseDefTest','plTirDefTest','plTirAttTest','plReactTest'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.style.display='none';
-  });
-  document.getElementById('plReactStart').style.display='block';
-  document.querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
-  ['plPasseDefStart','plTirDefStart','plTirAttStart'].forEach(id => {
-    const btn = document.getElementById(id);
-    if(btn){ btn.style.opacity='0.4'; btn.style.pointerEvents='none'; }
-  });
-
-  document.getElementById('placementOverlay').classList.add('open');
-  document.getElementById('placementOverlay').scrollTo({top:0});
-}
-
-function selectPlChoice(type, el, name) {
-  // Only deselect within same picker group
-  el.closest('.pl-tir-grid').querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
-  el.classList.add('selected');
-  plData.choices[type] = name;
-  const btnMap = { passeDef:'plPasseDefStart', tirDef:'plTirDefStart', tirAtt:'plTirAttStart' };
-  const btn = document.getElementById(btnMap[type]);
-  if(btn){ btn.style.opacity='1'; btn.style.pointerEvents='auto'; }
-}
-
-function startPlStep(step) {
-  const pickerMap = { 2:'plPasseDefPicker', 3:'plTirDefPicker', 4:'plTirAttPicker' };
-  const testMap   = { 2:'plPasseDefTest',   3:'plTirDefTest',   4:'plTirAttTest'   };
-  const labelMap  = { 2:'plPasseDefLabel',  3:'plTirDefLabel',  4:'plTirAttLabel'  };
-  const choiceMap = { 2:'passeDef', 3:'tirDef', 4:'tirAtt' };
-  if(pickerMap[step]) document.getElementById(pickerMap[step]).style.display='none';
-  if(testMap[step])   document.getElementById(testMap[step]).style.display='block';
-  if(labelMap[step])  document.getElementById(labelMap[step]).textContent = '▶ ' + plData.choices[choiceMap[step]];
-}
-
-function startReact() {
-  document.getElementById('plReactStart').style.display='none';
-  document.getElementById('plReactTest').style.display='block';
-  showNextReact();
-}
-
-function showNextReact() {
-  if(reactIdx < reactQueue.length) {
-    const a = reactQueue[reactIdx];
-    document.getElementById('plReactZone').textContent = a.zone;
-    document.getElementById('plReactAction').textContent = a.action;
-  }
-}
-
-function plRecord(step, success) {
-  if (plData.tries[step] >= 20) return;
-  plData.tries[step]++;
-  if (success) plData.scores[step]++;
-
-  const pct = Math.round(plData.tries[step]/20*100);
-  const countEl = document.getElementById('plcount'+step);
-  const barEl = document.getElementById('plbar'+step);
-  const scoreEl = document.getElementById('plscore'+step);
-  if(countEl) countEl.textContent = plData.tries[step];
-  if(barEl) barEl.style.width = pct+'%';
-  const labels = ['Réussites','Réussites','Réussites','Buts','Buts','Réussites'];
-  if(scoreEl) scoreEl.textContent = labels[step]+' : '+plData.scores[step];
-
-  // Reactive test: show next action
-  if(step===5) { reactIdx++; if(plData.tries[5]<20) showNextReact(); }
-
-  if (plData.tries[step] >= 20) {
-    setTimeout(() => plNextStep(step), 500);
-  }
-}
-
-function plNextStep(step) {
-  const cur = document.getElementById('plstep'+step);
-  const dot = document.getElementById('pldot'+step);
-  if(cur) cur.classList.remove('active');
-  if(dot) { dot.classList.remove('active'); dot.classList.add('done'); }
-
-  const next = step + 1;
-  const nextEl = document.getElementById('plstep'+next);
-  const nextDot = document.getElementById('pldot'+next);
-  if(nextEl) nextEl.classList.add('active');
-  if(nextDot) nextDot.classList.add('active');
-  document.getElementById('placementOverlay').scrollTo({top:0, behavior:'smooth'});
-
-  if (next === 6) showPlacementResult();
-}
-
-function showPlacementResult() {
-  const pcts = plData.scores.map((s,i) => plData.tries[i]>0 ? Math.round(s/plData.tries[i]*100) : 0);
-  // Weighted: bande 20%, croisée 20%, passe def 15%, tir def 15%, tir att 20%, réactivité 10%
-  const weights = [0.20, 0.20, 0.15, 0.15, 0.20, 0.10];
-  const globalScore = pcts.reduce((sum, p, i) => sum + p * weights[i], 0);
-
-  // Pénalité si très faible en passe (< 25%) = plafonner à Or max
-  const passAvg = (pcts[0]+pcts[1]+pcts[2])/3;
-  const cappedScore = passAvg < 25 ? Math.min(globalScore, 34) : globalScore;
-
-  // Find league
-  let leagueIdx = 0;
-  LEAGUES.forEach((l, i) => { if(cappedScore >= l.minScore) leagueIdx = i; });
-  const league = LEAGUES[leagueIdx];
-
-  // Division
-  const nextMin = leagueIdx < LEAGUES.length-1 ? LEAGUES[leagueIdx+1].minScore : 100;
-  const rangeSize = Math.max(1, nextMin - league.minScore);
-  const posInRange = cappedScore - league.minScore;
-  const divFraction = Math.min(1, posInRange / rangeSize);
-  const division = Math.max(1, Math.min(league.divisions, Math.ceil((1 - divFraction) * league.divisions)));
-
-  document.getElementById('plResultBadge').textContent = league.emoji;
-  document.getElementById('plResultLeague').textContent = league.name;
-  document.getElementById('plResultLeague').style.color = league.color;
-  document.getElementById('plResultDiv').textContent = 'Division ' + ['I','II','III'][division-1];
-  document.getElementById('plResultScore').textContent = 'Score global : ' + Math.round(cappedScore) + '%';
-
-  const stepNames = [
-    'Passe Bande',
-    'Passe Croisée',
-    'Passe Déf. (' + (plData.choices.passeDef||'—') + ')',
-    'Tir Déf. (' + (plData.choices.tirDef||'—') + ')',
-    'Tir Att. (' + (plData.choices.tirAtt||'—') + ')',
-    'Réactivité'
-  ];
-  document.getElementById('plResultCards').innerHTML = pcts.map((p,i) => `
-    <div class="pl-result-card">
-      <div class="pl-result-label">${stepNames[i]}</div>
-      <div class="pl-result-pct" style="color:${p>=70?'#00E676':p>=40?'#FF9500':'#FF3B30'}">${p}%</div>
-    </div>
-  `).join('');
-
-  const lp = Math.round(divFraction * 100) % 100;
-  const attIdx = Math.max(0, Math.min(leagueIdx, Math.round(leagueIdx * (pcts[4]/100))));
-  const defIdx = Math.max(0, Math.min(leagueIdx, Math.round(leagueIdx * (pcts[2]/100))));
-  DB.set('placement', { leagueIdx, division, lp, globalScore:Math.round(cappedScore), pcts, choices:plData.choices, date:Date.now() });
-  DB.set('rankGlobal', { leagueIdx, division, lp });
-  DB.set('rankAttack', { leagueIdx: attIdx, division: Math.min(3, league.divisions), lp: 40 });
-  DB.set('rankDefense', { leagueIdx: defIdx, division: Math.min(3, league.divisions), lp: 40 });
-}
-
-function confirmPlacement() {
-  document.getElementById('placementOverlay').classList.remove('open');
-  renderLeague();
-  renderDashboard();
-  addXP(100, 'Test de placement complété !');
-}
-
-// ── LEAGUE SCREEN RENDER ──
-function renderLeague() {
-  const el = document.getElementById('leagueContent');
-  if (!el) return;
-
-  const rankG = DB.get('rankGlobal');
-  const rankA = DB.get('rankAttack');
-  const rankD = DB.get('rankDefense');
-  const validated = DB.get('validated') || false;
-
-  if (!rankG) {
-    el.innerHTML = `
-    <div style="text-align:center;padding:40px 20px;">
-      <div style="font-size:64px;margin-bottom:16px;">🎯</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">TEST DE PLACEMENT</div>
-      <div style="font-size:14px;color:var(--text-secondary);margin-bottom:24px;">Détermine ta ligue de départ en 15 minutes.</div>
-      <button type="button" class="btn-primary" onclick="openPlacement()">Commencer le test →</button>
-    </div>`;
-    return;
-  }
-
-  const lg = LEAGUES[rankG.leagueIdx];
-  const la = LEAGUES[rankA ? rankA.leagueIdx : 0];
-  const ld = LEAGUES[rankD ? rankD.leagueIdx : 0];
-  const divNames = ['I','II','III'];
-
-  const placement = DB.get('placement') || {};
-  const seasonStart = placement.date || Date.now();
-  const seasonEnd = seasonStart + 90*24*3600*1000;
-  const daysLeft = Math.max(0, Math.ceil((seasonEnd - Date.now()) / (24*3600*1000)));
-  const valLabel = validated ? (typeof validated==='object' ? validated.label : validated) : null;
-  const valPhoto = validated && typeof validated==='object' ? validated.photo : null;
-
-  el.innerHTML = `
-  <div class="section-title">Rang Global</div>
-  <div class="league-card" style="border:1px solid ${lg.color}40;">
-    <span class="league-badge-big">${lg.emoji}</span>
-    <div class="league-name" style="color:${lg.color}">${lg.name} ${divNames[(rankG.division||1)-1]}</div>
-    <div class="league-division">Score de placement : ${placement.globalScore ? placement.globalScore+'%' : '—'}</div>
-    <div class="league-points"><span>${rankG.lp||0} LP</span><span style="color:var(--text-muted)">/ 100</span></div>
-    <div class="lp-bar"><div class="lp-fill" style="width:${rankG.lp||0}%;background:${lg.color}"></div></div>
-  </div>
-
-  <div class="${valLabel?'validation-banner validated':'validation-banner unvalidated'}">
-    <span>${valLabel?'✅':'⚪'}</span>
-    <span>${valLabel ? 'Homologué — '+valLabel : 'Non homologué — compétition réelle requise'}</span>
-  </div>
-  ${valPhoto ? `<div style="margin-bottom:8px;border-radius:6px;overflow:hidden;border:1px solid var(--green);"><img src="${valPhoto}" style="width:100%;max-height:150px;object-fit:contain;background:#000;" alt="Preuve"></div>` : ''}
-  <button type="button" class="validate-btn" onclick="openModal('validateModal')">🏆 ${valLabel?'Mettre à jour':'Homologuer mon rang'}</button>
-
-  <div class="section-title" style="margin-top:4px;">Spécialisations</div>
-  <div class="ranks-grid">
-    <div class="rank-mini">
-      <div class="rank-mini-icon">${lg.emoji}</div>
-      <div class="rank-mini-label">Global</div>
-      <div class="rank-mini-val">${lg.name}</div>
-      <div class="rank-mini-div">${divNames[rankG.division-1]}</div>
-    </div>
-    <div class="rank-mini">
-      <div class="rank-mini-icon">${la.emoji}</div>
-      <div class="rank-mini-label">Attaque</div>
-      <div class="rank-mini-val">${la.name}</div>
-      <div class="rank-mini-div">${divNames[rankA.division-1]}</div>
-    </div>
-    <div class="rank-mini">
-      <div class="rank-mini-icon">${ld.emoji}</div>
-      <div class="rank-mini-label">Défense</div>
-      <div class="rank-mini-val">${ld.name}</div>
-      <div class="rank-mini-div">${divNames[rankD.division-1]}</div>
-    </div>
-  </div>
-
-  <div class="section-title">Saison en cours</div>
-  <div class="season-card">
-    <div class="season-label">Temps restant</div>
-    <div class="season-val">${daysLeft} jours</div>
-    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Promotion / Maintien / Relégation à la fin</div>
-  </div>
-  <div class="season-card" style="margin-top:0;">
-    <div class="season-label">Progression de saison</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-      ${['Passe Bande','Passe Croisée','Passe Déf.','Tir Déf.','Tir Att.','Réactivité'].map((n,i)=>`
-        <div style="font-size:12px;color:var(--text-secondary);">${n} <span style="color:var(--gold);font-weight:700;">${placement.pcts?placement.pcts[i]+'%':'—'}</span></div>
-      `).join('')}
-    </div>
-  </div>
-
-  <button type="button" class="add-exercise-btn" style="margin-top:8px;" onclick="openPlacement()">🔄 Refaire le test de placement</button>
-  `;
-}
-
-function updateLeagueFromTraining(successPct) {
-  const rank = DB.get('rankGlobal');
-  if (!rank) return;
-  const gain = successPct >= 70 ? 3 : successPct >= 50 ? 1 : -1;
-  rank.lp = Math.min(100, Math.max(0, rank.lp + gain));
-  // Promotion
-  if (rank.lp >= 100) {
-    if (rank.division > 1) {
-      rank.division--;
-      rank.lp = 0;
-    } else if (rank.leagueIdx < LEAGUES.length-1) {
-      rank.leagueIdx++;
-      rank.division = LEAGUES[rank.leagueIdx].divisions;
-      rank.lp = 0;
-    }
-  }
-  // Relégation
-  if (rank.lp <= 0 && rank.leagueIdx > 0) {
-    if (rank.division < LEAGUES[rank.leagueIdx].divisions) {
-      rank.division++;
-      rank.lp = 75;
-    } else {
-      rank.leagueIdx--;
-      rank.division = 1;
-      rank.lp = 75;
-    }
-  }
-  DB.set('rankGlobal', rank);
-}
-
-
-function resetAll() {
-  if (!confirm('Effacer toutes les données et recommencer à zéro ?')) return;
-  const keys = ['profile','xp','exercises','history','matchStats','trainStats','placement','rankGlobal','rankAttack','rankDefense','validated','badges','objectives'];
-  keys.forEach(k => localStorage.removeItem('bfc_'+k));
-  document.getElementById('placementOverlay').classList.remove('open');
-  document.getElementById('app').classList.remove('visible');
-  document.getElementById('onboarding').style.display='block';
-  document.getElementById('onboarding').scrollTo({top:0});
-  // Reset onboarding steps
-  document.querySelectorAll('.ob-step').forEach(s=>s.classList.remove('active'));
-  document.getElementById('step0').classList.add('active');
-  document.querySelectorAll('.ob-dot').forEach(d=>d.classList.remove('active'));
-  document.getElementById('dot0').classList.add('active');
-}
-
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-
-
-function handleValPhoto(inp) {
-  const file = inp.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const prev = document.getElementById('valPhotoPreview');
-    prev.src = e.target.result;
-    prev.style.display = 'block';
-    document.getElementById('valPhotoText').style.display = 'none';
-    window._valPhotoData = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-function confirmValidation() {
-  const type = document.getElementById('valType').value;
-  const details = document.getElementById('valDetails').value.trim();
-  const date = document.getElementById('valDate').value;
-  if (!details) return;
-  const valData = {
-    label: type + ' — ' + details + (date?' ('+date+')':''),
-    photo: window._valPhotoData || null,
-    date: date || new Date().toLocaleDateString('fr-BE')
-  };
-  DB.set('validated', valData);
-  window._valPhotoData = null;
-  // Reset photo UI
-  document.getElementById('valPhotoPreview').style.display='none';
-  document.getElementById('valPhotoText').style.display='block';
-  closeModal('validateModal');
-  renderLeague();
-  addXP(200, 'Rang homologué ! 🏆');
-}
-
-
-// ══════════════════════════════════════════
-// BOOT
-// ══════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
-  const profile = DB.get('profile');
-  if (profile) {
-    document.getElementById('onboarding').style.display = 'none';
-    initApp();
-  }
-});
-</script>
-
-<!-- MODAL: Add Objective -->
-<div class="modal-overlay" id="addObjModal">
-  <div class="modal">
-    <div class="modal-title">Nouvel objectif</div>
-    <div class="modal-field"><label>Description</label><input type="text" id="newObjTitle" placeholder="Ex: Réussir 200 passes bande"></div>
-    <div class="modal-field"><label>Période</label>
-      <select id="newObjPeriod">
-        <option value="daily">Journalier</option>
-        <option value="weekly">Hebdomadaire</option>
-        <option value="monthly">Mensuel</option>
-        <option value="custom">Personnalisé</option>
-      </select>
-    </div>
-    <div class="modal-field"><label>XP récompense</label><input type="number" id="newObjXP" value="50" min="5" max="500"></div>
-    <div class="modal-actions">
-      <button type="button" class="modal-cancel" onclick="closeModal('addObjModal')">Annuler</button>
-      <button type="button" class="modal-confirm" onclick="confirmAddObj()">Créer</button>
-    </div>
-  </div>
-</div>
-
 
 <!-- ══ PLACEMENT TEST ══ -->
 <div class="placement-overlay" id="placementOverlay">
   <div class="pl-wrap">
     <div class="pl-header">
       <span class="pl-badge">🎯</span>
-      <div class="pl-title">Test de placement</div>
+      <div class="pl-title">Test de Placement</div>
       <div class="pl-sub">6 épreuves · 15–20 min · Détermine ta ligue de départ</div>
     </div>
-
-    <!-- RESET BUTTON -->
     <div style="text-align:right;margin-bottom:12px;">
       <button type="button" onclick="resetAll()" style="background:transparent;border:1px solid var(--red);color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;padding:5px 12px;border-radius:4px;cursor:pointer;">🔄 Recommencer à zéro</button>
     </div>
-
     <div class="pl-step-indicator">
-      <div class="pl-step-dot active" id="pldot0"></div>
-      <div class="pl-step-dot" id="pldot1"></div>
-      <div class="pl-step-dot" id="pldot2"></div>
-      <div class="pl-step-dot" id="pldot3"></div>
-      <div class="pl-step-dot" id="pldot4"></div>
-      <div class="pl-step-dot" id="pldot5"></div>
+      <div class="pl-step-dot active" id="pldot0"></div><div class="pl-step-dot" id="pldot1"></div>
+      <div class="pl-step-dot" id="pldot2"></div><div class="pl-step-dot" id="pldot3"></div>
+      <div class="pl-step-dot" id="pldot4"></div><div class="pl-step-dot" id="pldot5"></div>
     </div>
 
     <!-- Step 0: Passe Bande -->
     <div class="pl-step active" id="plstep0">
       <div class="pl-step-title">① Passe Bande</div>
-      <div class="pl-step-desc">20 tentatives — tape ✓ ou ✗ après chaque passe milieu</div>
+      <div class="pl-step-desc">20 tentatives depuis le milieu</div>
       <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar0" style="width:0%"></div></div>
       <div class="pl-counter"><div class="pl-counter-num" id="plcount0">0</div><div class="pl-counter-label">tentatives / 20</div></div>
       <div class="pl-buttons">
@@ -2794,7 +1322,7 @@ window.addEventListener('DOMContentLoaded', () => {
     <!-- Step 1: Passe Croisée -->
     <div class="pl-step" id="plstep1">
       <div class="pl-step-title">② Passe Croisée</div>
-      <div class="pl-step-desc">20 tentatives — passe milieu croisée</div>
+      <div class="pl-step-desc">20 tentatives depuis le milieu</div>
       <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar1" style="width:0%"></div></div>
       <div class="pl-counter"><div class="pl-counter-num" id="plcount1">0</div><div class="pl-counter-label">tentatives / 20</div></div>
       <div class="pl-buttons">
@@ -2804,10 +1332,10 @@ window.addEventListener('DOMContentLoaded', () => {
       <div style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--gold);text-align:center;" id="plscore1">Réussites : 0</div>
     </div>
 
-    <!-- Step 2: Passe Défense Favorite -->
+    <!-- Step 2: Passe Défense -->
     <div class="pl-step" id="plstep2">
       <div class="pl-step-title">③ Passe Défense Favorite</div>
-      <div class="pl-step-desc">Choisis ta passe défense préférée, puis 20 tentatives</div>
+      <div class="pl-step-desc">Choisis ta passe défense préférée</div>
       <div id="plPasseDefPicker">
         <div class="pl-tir-grid">
           <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Bande défense')">Bande</div>
@@ -2828,18 +1356,18 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
 
-    <!-- Step 3: Tir Défense Favori -->
+    <!-- Step 3: Tir Défense -->
     <div class="pl-step" id="plstep3">
       <div class="pl-step-title">④ Tir Défense Favori</div>
-      <div class="pl-step-desc">Choisis ton tir depuis la défense préféré, puis 20 tentatives</div>
+      <div class="pl-step-desc">Choisis ton tir depuis la défense</div>
       <div id="plTirDefPicker">
         <div class="pl-tir-grid">
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer courte défense')">Tirer courte</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer longue défense')">Tirer longue</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer croisée défense')">Tirer croisée</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser courte défense')">Pousser courte</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser longue défense')">Pousser longue</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser décroisée défense')">Pousser décroisée</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer courte déf.')">Tirer courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer longue déf.')">Tirer longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer croisée déf.')">Tirer croisée</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser courte déf.')">Pousser courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser longue déf.')">Pousser longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser décroisée déf.')">Pousser décroisée</div>
         </div>
         <button type="button" class="btn-primary" id="plTirDefStart" onclick="startPlStep(3)" style="opacity:0.4;pointer-events:none;">Commencer →</button>
       </div>
@@ -2855,18 +1383,18 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
 
-    <!-- Step 4: Tir Attaque Favori -->
+    <!-- Step 4: Tir Attaque -->
     <div class="pl-step" id="plstep4">
       <div class="pl-step-title">⑤ Tir Attaque Favori</div>
-      <div class="pl-step-desc">Choisis ton tir depuis l'attaque préféré, puis 20 tentatives</div>
+      <div class="pl-step-desc">Choisis ton tir depuis l'attaque</div>
       <div id="plTirAttPicker">
         <div class="pl-tir-grid">
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer courte attaque')">Tirer courte</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer longue attaque')">Tirer longue</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer croisée attaque')">Tirer croisée</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Pousser courte attaque')">Pousser courte</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Pousser longue attaque')">Pousser longue</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Fixe attaque')">Fixe</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer courte att.')">Tirer courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer longue att.')">Tirer longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Tirer croisée att.')">Tirer croisée</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Pousser courte att.')">Pousser courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Pousser longue att.')">Pousser longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirAtt',this,'Fixe att.')">Fixe</div>
         </div>
         <button type="button" class="btn-primary" id="plTirAttStart" onclick="startPlStep(4)" style="opacity:0.4;pointer-events:none;">Commencer →</button>
       </div>
@@ -2882,23 +1410,23 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
 
-    <!-- Step 5: Test Réactivité -->
+    <!-- Step 5: Réactivité -->
     <div class="pl-step" id="plstep5">
       <div class="pl-step-title">⑥ Test Réactivité</div>
-      <div class="pl-step-desc">L'app affiche une action précise — exécute-la, puis dis si tu as réussi</div>
+      <div class="pl-step-desc">L'app affiche une action — exécute-la puis dis si tu as réussi</div>
       <div id="plReactStart">
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;">
           <div style="font-size:32px;margin-bottom:8px;">🎲</div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;color:var(--text-secondary);">20 actions tirées au hasard depuis toutes les zones</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;color:var(--text-secondary);">20 actions solo tirées au hasard depuis toutes les zones</div>
         </div>
-        <button type="button" class="btn-primary" onclick="startReact()">Commencer le test →</button>
+        <button type="button" class="btn-primary" onclick="startReact()">Commencer →</button>
       </div>
       <div id="plReactTest" style="display:none;">
         <div class="pl-progress-bar"><div class="pl-progress-fill" id="plbar5" style="width:0%"></div></div>
         <div style="background:var(--bg-card);border:2px solid var(--gold);border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;min-height:100px;display:flex;align-items:center;justify-content:center;">
           <div>
             <div style="font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;margin-bottom:6px;" id="plReactZone">ZONE</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--gold);" id="plReactAction">—</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--gold);" id="plReactAction">—</div>
           </div>
         </div>
         <div class="pl-counter"><div class="pl-counter-num" id="plcount5">0</div><div class="pl-counter-label">actions / 20</div></div>
@@ -2910,7 +1438,7 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
 
-    <!-- Step 6: Results -->
+    <!-- Step 6: Résultats -->
     <div class="pl-step" id="plstep6">
       <div style="text-align:center;margin-bottom:24px;">
         <span style="font-size:64px;" id="plResultBadge">🥉</span>
@@ -2922,21 +1450,70 @@ window.addEventListener('DOMContentLoaded', () => {
       <button type="button" class="btn-primary" onclick="confirmPlacement()" style="margin-top:8px;">🚀 Commencer l'aventure</button>
       <button type="button" onclick="openPlacement()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-bright);color:var(--text-secondary);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:4px;cursor:pointer;margin-top:8px;">🔄 Refaire le test</button>
     </div>
-
   </div>
 </div>
 
-<!-- MODAL: Validation réelle -->
+<!-- MODALS -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">Modifier le profil</div>
+    <div class="modal-field"><label>Nom / Pseudo</label><input type="text" id="edit-name" maxlength="30"></div>
+    <div class="modal-field"><label>Main dominante</label><input type="text" id="edit-hand"></div>
+    <div class="modal-field"><label>Poste préféré</label><input type="text" id="edit-pos"></div>
+    <div class="modal-field"><label>Tables pratiquées</label><input type="text" id="edit-tables"></div>
+    <div class="modal-field"><label>ELO réel</label><input type="number" id="edit-elo"></div>
+    <div class="modal-field"><label>Objectif</label><input type="text" id="edit-goal"></div>
+    <div class="modal-actions">
+      <button type="button" class="modal-cancel" onclick="closeModal('editModal')">Annuler</button>
+      <button type="button" class="modal-confirm" onclick="saveProfile()">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addExModal">
+  <div class="modal">
+    <div class="modal-title">Ajouter un exercice</div>
+    <div class="modal-field"><label>Nom</label><input type="text" id="newExName" placeholder="Ex: Tir coupé gauche..."></div>
+    <div class="modal-field"><label>Type</label>
+      <select id="newExType" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:15px;padding:10px 12px;border-radius:4px;outline:none;">
+        <option value="passes">Passes (tentatives / réussites)</option>
+        <option value="goals">Buts (tentatives / buts)</option>
+        <option value="saves">Arrêts (tentatives / réussites)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="modal-cancel" onclick="closeModal('addExModal')">Annuler</button>
+      <button type="button" class="modal-confirm" onclick="confirmAddExercise()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addObjModal">
+  <div class="modal">
+    <div class="modal-title">Nouvel objectif</div>
+    <div class="modal-field"><label>Description</label><input type="text" id="newObjTitle" placeholder="Ex: Réussir 200 passes bande"></div>
+    <div class="modal-field"><label>Période</label>
+      <select id="newObjPeriod" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:15px;padding:10px 12px;border-radius:4px;outline:none;">
+        <option value="daily">Journalier</option><option value="weekly">Hebdomadaire</option>
+        <option value="monthly">Mensuel</option><option value="custom">Personnalisé</option>
+      </select>
+    </div>
+    <div class="modal-field"><label>XP récompense</label><input type="number" id="newObjXP" value="50" min="5" max="500"></div>
+    <div class="modal-actions">
+      <button type="button" class="modal-cancel" onclick="closeModal('addObjModal')">Annuler</button>
+      <button type="button" class="modal-confirm" onclick="confirmAddObj()">Créer</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="validateModal">
   <div class="modal">
     <div class="modal-title">Homologation</div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Prouve ta valeur en compétition réelle pour homologuer ton rang.</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Prouve ta valeur en compétition réelle.</div>
     <div class="modal-field"><label>Type de preuve</label>
-      <select id="valType">
-        <option value="Tournoi">Résultat tournoi</option>
-        <option value="ELO">Classement ELO officiel</option>
-        <option value="Division">Montée de division</option>
-        <option value="International">Participation internationale</option>
+      <select id="valType" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:15px;padding:10px 12px;border-radius:4px;outline:none;">
+        <option>Résultat tournoi</option><option>Classement ELO officiel</option>
+        <option>Montée de division</option><option>Participation internationale</option>
       </select>
     </div>
     <div class="modal-field"><label>Détails</label><input type="text" id="valDetails" placeholder="Ex: Top 4 tournoi régional Ath"></div>
@@ -2944,7 +1521,7 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="modal-field">
       <label>Capture d'écran (preuve)</label>
       <div style="position:relative;border:2px dashed var(--border-bright);border-radius:4px;padding:16px;text-align:center;background:var(--bg-surface);cursor:pointer;" id="valPhotoZone">
-        <input type="file" accept="image/*" id="valPhoto" onchange="handleValPhoto(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+        <input type="file" accept="image/*" id="valPhoto" onchange="handleValPhoto(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
         <div id="valPhotoText" style="font-size:13px;color:var(--text-secondary);">📸 Ajouter une capture d'écran</div>
         <img id="valPhotoPreview" style="display:none;width:100%;max-height:120px;object-fit:contain;border-radius:4px;margin-top:8px;" alt="Preuve">
       </div>
@@ -2956,5 +1533,1481 @@ window.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
+<script>
+function toggleMoreMenu() {
+  const m=document.getElementById('moreMenu');
+  m.style.display=m.style.display==='none'?'block':'none';
+}
+document.addEventListener('click',e=>{
+  const menu=document.getElementById('moreMenu');
+  if(menu&&!menu.contains(e.target)&&!e.target.closest('[onclick="toggleMoreMenu()"]'))
+    menu.style.display='none';
+});
+// ── db-data.js ──
+// ══════════════════════════════════════════
+// STORAGE LAYER
+// ══════════════════════════════════════════
+const DB = {
+  get: (k) => { try { return JSON.parse(localStorage.getItem('bfc_'+k)); } catch(e) { return null; } },
+  set: (k,v) => localStorage.setItem('bfc_'+k, JSON.stringify(v)),
+  push: (k,v) => { const a = DB.get(k)||[]; a.push(v); DB.set(k,a); return a; }
+};
+
+// ══════════════════════════════════════════
+// DEFAULT DATA
+// ══════════════════════════════════════════
+const DEFAULT_EXERCISES = {
+  passes: [
+    { id:'p1', name:'Bande', type:'passes' },
+    { id:'p2', name:'Croisée', type:'passes' },
+    { id:'p3', name:'Droite', type:'passes' },
+  ],
+  attack: [
+    { id:'a1',  name:'Tirer courte', type:'goals' },
+    { id:'a2',  name:'Tirer longue', type:'goals' },
+    { id:'a3',  name:'Tirer croisée courte', type:'goals' },
+    { id:'a4',  name:'Tirer croisée longue', type:'goals' },
+    { id:'a5',  name:'Tirer décroisée', type:'goals' },
+    { id:'a6',  name:'Pousser courte', type:'goals' },
+    { id:'a7',  name:'Pousser longue', type:'goals' },
+    { id:'a8',  name:'Pousser croisée courte', type:'goals' },
+    { id:'a9',  name:'Pousser croisée longue', type:'goals' },
+    { id:'a10', name:'Pousser décroisée', type:'goals' },
+    { id:'a11', name:'Fixe', type:'goals' },
+    { id:'a12', name:'Aller-retour tirer', type:'goals' },
+    { id:'a13', name:'Aller-retour pousser', type:'goals' },
+  ],
+  defense: [
+    { id:'d1', name:'Relance bande', type:'saves' },
+    { id:'d2', name:'Relance centre', type:'saves' },
+    { id:'d3', name:'Relance directe', type:'saves' },
+  ]
+};
+
+const RPG = {
+  ranks: [
+    { name:'Recrue', xp:0 },
+    { name:'Apprenti', xp:100 },
+    { name:'Joueur', xp:300 },
+    { name:'Compétiteur', xp:700 },
+    { name:'Expert', xp:1500 },
+    { name:'Élite', xp:3000 },
+    { name:'Maître', xp:6000 },
+    { name:'Légende', xp:12000 },
+  ],
+  titlesDefense: ['Apprenti Gardien','Gardien','Rempart','Muraille','Forteresse','Bastion','Légende Défensive'],
+  titlesAttack: ['Buteur','Finisseur','Chasseur','Tireur d\'Élite','Bourreau','Machine à Buts','Légende Offensive'],
+  titlesMulti: ['Voyageur','Aventurier','Polyvalent','Maître Multi-table','Ambassadeur International'],
+  defenseReqs: [0, 50, 200, 500, 1000, 2500, 5000],
+  attackReqs:  [0, 50, 200, 500, 1000, 2500, 5000],
+  multiReqs:   [0, 2, 5, 10, 20],
+  levelXP: (lvl) => 100 * lvl * lvl,
+  getLevel: (xp) => { let l=1; while(RPG.levelXP(l)<=xp) l++; return l-1; }
+};
+
+const LEAGUES = [
+  { id:'bronze',      name:'Bronze',       emoji:'🥉', color:'#CD7F32', divisions:3, minScore:0  },
+  { id:'silver',      name:'Argent',       emoji:'🥈', color:'#C0C0C0', divisions:3, minScore:20 },
+  { id:'gold',        name:'Or',           emoji:'🥇', color:'#FFD700', divisions:3, minScore:35 },
+  { id:'platinum',    name:'Platine',      emoji:'💎', color:'#00E5FF', divisions:3, minScore:50 },
+  { id:'diamond',     name:'Diamant',      emoji:'💠', color:'#00B0FF', divisions:3, minScore:68 },
+  { id:'master',      name:'Maître',       emoji:'👑', color:'#AA00FF', divisions:3, minScore:80 },
+  { id:'grandmaster', name:'Grand Maître', emoji:'🔥', color:'#FF4500', divisions:2, minScore:90 },
+  { id:'legend',      name:'Légende',      emoji:'🏆', color:'#C9A84C', divisions:1, minScore:96 },
+];
+
+// Reactive test bank — solo-executable actions only
+const REACT_ACTIONS = [
+  { zone:'DÉFENSE', action:'Relance bande' },
+  { zone:'DÉFENSE', action:'Relance centre' },
+  { zone:'DÉFENSE', action:'Relance directe' },
+  { zone:'DÉFENSE', action:'Tirer longue défense' },
+  { zone:'DÉFENSE', action:'Pousser courte défense' },
+  { zone:'DÉFENSE', action:'Pousser longue défense' },
+  { zone:'DÉFENSE', action:'Pousser décroisée défense' },
+  { zone:'MILIEU',  action:'Passe bande' },
+  { zone:'MILIEU',  action:'Passe croisée' },
+  { zone:'MILIEU',  action:'Passe droite' },
+  { zone:'ATTAQUE', action:'Tirer courte' },
+  { zone:'ATTAQUE', action:'Tirer longue' },
+  { zone:'ATTAQUE', action:'Tirer croisée' },
+  { zone:'ATTAQUE', action:'Pousser courte' },
+  { zone:'ATTAQUE', action:'Pousser longue' },
+  { zone:'ATTAQUE', action:'Pousser décroisée' },
+  { zone:'ATTAQUE', action:'Fixe' },
+  { zone:'DÉFENSE', action:'Tirer croisée défense' },
+  { zone:'MILIEU',  action:'Passe décroisée' },
+  { zone:'ATTAQUE', action:'Aller-retour tirer' },
+];
+
+const CAREER_MILESTONES = [
+  { id:'c1', label:'Premier tournoi', icon:'🏟️', desc:'Participe à ton premier tournoi officiel' },
+  { id:'c2', label:'Première victoire', icon:'🏆', desc:'Remporte ton premier match en tournoi' },
+  { id:'c3', label:'Montée de division', icon:'📈', desc:'Monte en division supérieure' },
+  { id:'c4', label:'Ranking 3', icon:'3️⃣', desc:'Atteins le top 3 d\'un tournoi' },
+  { id:'c5', label:'Ranking 2', icon:'2️⃣', desc:'Atteins la 2ème place' },
+  { id:'c6', label:'Ranking 1', icon:'1️⃣', desc:'Remporte un tournoi' },
+  { id:'c7', label:'Top 100', icon:'💯', desc:'Entre dans le top 100 national' },
+  { id:'c8', label:'Top 50', icon:'⭐', desc:'Entre dans le top 50 national' },
+  { id:'c9', label:'Top 20', icon:'🌟', desc:'Entre dans le top 20 national' },
+  { id:'c10', label:'Sélection nationale', icon:'🏳️', desc:'Sélectionné en équipe nationale' },
+  { id:'c11', label:'Tournoi ITSF', icon:'🌍', desc:'Participe à un tournoi ITSF officiel' },
+  { id:'c12', label:'World Series', icon:'🔥', desc:'Participe aux World Series ITSF' },
+];
+
+// ── xp-badges.js ──
+// ══════════════════════════════════════════
+// XP SYSTEM
+// ══════════════════════════════════════════
+function addXP(amount, label) {
+  const prev = DB.get('xp') || 0;
+  const newXP = prev + amount;
+  DB.set('xp', newXP);
+  const toast = document.getElementById('xpToast');
+  if(toast){ toast.textContent = '+'+amount+' XP — '+label; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2500); }
+  renderTopbar();
+}
+
+function showToast(msg, color) {
+  const toast = document.getElementById('xpToast');
+  if(!toast) return;
+  toast.textContent = msg;
+  toast.style.background = color||'';
+  toast.classList.add('show');
+  setTimeout(()=>{ toast.classList.remove('show'); toast.style.background=''; },3000);
+}
+
+// ══════════════════════════════════════════
+// BADGES
+// ══════════════════════════════════════════
+const BADGES = [
+  // Premiers pas
+  { id:'firsttrain',  label:'Première fois',    icon:'👶', cat:'Débuts',      check:(ts,ms,h)=>h.filter(x=>x.type==='training').length>=1 },
+  { id:'firstmatch',  label:'Premier match',     icon:'⚽', cat:'Débuts',      check:(ts,ms,h)=>h.filter(x=>x.type==='match').length>=1 },
+  { id:'placement',   label:'Placé',             icon:'🎯', cat:'Débuts',      check:()=>!!DB.get('rankGlobal') },
+  // Régularité
+  { id:'streak3',     label:'3 jours d\'affilée',icon:'🔥', cat:'Régularité',  check:(ts,ms,h)=>checkStreak(h,3) },
+  { id:'streak7',     label:'7 jours d\'affilée',icon:'⚡', cat:'Régularité',  check:(ts,ms,h)=>checkStreak(h,7) },
+  { id:'sessions10',  label:'10 sessions',       icon:'📋', cat:'Régularité',  check:(ts,ms,h)=>h.filter(x=>x.type==='training').length>=10 },
+  { id:'sessions50',  label:'50 sessions',       icon:'🏃', cat:'Régularité',  check:(ts,ms,h)=>h.filter(x=>x.type==='training').length>=50 },
+  // Heures
+  { id:'early',       label:'Lève-tôt',          icon:'🌅', cat:'Fun',         check:(ts,ms,h)=>h.some(x=>new Date(x.ts).getHours()<8) },
+  { id:'night',       label:'Nocturne',           icon:'🦉', cat:'Fun',         check:(ts,ms,h)=>h.some(x=>new Date(x.ts).getHours()>=22) },
+  // Performance passes
+  { id:'facteur',     label:'Le Facteur',         icon:'📬', cat:'Passes',      check:(ts)=>{ let t=0; Object.values(ts).forEach(e=>{if(e.type==='passes')t+=e.ok||0;}); return t>=1000; }},
+  { id:'pass500',     label:'500 passes',         icon:'✋', cat:'Passes',      check:(ts)=>{ let t=0; Object.values(ts).forEach(e=>{if(e.type==='passes')t+=e.ok||0;}); return t>=500; }},
+  { id:'perfect',     label:'Parfait',            icon:'💯', cat:'Performance', check:(ts)=>Object.values(ts).some(e=>e.tried>=10&&e.ok>=e.tried) },
+  // Performance tirs
+  { id:'machine',     label:'Machine à Buts',     icon:'🔥', cat:'Attaque',     check:(ts,ms)=>{ let t=(ms?.att?.goals||0); Object.values(ts).forEach(e=>{if(e.type==='goals')t+=e.ok||0;}); return t>=1000; }},
+  { id:'goals100',    label:'100 buts',           icon:'⚽', cat:'Attaque',     check:(ts,ms)=>{ let t=(ms?.att?.goals||0); Object.values(ts).forEach(e=>{if(e.type==='goals')t+=e.ok||0;}); return t>=100; }},
+  // Performance défense
+  { id:'mur',         label:'Mur Défensif',       icon:'🧱', cat:'Défense',     check:(ts,ms)=>{ let t=(ms?.def?.saves||0); Object.values(ts).forEach(e=>{if(e.type==='saves')t+=e.ok||0;}); return t>=1000; }},
+  { id:'saves50',     label:'50 arrêts',          icon:'🛡️', cat:'Défense',     check:(ts,ms)=>{ let t=(ms?.def?.saves||0); Object.values(ts).forEach(e=>{if(e.type==='saves')t+=e.ok||0;}); return t>=50; }},
+  // Matchs
+  { id:'polyvalent',  label:'Polyvalent',         icon:'⚡', cat:'Matchs',      check:(ts,ms,h)=>h.filter(x=>x.type==='match'&&x.role==='att').length>=10&&h.filter(x=>x.type==='match'&&x.role==='def').length>=10 },
+  { id:'matches10',   label:'10 matchs',          icon:'🏅', cat:'Matchs',      check:(ts,ms,h)=>h.filter(x=>x.type==='match').length>=10 },
+  { id:'globe',       label:'Globe-Trotter',      icon:'🌍', cat:'Matchs',      check:(ts,ms,h)=>{ const tables=(DB.get('profile')?.tables||'').split(',').filter(Boolean); return tables.length>=2&&h.filter(x=>x.type==='match').length>=10; }},
+  // Rang
+  { id:'level5',      label:'Décollage',          icon:'🚀', cat:'Rang',        check:()=>RPG.getLevel(DB.get('xp')||0)>=5 },
+  { id:'gold_rank',   label:'Rang Or+',           icon:'🥇', cat:'Rang',        check:()=>{ const r=DB.get('rankGlobal'); return r&&r.leagueIdx>=2; }},
+  { id:'diamond_rank',label:'Rang Diamant+',      icon:'💠', cat:'Rang',        check:()=>{ const r=DB.get('rankGlobal'); return r&&r.leagueIdx>=4; }},
+  // Carrière
+  { id:'validated',   label:'Homologué',          icon:'✅', cat:'Carrière',    check:()=>!!DB.get('validated') },
+  { id:'video1',      label:'Analyste',           icon:'🎬', cat:'Carrière',    check:(ts,ms,h)=>h.filter(x=>x.type==='video').length>=1 },
+];
+
+function checkStreak(history, days) {
+  const trainDays = [...new Set(history.filter(h=>h.type==='training').map(h=>new Date(h.ts).toDateString()))];
+  if(trainDays.length<days) return false;
+  const today = new Date(); let streak=0;
+  for(let i=0;i<days+3;i++){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    if(trainDays.includes(d.toDateString())) streak++; else if(streak>0) break;
+  }
+  return streak>=days;
+}
+
+function checkBadges() {
+  const ts = DB.get('trainStats')||{};
+  const ms = DB.get('matchStats')||{att:{},def:{}};
+  const hist = DB.get('history')||[];
+  const unlocked = DB.get('badges')||{};
+  BADGES.forEach(b=>{
+    if(!unlocked[b.id] && b.check(ts,ms,hist)){
+      unlocked[b.id]=true;
+      DB.set('badges',unlocked);
+      showToast('🏅 Badge : '+b.label, '#1A3A1A');
+    }
+  });
+  renderBadgesRow(unlocked);
+}
+
+function renderBadgesRow(unlocked) {
+  const row = document.getElementById('badges-row');
+  if(!row) return;
+  const unlockedBadges = BADGES.filter(b=>unlocked[b.id]);
+  const locked = BADGES.filter(b=>!unlocked[b.id]).slice(0,3);
+  row.innerHTML = [
+    ...unlockedBadges.map(b=>`<div class="badge-chip unlocked"><span class="badge-icon">${b.icon}</span>${b.label}</div>`),
+    ...locked.map(b=>`<div class="badge-chip"><span class="badge-icon">🔒</span>${b.label}</div>`)
+  ].join('');
+}
+
+// ══════════════════════════════════════════
+// AUTO-COMPLETE OBJECTIVES
+// ══════════════════════════════════════════
+function autoCheckObjectives() {
+  const objectives = DB.get('objectives');
+  if(!objectives) return;
+  const ts = DB.get('trainStats')||{};
+  const ms = DB.get('matchStats')||{att:{},def:{}};
+  const history = DB.get('history')||[];
+
+  let totalPassOk=0, totalPassTried=0, totalGoals=0, totalGoalTried=0, totalSaves=0;
+  Object.values(ts).forEach(ex=>{
+    if(ex.type==='passes'){ totalPassOk+=ex.ok||0; totalPassTried+=ex.tried||0; }
+    if(ex.type==='goals'){ totalGoals+=ex.ok||0; totalGoalTried+=ex.tried||0; }
+    if(ex.type==='saves'){ totalSaves+=ex.ok||0; }
+  });
+  totalGoals += ms.att?.goals||0;
+  totalSaves += ms.def?.saves||0;
+
+  const now = Date.now();
+  const todayStr = new Date().toDateString();
+  const weekAgo = now - 7*24*3600*1000;
+  const monthAgo = now - 30*24*3600*1000;
+  const sessionsToday  = history.filter(h=>h.type==='training'&&new Date(h.ts).toDateString()===todayStr).length;
+  const matchesToday   = history.filter(h=>h.type==='match'&&new Date(h.ts).toDateString()===todayStr).length;
+  const sessionsWeek   = history.filter(h=>h.type==='training'&&h.ts>weekAgo).length;
+  const sessionsMonth  = history.filter(h=>h.type==='training'&&h.ts>monthAgo).length;
+  const matchesMonth   = history.filter(h=>h.type==='match'&&h.ts>monthAgo).length;
+
+  const matchers = [
+    { re:/(\d+)\s*passe/i,    val:(n)=> totalPassOk>=n },
+    { re:/(\d+)\s*but/i,      val:(n)=> totalGoals>=n },
+    { re:/(\d+)\s*arrêt/i,    val:(n)=> totalSaves>=n },
+    { re:/1\s*(session|entraîn)/i, val:()=> sessionsToday>=1 },
+    { re:/(\d+)\s*(session|entraîn)/i, val:(n)=> n<=2?sessionsToday>=n:sessionsWeek>=n },
+    { re:/1\s*match/i,        val:()=> matchesToday>=1 },
+    { re:/(\d+)\s*match/i,    val:(n)=> n<=2?matchesToday>=n:matchesMonth>=n },
+    { re:/(\d+)\s*tir/i,      val:(n)=> totalGoalTried>=n },
+  ];
+
+  let changed = false;
+  ['daily','weekly','monthly','custom'].forEach(period=>{
+    (objectives[period]||[]).forEach(obj=>{
+      if(obj.done) return;
+      const title = obj.title.toLowerCase();
+      for(const m of matchers){
+        const match = title.match(m.re);
+        if(match && m.val(parseInt(match[1])||1)){
+          obj.done = true; obj.autoCompleted = true; changed = true;
+          setTimeout(()=>{ showToast('🎯 Objectif accompli : '+obj.title,'#0A2A0A'); addXP(obj.xp,'Objectif : '+obj.title); },400);
+          break;
+        }
+      }
+    });
+  });
+  if(changed){ DB.set('objectives',objectives); if(document.getElementById('screen-objectives')?.classList.contains('active')) renderObjectives(); }
+}
+
+// ── training.js ──
+// ══════════════════════════════════════════
+// TRAINING
+// ══════════════════════════════════════════
+let currentCat = 'passes';
+let pendingExCat = 'passes';
+
+function switchCat(cat, el) {
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentCat = cat;
+  renderTraining(cat);
+}
+
+function renderTraining(cat) {
+  const exercises = DB.get('exercises') || DEFAULT_EXERCISES;
+  const list = exercises[cat] || [];
+  const ts = DB.get('trainStats') || {};
+  const labels = { passes:['Tentatives','Réussites'], goals:['Tentatives','Buts'], saves:['Tentatives','Arrêts'] };
+  let html = '<div class="exercise-list">';
+  list.forEach(ex=>{
+    const s = ts[ex.id]||{tried:0,ok:0};
+    const pct = s.tried>0 ? Math.round(s.ok/s.tried*100) : null;
+    const pc = pct===null?'':pct>=70?' good':pct>=40?' mid':' low';
+    const [l1,l2] = labels[ex.type]||['Tentatives','Réussites'];
+    html += `
+    <div class="exercise-card">
+      <div class="exercise-header">
+        <div class="exercise-name">${ex.name}</div>
+        <div class="exercise-pct${pc}" id="pct-${ex.id}">${pct===null?'—':pct+'%'}</div>
+      </div>
+      <div class="exercise-inputs">
+        <div class="ex-input-wrap"><label>${l1}</label>
+          <input type="number" id="tried-${ex.id}" placeholder="0" min="0" oninput="updatePct('${ex.id}','${ex.type}')">
+        </div>
+        <div class="ex-input-wrap"><label>${l2}</label>
+          <input type="number" id="ok-${ex.id}" placeholder="0" min="0" oninput="updatePct('${ex.id}','${ex.type}')">
+        </div>
+      </div>
+      <div class="ex-bar"><div class="ex-bar-fill" id="bar-${ex.id}" style="width:${pct||0}%"></div></div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Total : ${s.tried} essais · ${s.ok} réussites</div>
+      <button type="button" class="ex-save-btn" onclick="saveExercise('${ex.id}','${ex.type}')">Enregistrer +XP</button>
+    </div>`;
+  });
+  html += '</div>';
+  html += `<button type="button" class="add-exercise-btn" onclick="openAddExercise('${cat}')">+ Ajouter un exercice</button>`;
+  document.getElementById('trainingContent').innerHTML = html;
+}
+
+function updatePct(id, type) {
+  const tried = parseInt(document.getElementById('tried-'+id)?.value)||0;
+  const ok    = parseInt(document.getElementById('ok-'+id)?.value)||0;
+  const pct = tried>0 ? Math.round(ok/tried*100) : null;
+  const pEl = document.getElementById('pct-'+id);
+  const bEl = document.getElementById('bar-'+id);
+  if(pEl){ pEl.textContent=pct===null?'—':pct+'%'; pEl.className='exercise-pct'+(pct===null?'':pct>=70?' good':pct>=40?' mid':' low'); }
+  if(bEl) bEl.style.width=(pct||0)+'%';
+}
+
+function saveExercise(id, type) {
+  const tried = parseInt(document.getElementById('tried-'+id)?.value)||0;
+  const ok    = parseInt(document.getElementById('ok-'+id)?.value)||0;
+  if(!tried) return;
+  const ts = DB.get('trainStats')||{};
+  const prev = ts[id]||{tried:0,ok:0,type};
+  ts[id] = { tried:prev.tried+tried, ok:prev.ok+ok, type };
+  DB.set('trainStats',ts);
+  document.getElementById('tried-'+id).value='';
+  document.getElementById('ok-'+id).value='';
+  updatePct(id,type);
+  const xpGain = Math.max(5, Math.round(tried*0.5)+(ok>=tried*0.7?10:0));
+  addXP(xpGain, 'Entraînement · '+tried+' rép.');
+  DB.push('history',{type:'training',ts:Date.now(),exerciseId:id,tried,ok,xp:xpGain});
+  if(tried>0) updateLeagueFromTraining(Math.round(ok/tried*100));
+  renderDashboard();
+  checkBadges();
+  autoCheckObjectives();
+  updateCoach();
+}
+
+function openAddExercise(cat) {
+  pendingExCat = cat;
+  document.getElementById('newExName').value='';
+  document.getElementById('addExModal').classList.add('open');
+}
+
+function confirmAddExercise() {
+  const name = document.getElementById('newExName').value.trim();
+  const type = document.getElementById('newExType').value;
+  if(!name) return;
+  const exercises = DB.get('exercises')||DEFAULT_EXERCISES;
+  const id = 'custom_'+Date.now();
+  exercises[pendingExCat] = exercises[pendingExCat]||[];
+  exercises[pendingExCat].push({id,name,type});
+  DB.set('exercises',exercises);
+  closeModal('addExModal');
+  renderTraining(pendingExCat);
+}
+
+// ══════════════════════════════════════════
+// MATCH
+// ══════════════════════════════════════════
+let matchRole = 'att';
+let matchCounts = {};
+
+const matchFields = {
+  att:[
+    {key:'passTried',  label:'Passes tentées'},
+    {key:'passOk',     label:'Passes réussies'},
+    {key:'shotTried',  label:'Tirs tentés'},
+    {key:'goals',      label:'Buts marqués'},
+    {key:'recovered',  label:'Balles récupérées'},
+  ],
+  def:[
+    {key:'saves',      label:'Arrêts'},
+    {key:'passTried',  label:'Passes tentées'},
+    {key:'passOk',     label:'Passes réussies'},
+    {key:'lostRelance',label:'Relances perdues'},
+    {key:'goalsConceded',label:'Buts encaissés'},
+  ]
+};
+
+function selectRole(role) {
+  matchRole = role;
+  document.getElementById('role-att').classList.toggle('selected',role==='att');
+  document.getElementById('role-def').classList.toggle('selected',role==='def');
+  renderMatch(role);
+}
+
+function renderMatch(role) {
+  matchCounts = {};
+  matchFields[role].forEach(f=>matchCounts[f.key]=0);
+  document.getElementById('matchForm').innerHTML = matchFields[role].map(f=>`
+    <div class="match-stat-input">
+      <div class="msi-label">${f.label}</div>
+      <div class="msi-controls">
+        <div class="msi-btn" onclick="matchAdj('${f.key}',-1)">−</div>
+        <div class="msi-val" id="msi-${f.key}">0</div>
+        <div class="msi-btn" onclick="matchAdj('${f.key}',1)">+</div>
+      </div>
+    </div>`).join('');
+}
+
+function matchAdj(key, delta) {
+  matchCounts[key] = Math.max(0,(matchCounts[key]||0)+delta);
+  document.getElementById('msi-'+key).textContent = matchCounts[key];
+}
+
+function saveMatch() {
+  const xpGain = 30+(matchRole==='att'?(matchCounts.goals||0)*5:(matchCounts.saves||0)*3);
+  addXP(xpGain,'Match · '+(matchRole==='att'?'Attaquant':'Défenseur'));
+  const ms = DB.get('matchStats')||{att:{},def:{}};
+  Object.entries(matchCounts).forEach(([k,v])=>{ ms[matchRole][k]=(ms[matchRole][k]||0)+v; });
+  DB.set('matchStats',ms);
+  DB.push('history',{type:'match',ts:Date.now(),role:matchRole,counts:{...matchCounts},xp:xpGain});
+  renderMatch(matchRole);
+  renderDashboard();
+  checkBadges();
+  autoCheckObjectives();
+  updateCoach();
+  navTo('dash');
+}
+
+// ── league.js ──
+// ══════════════════════════════════════════
+// LEAGUE SYSTEM
+// ══════════════════════════════════════════
+let plData = { scores:[0,0,0,0,0,0], tries:[0,0,0,0,0,0], step:0, choices:{passeDef:'',tirDef:'',tirAtt:''} };
+let reactQueue = [];
+let reactIdx = 0;
+
+function openPlacement() {
+  plData = { scores:[0,0,0,0,0,0], tries:[0,0,0,0,0,0], step:0, choices:{passeDef:'',tirDef:'',tirAtt:''} };
+  reactQueue = [...REACT_ACTIONS].sort(()=>Math.random()-0.5);
+  reactIdx = 0;
+  for(let i=0;i<6;i++){
+    const c=document.getElementById('plcount'+i); if(c) c.textContent='0';
+    const b=document.getElementById('plbar'+i);   if(b) b.style.width='0%';
+    const s=document.getElementById('plscore'+i); if(s) s.textContent='Réussites : 0';
+  }
+  for(let i=0;i<=6;i++){ document.getElementById('plstep'+i)?.classList.remove('active'); }
+  for(let i=0;i<6;i++){ const d=document.getElementById('pldot'+i); if(d){d.classList.remove('done','active');} }
+  document.getElementById('plstep0').classList.add('active');
+  document.getElementById('pldot0').classList.add('active');
+  ['plPasseDefPicker','plTirDefPicker','plTirAttPicker'].forEach(id=>{ const e=document.getElementById(id);if(e)e.style.display='block'; });
+  ['plPasseDefTest','plTirDefTest','plTirAttTest','plReactTest'].forEach(id=>{ const e=document.getElementById(id);if(e)e.style.display='none'; });
+  const rs=document.getElementById('plReactStart'); if(rs) rs.style.display='block';
+  document.querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
+  ['plPasseDefStart','plTirDefStart','plTirAttStart'].forEach(id=>{ const b=document.getElementById(id); if(b){b.style.opacity='0.4';b.style.pointerEvents='none';} });
+  document.getElementById('placementOverlay').classList.add('open');
+  document.getElementById('placementOverlay').scrollTo({top:0});
+}
+
+function selectPlChoice(type, el, name) {
+  el.closest('.pl-tir-grid').querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  plData.choices[type] = name;
+  const btnMap={passeDef:'plPasseDefStart',tirDef:'plTirDefStart',tirAtt:'plTirAttStart'};
+  const btn=document.getElementById(btnMap[type]);
+  if(btn){btn.style.opacity='1';btn.style.pointerEvents='auto';}
+}
+
+function startPlStep(step) {
+  const pMap={2:'plPasseDefPicker',3:'plTirDefPicker',4:'plTirAttPicker'};
+  const tMap={2:'plPasseDefTest',  3:'plTirDefTest',  4:'plTirAttTest'};
+  const lMap={2:'plPasseDefLabel', 3:'plTirDefLabel', 4:'plTirAttLabel'};
+  const cMap={2:'passeDef',3:'tirDef',4:'tirAtt'};
+  if(pMap[step]) document.getElementById(pMap[step]).style.display='none';
+  if(tMap[step]) document.getElementById(tMap[step]).style.display='block';
+  if(lMap[step]) document.getElementById(lMap[step]).textContent='▶ '+plData.choices[cMap[step]];
+}
+
+function startReact() {
+  document.getElementById('plReactStart').style.display='none';
+  document.getElementById('plReactTest').style.display='block';
+  showNextReact();
+}
+
+function showNextReact() {
+  if(reactIdx<reactQueue.length){
+    const a=reactQueue[reactIdx];
+    document.getElementById('plReactZone').textContent=a.zone;
+    document.getElementById('plReactAction').textContent=a.action;
+  }
+}
+
+function plRecord(step, success) {
+  if(plData.tries[step]>=20) return;
+  plData.tries[step]++;
+  if(success) plData.scores[step]++;
+  const pct=Math.round(plData.tries[step]/20*100);
+  const c=document.getElementById('plcount'+step); if(c) c.textContent=plData.tries[step];
+  const b=document.getElementById('plbar'+step);   if(b) b.style.width=pct+'%';
+  const labels=['Réussites','Réussites','Réussites','Buts','Buts','Réussites'];
+  const s=document.getElementById('plscore'+step); if(s) s.textContent=labels[step]+' : '+plData.scores[step];
+  if(step===5){ reactIdx++; if(plData.tries[5]<20) showNextReact(); }
+  if(plData.tries[step]>=20) setTimeout(()=>plNextStep(step),500);
+}
+
+function plNextStep(step) {
+  document.getElementById('plstep'+step)?.classList.remove('active');
+  const dot=document.getElementById('pldot'+step); if(dot){dot.classList.remove('active');dot.classList.add('done');}
+  const next=step+1;
+  document.getElementById('plstep'+next)?.classList.add('active');
+  document.getElementById('pldot'+next)?.classList.add('active');
+  document.getElementById('placementOverlay').scrollTo({top:0,behavior:'smooth'});
+  if(next===6) showPlacementResult();
+}
+
+function showPlacementResult() {
+  const pcts = plData.scores.map((s,i)=>plData.tries[i]>0?Math.round(s/plData.tries[i]*100):0);
+  const weights=[0.20,0.20,0.15,0.15,0.20,0.10];
+  const globalScore = pcts.reduce((sum,p,i)=>sum+p*weights[i],0);
+  const passAvg=(pcts[0]+pcts[1]+pcts[2])/3;
+  const capped = passAvg<25 ? Math.min(globalScore,34) : globalScore;
+  let leagueIdx=0;
+  LEAGUES.forEach((l,i)=>{ if(capped>=l.minScore) leagueIdx=i; });
+  const league=LEAGUES[leagueIdx];
+  const nextMin=leagueIdx<LEAGUES.length-1?LEAGUES[leagueIdx+1].minScore:100;
+  const rangeSize=Math.max(1,nextMin-league.minScore);
+  const divFraction=Math.min(1,(capped-league.minScore)/rangeSize);
+  const division=Math.max(1,Math.min(league.divisions,Math.ceil((1-divFraction)*league.divisions)));
+  document.getElementById('plResultBadge').textContent=league.emoji;
+  document.getElementById('plResultLeague').textContent=league.name;
+  document.getElementById('plResultLeague').style.color=league.color;
+  document.getElementById('plResultDiv').textContent='Division '+['I','II','III'][division-1];
+  document.getElementById('plResultScore').textContent='Score global : '+Math.round(capped)+'%';
+  const names=['Passe Bande','Passe Croisée','Passe Déf. ('+plData.choices.passeDef+')','Tir Déf. ('+plData.choices.tirDef+')','Tir Att. ('+plData.choices.tirAtt+')','Réactivité'];
+  document.getElementById('plResultCards').innerHTML=pcts.map((p,i)=>`
+    <div class="pl-result-card">
+      <div class="pl-result-label">${names[i]}</div>
+      <div class="pl-result-pct" style="color:${p>=70?'#00E676':p>=40?'#FF9500':'#FF3B30'}">${p}%</div>
+    </div>`).join('');
+  const lp=Math.round(divFraction*100)%100;
+  const attIdx=Math.max(0,Math.min(leagueIdx,Math.round(leagueIdx*(pcts[4]/100))));
+  const defIdx=Math.max(0,Math.min(leagueIdx,Math.round(leagueIdx*(pcts[2]/100))));
+  DB.set('placement',{leagueIdx,division,lp,globalScore:Math.round(capped),pcts,choices:plData.choices,date:Date.now()});
+  DB.set('rankGlobal',{leagueIdx,division,lp});
+  DB.set('rankAttack',{leagueIdx:attIdx,division:Math.min(3,league.divisions),lp:40});
+  DB.set('rankDefense',{leagueIdx:defIdx,division:Math.min(3,league.divisions),lp:40});
+}
+
+function confirmPlacement() {
+  document.getElementById('placementOverlay').classList.remove('open');
+  renderLeague(); renderDashboard();
+  addXP(100,'Test de placement complété !');
+  checkBadges();
+}
+
+function renderLeague() {
+  const el=document.getElementById('leagueContent'); if(!el) return;
+  const rankG=DB.get('rankGlobal');
+  const rankA=DB.get('rankAttack');
+  const rankD=DB.get('rankDefense');
+  const validated=DB.get('validated');
+  if(!rankG){
+    el.innerHTML=`<div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:64px;margin-bottom:16px;">🎯</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">TEST DE PLACEMENT</div>
+      <div style="font-size:14px;color:var(--text-secondary);margin-bottom:24px;">Détermine ta ligue de départ en 15 minutes.</div>
+      <button type="button" class="btn-primary" onclick="openPlacement()">Commencer le test →</button>
+    </div>`; return;
+  }
+  const lg=LEAGUES[rankG.leagueIdx];
+  const la=LEAGUES[rankA?rankA.leagueIdx:0];
+  const ld=LEAGUES[rankD?rankD.leagueIdx:0];
+  const dn=['I','II','III'];
+  const placement=DB.get('placement')||{};
+  const seasonEnd=(placement.date||Date.now())+90*24*3600*1000;
+  const daysLeft=Math.max(0,Math.ceil((seasonEnd-Date.now())/(24*3600*1000)));
+  const valLabel=validated?(typeof validated==='object'?validated.label:validated):null;
+  const valPhoto=validated&&typeof validated==='object'?validated.photo:null;
+  el.innerHTML=`
+  <div class="section-title">Rang Global</div>
+  <div class="league-card" style="border:1px solid ${lg.color}40;">
+    <span class="league-badge-big">${lg.emoji}</span>
+    <div class="league-name" style="color:${lg.color}">${lg.name} ${dn[(rankG.division||1)-1]}</div>
+    <div class="league-division">Score placement : ${placement.globalScore||'—'}%</div>
+    <div class="league-points"><span>${rankG.lp||0} LP</span><span style="color:var(--text-muted)">/ 100</span></div>
+    <div class="lp-bar"><div class="lp-fill" style="width:${rankG.lp||0}%;background:${lg.color}"></div></div>
+  </div>
+  <div class="${valLabel?'validation-banner validated':'validation-banner unvalidated'}">
+    <span>${valLabel?'✅':'⚪'}</span>
+    <span>${valLabel?'Homologué — '+valLabel:'Non homologué — compétition réelle requise'}</span>
+  </div>
+  ${valPhoto?`<div style="margin-bottom:8px;border-radius:6px;overflow:hidden;border:1px solid var(--green);"><img src="${valPhoto}" style="width:100%;max-height:150px;object-fit:contain;background:#000;" alt="Preuve"></div>`:''}
+  <button type="button" class="validate-btn" onclick="openModal('validateModal')">🏆 ${valLabel?'Mettre à jour':'Homologuer mon rang'}</button>
+  <div class="section-title" style="margin-top:4px;">Spécialisations</div>
+  <div class="ranks-grid">
+    <div class="rank-mini"><div class="rank-mini-icon">${lg.emoji}</div><div class="rank-mini-label">Global</div><div class="rank-mini-val">${lg.name}</div><div class="rank-mini-div">${dn[(rankG.division||1)-1]}</div></div>
+    <div class="rank-mini"><div class="rank-mini-icon">${la.emoji}</div><div class="rank-mini-label">Attaque</div><div class="rank-mini-val">${la.name}</div><div class="rank-mini-div">${dn[(rankA?.division||1)-1]}</div></div>
+    <div class="rank-mini"><div class="rank-mini-icon">${ld.emoji}</div><div class="rank-mini-label">Défense</div><div class="rank-mini-val">${ld.name}</div><div class="rank-mini-div">${dn[(rankD?.division||1)-1]}</div></div>
+  </div>
+  <div class="section-title">Saison</div>
+  <div class="season-card"><div class="season-label">Temps restant</div><div class="season-val">${daysLeft} jours</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Promotion / Maintien / Relégation à la fin</div></div>
+  <button type="button" class="add-exercise-btn" style="margin-top:8px;" onclick="openPlacement()">🔄 Refaire le test de placement</button>`;
+}
+
+function updateLeagueFromTraining(pct) {
+  const rank=DB.get('rankGlobal'); if(!rank) return;
+  const gain=pct>=70?3:pct>=50?1:-1;
+  rank.lp=Math.min(100,Math.max(0,(rank.lp||0)+gain));
+  if(rank.lp>=100){
+    if(rank.division>1){rank.division--;rank.lp=0;}
+    else if(rank.leagueIdx<LEAGUES.length-1){rank.leagueIdx++;rank.division=LEAGUES[rank.leagueIdx].divisions;rank.lp=0;}
+  }
+  if(rank.lp<=0&&rank.leagueIdx>0){
+    if(rank.division<LEAGUES[rank.leagueIdx].divisions){rank.division++;rank.lp=75;}
+    else{rank.leagueIdx--;rank.division=1;rank.lp=75;}
+  }
+  DB.set('rankGlobal',rank);
+}
+
+function openModal(id){ document.getElementById(id)?.classList.add('open'); }
+function closeModal(id){ document.getElementById(id)?.classList.remove('open'); }
+
+function handleValPhoto(inp) {
+  const file=inp.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const prev=document.getElementById('valPhotoPreview');
+    prev.src=e.target.result; prev.style.display='block';
+    document.getElementById('valPhotoText').style.display='none';
+    window._valPhotoData=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function confirmValidation() {
+  const type=document.getElementById('valType').value;
+  const details=document.getElementById('valDetails').value.trim();
+  const date=document.getElementById('valDate').value;
+  if(!details) return;
+  DB.set('validated',{label:type+' — '+details+(date?' ('+date+')':''),photo:window._valPhotoData||null,date});
+  window._valPhotoData=null;
+  document.getElementById('valPhotoPreview').style.display='none';
+  document.getElementById('valPhotoText').style.display='block';
+  closeModal('validateModal');
+  renderLeague();
+  addXP(200,'Rang homologué ! 🏆');
+  checkBadges();
+}
+
+function resetAll() {
+  if(!confirm('Effacer toutes les données et recommencer à zéro ?')) return;
+  ['profile','xp','exercises','history','matchStats','trainStats','placement','rankGlobal','rankAttack','rankDefense','validated','badges','objectives','videoSessions','coachProgram'].forEach(k=>localStorage.removeItem('bfc_'+k));
+  document.getElementById('placementOverlay').classList.remove('open');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('onboarding').style.display='block';
+  document.getElementById('onboarding').scrollTo({top:0});
+  document.querySelectorAll('.ob-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step0').classList.add('active');
+  document.querySelectorAll('.ob-dot').forEach(d=>d.classList.remove('active'));
+  document.getElementById('dot0').classList.add('active');
+}
+
+// ── objectives.js ──
+// ══════════════════════════════════════════
+// OBJECTIVES
+// ══════════════════════════════════════════
+const DEFAULT_OBJECTIVES = {
+  daily:[
+    {id:'d1',title:'Faire 1 session d\'entraînement',period:'daily',xp:20,done:false,createdAt:Date.now()},
+    {id:'d2',title:'Jouer 1 match',period:'daily',xp:15,done:false,createdAt:Date.now()},
+  ],
+  weekly:[
+    {id:'w1',title:"5 sessions d'entraînement",period:'weekly',xp:50,done:false,createdAt:Date.now()},
+    {id:'w2',title:'Marquer 20 buts en exercice',period:'weekly',xp:40,done:false,createdAt:Date.now()},
+  ],
+  monthly:[
+    {id:'m1',title:'Réussir 500 passes',period:'monthly',xp:100,done:false,createdAt:Date.now()},
+    {id:'m2',title:'Jouer 10 matchs',period:'monthly',xp:80,done:false,createdAt:Date.now()},
+  ],
+  custom:[]
+};
+
+let currentObjTab='daily';
+
+function switchObjTab(tab, el) {
+  currentObjTab=tab;
+  document.querySelectorAll('.obj-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderObjectives();
+}
+
+function renderObjectives() {
+  const objectives=DB.get('objectives')||DEFAULT_OBJECTIVES;
+  const list=objectives[currentObjTab]||[];
+  const el=document.getElementById('objList'); if(!el) return;
+  if(!list.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🎯</div><div class="empty-state-text">Aucun objectif — ajoutes-en un !</div></div>`;
+    return;
+  }
+  const pLabel={daily:"Aujourd'hui",weekly:'Cette semaine',monthly:'Ce mois',custom:'Personnalisé'};
+  el.innerHTML=list.map(obj=>`
+    <div class="obj-item ${obj.done?'done':''}">
+      <div class="obj-check">${obj.done?'✓':''}</div>
+      <div class="obj-info">
+        <div class="obj-title">${obj.title}</div>
+        <div class="obj-meta">${obj.autoCompleted?'✅ Complété automatiquement':pLabel[obj.period]||''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div class="obj-xp">+${obj.xp} XP</div>
+        <div style="font-size:10px;color:var(--text-muted);cursor:pointer;" onclick="deleteObj('${obj.id}','${currentObjTab}')">✕</div>
+      </div>
+    </div>`).join('');
+}
+
+function deleteObj(id, tab) {
+  const objectives=DB.get('objectives')||DEFAULT_OBJECTIVES;
+  objectives[tab]=(objectives[tab]||[]).filter(o=>o.id!==id);
+  DB.set('objectives',objectives);
+  renderObjectives();
+}
+
+function openAddObj() {
+  document.getElementById('newObjTitle').value='';
+  document.getElementById('newObjXP').value='50';
+  document.getElementById('newObjPeriod').value=currentObjTab;
+  document.getElementById('addObjModal').classList.add('open');
+}
+
+function confirmAddObj() {
+  const title=document.getElementById('newObjTitle').value.trim();
+  const period=document.getElementById('newObjPeriod').value;
+  const xp=parseInt(document.getElementById('newObjXP').value)||50;
+  if(!title) return;
+  const objectives=DB.get('objectives')||DEFAULT_OBJECTIVES;
+  if(!objectives[period]) objectives[period]=[];
+  objectives[period].push({id:'obj_'+Date.now(),title,period,xp,done:false,createdAt:Date.now()});
+  DB.set('objectives',objectives);
+  closeModal('addObjModal');
+  currentObjTab=period;
+  renderObjectives();
+}
+
+// ══════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════
+function drawChart(canvasId, data, color) {
+  const canvas=document.getElementById(canvasId); if(!canvas||data.length<2) return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width=canvas.offsetWidth; const H=canvas.height=120;
+  ctx.clearRect(0,0,W,H);
+  const max=Math.max(...data,1);
+  const pad={t:10,b:20,l:10,r:10};
+  const cw=W-pad.l-pad.r; const ch=H-pad.t-pad.b;
+  ctx.strokeStyle='#1E2D40'; ctx.lineWidth=1;
+  [0,0.5,1].forEach(f=>{ const y=pad.t+ch*(1-f); ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke(); });
+  const pts=data.map((v,i)=>({x:pad.l+(i/(data.length-1))*cw,y:pad.t+ch*(1-v/max)}));
+  ctx.beginPath();ctx.moveTo(pts[0].x,H-pad.b);
+  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,H-pad.b);ctx.closePath();
+  const g=ctx.createLinearGradient(0,pad.t,0,H);g.addColorStop(0,color+'55');g.addColorStop(1,color+'00');
+  ctx.fillStyle=g;ctx.fill();
+  ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+  pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();});
+}
+
+function renderCharts() {
+  const history=DB.get('history')||[];
+  const trainHist=history.filter(h=>h.type==='training').slice(-14);
+  const dayMap={};
+  trainHist.forEach(h=>{ const d=new Date(h.ts).toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'}); dayMap[d]=(dayMap[d]||0)+(h.xp||0); });
+  const dayData=Object.values(dayMap).slice(-7);
+  setTimeout(()=>drawChart('chartXP',dayData.length>1?dayData:[0,0],'#C9A84C'),100);
+  const passHist=history.filter(h=>h.type==='training'&&h.tried>0).slice(-10);
+  const pctData=passHist.map(h=>h.ok&&h.tried?Math.round(h.ok/h.tried*100):0);
+  setTimeout(()=>drawChart('chartPass',pctData.length>1?pctData:[0,0],'#00D4FF'),100);
+}
+
+// ══════════════════════════════════════════
+// CAREER
+// ══════════════════════════════════════════
+function renderCareer() {
+  const el=document.getElementById('careerContent'); if(!el) return;
+  const career=DB.get('career')||{};
+  el.innerHTML=`
+    <div class="section-title" style="margin-bottom:4px">Mode Carrière</div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Jalons de ta carrière baby-foot — de débutant à international.</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+    ${CAREER_MILESTONES.map(m=>{
+      const done=career[m.id];
+      return `<div class="obj-item ${done?'done':''}" style="cursor:pointer;" onclick="toggleCareer('${m.id}')">
+        <div class="obj-check" style="font-size:20px;">${done?'✓':m.icon}</div>
+        <div class="obj-info">
+          <div class="obj-title">${m.label}</div>
+          <div class="obj-meta">${m.desc}</div>
+        </div>
+        ${done?`<div style="font-size:11px;color:var(--green);font-family:'Barlow Condensed',sans-serif;font-weight:700;">ACCOMPLI</div>`:''}
+      </div>`;
+    }).join('')}
+    </div>`;
+}
+
+function toggleCareer(id) {
+  const career=DB.get('career')||{};
+  if(!career[id]){
+    career[id]=Date.now();
+    DB.set('career',career);
+    addXP(150,'Jalon carrière : '+CAREER_MILESTONES.find(m=>m.id===id)?.label);
+    showToast('🏆 Jalon accompli !','#1A2A00');
+  }
+  renderCareer();
+}
+
+// ── video.js ──
+// ══════════════════════════════════════════
+// VIDEO SEMI-AUTOMATIQUE
+// ══════════════════════════════════════════
+let videoEvents = [];
+let videoEl = null;
+
+function initVideoScreen() {
+  const el = document.getElementById('videoContent');
+  if (!el) return;
+  const sessions = DB.get('videoSessions') || [];
+  el.innerHTML = `
+    <div class="section-title" style="margin-bottom:4px">Analyse Vidéo</div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Charge une vidéo et tape les événements en temps réel.</div>
+
+    <div class="video-upload-zone" id="videoUploadZone">
+      <input type="file" accept="video/*" id="videoFileInput" onchange="loadVideo(this)">
+      <div style="font-size:32px;margin-bottom:8px;">🎬</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--text-primary);">Charger une vidéo</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">MP4, MOV, AVI...</div>
+    </div>
+
+    <div id="videoAnalyzer" style="display:none;">
+      <div class="video-player-wrap">
+        <video id="videoPlayer" controls playsinline></video>
+      </div>
+
+      <div class="video-timeline">
+        <div class="video-time" id="videoTime">0:00</div>
+        <div class="video-event-grid">
+          <button type="button" class="v-evt-btn passe" onclick="logEvent('Passe')">✋ Passe</button>
+          <button type="button" class="v-evt-btn but" onclick="logEvent('But')">⚽ But</button>
+          <button type="button" class="v-evt-btn arret" onclick="logEvent('Arrêt')">🧱 Arrêt</button>
+          <button type="button" class="v-evt-btn tir" onclick="logEvent('Tir raté')">🎯 Tir raté</button>
+          <button type="button" class="v-evt-btn relance" onclick="logEvent('Relance')">↩️ Relance</button>
+          <button type="button" class="v-evt-btn erreur" onclick="logEvent('Erreur')">❌ Erreur</button>
+        </div>
+      </div>
+
+      <div class="section-title">Événements (<span id="eventCount">0</span>)</div>
+      <div class="video-events-log" id="videoLog">
+        <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px;">Aucun événement — lance la vidéo et tape les boutons</div>
+      </div>
+
+      <div class="video-stats-grid" id="videoStatsGrid"></div>
+
+      <button type="button" class="btn-primary" onclick="saveVideoSession()" style="margin-bottom:8px;">💾 Sauvegarder la session</button>
+      <button type="button" class="add-exercise-btn" onclick="resetVideo()">🎬 Charger une autre vidéo</button>
+    </div>
+
+    ${sessions.length > 0 ? `
+    <div class="section-title" style="margin-top:16px;">Sessions analysées</div>
+    ${sessions.slice(-5).reverse().map(s => `
+      <div class="history-item">
+        <div class="history-left">
+          <div class="history-date">${new Date(s.date).toLocaleDateString('fr-BE')}</div>
+          <div class="history-desc">${s.events.length} événements — ${s.duration}</div>
+        </div>
+        <div class="history-xp">+${s.xp} XP</div>
+      </div>
+    `).join('')}
+    ` : ''}
+  `;
+  videoEvents = [];
+}
+
+function loadVideo(inp) {
+  const file = inp.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  document.getElementById('videoUploadZone').style.display = 'none';
+  document.getElementById('videoAnalyzer').style.display = 'block';
+  videoEl = document.getElementById('videoPlayer');
+  videoEl.src = url;
+  videoEl.ontimeupdate = updateVideoTime;
+  videoEvents = [];
+  renderVideoLog();
+}
+
+function updateVideoTime() {
+  if (!videoEl) return;
+  const t = Math.floor(videoEl.currentTime);
+  const m = Math.floor(t/60);
+  const s = t % 60;
+  document.getElementById('videoTime').textContent = m + ':' + String(s).padStart(2,'0');
+}
+
+function logEvent(type) {
+  const time = videoEl ? videoEl.currentTime : 0;
+  const m = Math.floor(time/60);
+  const s = Math.floor(time % 60);
+  videoEvents.push({ type, time, label: m+':'+String(s).padStart(2,'0'), id: Date.now() });
+  renderVideoLog();
+  // Visual flash
+  document.getElementById('videoTime').style.color = '#00E676';
+  setTimeout(() => { document.getElementById('videoTime').style.color = ''; }, 300);
+}
+
+function deleteEvent(id) {
+  videoEvents = videoEvents.filter(e => e.id !== id);
+  renderVideoLog();
+}
+
+function renderVideoLog() {
+  document.getElementById('eventCount').textContent = videoEvents.length;
+  const log = document.getElementById('videoLog');
+  if (videoEvents.length === 0) {
+    log.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px;">Aucun événement — lance la vidéo et tape les boutons</div>';
+  } else {
+    log.innerHTML = [...videoEvents].reverse().map(e => `
+      <div class="v-event-item">
+        <div class="v-event-time">${e.label}</div>
+        <div class="v-event-type" style="color:${getEventColor(e.type)}">${e.type}</div>
+        <div class="v-event-del" onclick="deleteEvent(${e.id})">✕</div>
+      </div>
+    `).join('');
+  }
+  renderVideoStats();
+}
+
+function getEventColor(type) {
+  const colors = { 'Passe':'#00D4FF','But':'#00E676','Arrêt':'#C9A84C','Tir raté':'#FF9500','Relance':'#AA00FF','Erreur':'#FF3B30' };
+  return colors[type] || '#7A8AA0';
+}
+
+function renderVideoStats() {
+  const counts = {};
+  videoEvents.forEach(e => { counts[e.type] = (counts[e.type]||0)+1; });
+  const total = videoEvents.length;
+  const grid = document.getElementById('videoStatsGrid');
+  if (!grid || total === 0) { if(grid) grid.innerHTML=''; return; }
+  const items = [
+    { label:'Passes', val:counts['Passe']||0, color:'var(--cyan)' },
+    { label:'Buts', val:counts['But']||0, color:'var(--green)' },
+    { label:'Arrêts', val:counts['Arrêt']||0, color:'var(--gold)' },
+    { label:'Tirs ratés', val:counts['Tir raté']||0, color:'#FF9500' },
+    { label:'Relances', val:counts['Relance']||0, color:'#AA00FF' },
+    { label:'Erreurs', val:counts['Erreur']||0, color:'var(--red)' },
+  ];
+  grid.innerHTML = items.map(i => `
+    <div class="stats-pill">
+      <div class="stats-pill-val" style="color:${i.color}">${i.val}</div>
+      <div class="stats-pill-lbl">${i.label}</div>
+    </div>
+  `).join('');
+}
+
+function saveVideoSession() {
+  if (videoEvents.length === 0) return;
+  const duration = videoEl ? (()=>{ const t=Math.floor(videoEl.duration||0); return Math.floor(t/60)+':'+String(t%60).padStart(2,'0'); })() : '—';
+  const xpGain = Math.min(100, 20 + videoEvents.length * 2);
+  const session = { date: Date.now(), events: videoEvents, duration, xp: xpGain };
+  DB.push('videoSessions', session);
+
+  // Push events into trainStats
+  const trainStats = DB.get('trainStats') || {};
+  const passes = videoEvents.filter(e=>e.type==='Passe').length;
+  const buts = videoEvents.filter(e=>e.type==='But').length;
+  const arrets = videoEvents.filter(e=>e.type==='Arrêt').length;
+  const tirs = videoEvents.filter(e=>e.type==='Tir raté').length + buts;
+  if (passes>0) { trainStats['video_pass'] = { tried:(trainStats.video_pass?.tried||0)+passes, ok:(trainStats.video_pass?.ok||0)+passes, type:'passes' }; }
+  if (tirs>0) { trainStats['video_tir'] = { tried:(trainStats.video_tir?.tried||0)+tirs, ok:(trainStats.video_tir?.ok||0)+buts, type:'goals' }; }
+  if (arrets>0) { trainStats['video_def'] = { tried:(trainStats.video_def?.tried||0)+arrets, ok:(trainStats.video_def?.ok||0)+arrets, type:'saves' }; }
+  DB.set('trainStats', trainStats);
+
+  addXP(xpGain, 'Analyse vidéo — '+videoEvents.length+' événements');
+  DB.push('history', { type:'video', ts:Date.now(), events:videoEvents.length, xp:xpGain });
+  autoCheckObjectives();
+  checkBadges();
+  showToast('✅ Session vidéo sauvegardée !');
+  resetVideo();
+}
+
+function resetVideo() {
+  videoEvents = [];
+  if(videoEl) { videoEl.src=''; videoEl=null; }
+  initVideoScreen();
+}
+
+// ── coach-ia.js ──
+// ══════════════════════════════════════════
+// COACH IA RÉEL (API Claude)
+// ══════════════════════════════════════════
+function initCoachIA() {
+  const el = document.getElementById('coachIAContent');
+  if (!el) return;
+
+  const profile = DB.get('profile') || {};
+  const xp = DB.get('xp') || 0;
+  const rankG = DB.get('rankGlobal');
+  const league = rankG ? LEAGUES[rankG.leagueIdx] : null;
+  const trainStats = DB.get('trainStats') || {};
+  const history = DB.get('history') || [];
+
+  // Build context summary for display
+  let totalPasses=0,totalPassOk=0,totalGoals=0,totalGoalTried=0,totalSaves=0;
+  Object.values(trainStats).forEach(ex => {
+    if(ex.type==='passes'){ totalPasses+=ex.tried||0; totalPassOk+=ex.ok||0; }
+    if(ex.type==='goals'){ totalGoalTried+=ex.tried||0; totalGoals+=ex.ok||0; }
+    if(ex.type==='saves'){ totalGoals+=ex.tried||0; totalSaves+=ex.ok||0; }
+  });
+  const passePct = totalPasses>0 ? Math.round(totalPassOk/totalPasses*100) : null;
+  const tirPct = totalGoalTried>0 ? Math.round(totalGoals/totalGoalTried*100) : null;
+  const sessions7 = history.filter(h=>h.type==='training'&&Date.now()-h.ts<7*24*3600*1000).length;
+
+  const savedProgram = DB.get('coachProgram');
+
+  el.innerHTML = `
+    <div class="section-title" style="margin-bottom:4px">Coach IA</div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Analyse personnalisée basée sur tes vraies données.</div>
+
+    <!-- Contexte joueur -->
+    <div class="coach-card" style="margin-bottom:16px;">
+      <div class="coach-card-head">
+        <div class="coach-icon">📊</div>
+        <div class="coach-card-title">Ton profil actuel</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><span style="font-size:11px;color:var(--text-secondary);">LIGUE</span><br><strong style="color:var(--gold)">${league?league.emoji+' '+league.name:'—'}</strong></div>
+        <div><span style="font-size:11px;color:var(--text-secondary);">SESSIONS / 7J</span><br><strong style="color:var(--gold)">${sessions7}</strong></div>
+        <div><span style="font-size:11px;color:var(--text-secondary);">% PASSES</span><br><strong style="color:${passePct>=70?'#00E676':passePct>=40?'#FF9500':'#FF3B30'}">${passePct!==null?passePct+'%':'—'}</strong></div>
+        <div><span style="font-size:11px;color:var(--text-secondary);">% TIRS</span><br><strong style="color:${tirPct>=70?'#00E676':tirPct>=40?'#FF9500':'#FF3B30'}">${tirPct!==null?tirPct+'%':'—'}</strong></div>
+      </div>
+    </div>
+
+    <!-- Question libre -->
+    <div class="section-title">Demande au Coach</div>
+    <div class="coach-ia-input">
+      <textarea id="coachQuestion" placeholder="Ex: Donne-moi un programme pour améliorer mes passes croisées... / Analyse mes points faibles... / Crée un plan pour atteindre Or..."></textarea>
+    </div>
+    <button type="button" class="btn-primary" onclick="askCoachIA()" style="margin-bottom:16px;">🤖 Analyser</button>
+
+    <div class="coach-ia-loader" id="coachLoader">
+      <div style="font-size:24px;margin-bottom:8px;">🤖</div>
+      Analyse en cours...
+    </div>
+    <div class="coach-ia-response" id="coachResponse"></div>
+
+    <!-- Programme généré -->
+    <div class="section-title" style="margin-top:8px;">Programme d'entraînement</div>
+    <button type="button" class="qa-btn" style="width:100%;margin-bottom:8px;" onclick="generateProgram()">
+      <div class="qa-btn-icon">📋</div>
+      <div class="qa-btn-label">Générer un programme</div>
+      <div class="qa-btn-sub">Semaine personnalisée selon tes stats</div>
+    </button>
+    <div class="coach-ia-loader" id="programLoader">
+      <div style="font-size:24px;margin-bottom:8px;">📋</div>
+      Génération du programme...
+    </div>
+    <div class="coach-ia-program" id="programContent">
+      ${savedProgram ? renderProgram(savedProgram) : ''}
+    </div>
+  `;
+  if(savedProgram) document.getElementById('programContent').classList.add('visible');
+}
+
+function buildPlayerContext() {
+  const profile = DB.get('profile') || {};
+  const xp = DB.get('xp') || 0;
+  const rankG = DB.get('rankGlobal');
+  const league = rankG ? LEAGUES[rankG.leagueIdx] : null;
+  const trainStats = DB.get('trainStats') || {};
+  const history = DB.get('history') || [];
+  const placement = DB.get('placement') || {};
+
+  let statsLines = [];
+  Object.entries(trainStats).forEach(([id, ex]) => {
+    if(ex.tried>0) {
+      const pct = Math.round(ex.ok/ex.tried*100);
+      statsLines.push('- '+id+': '+ex.tried+' tentatives, '+ex.ok+' réussites ('+pct+'%)');
+    }
+  });
+
+  const sessions7 = history.filter(h=>h.type==='training'&&Date.now()-h.ts<7*24*3600*1000).length;
+  const matches = history.filter(h=>h.type==='match').length;
+
+  return `PROFIL JOUEUR:
+Nom: ${profile.name||'—'}
+Poste: ${profile.pos||'—'}, Main: ${profile.hand||'—'}
+Niveau auto-évalué: ${profile.level||'—'}
+Ligue actuelle: ${league?league.emoji+' '+league.name+' Div '+['I','II','III'][(rankG.division||1)-1]:'Non placé'}
+XP total: ${xp}
+Sessions 7 derniers jours: ${sessions7}
+Matchs joués: ${matches}
+
+STATISTIQUES D'ENTRAÎNEMENT:
+${statsLines.length>0?statsLines.join('\n'):'Aucune donnée encore'}
+
+SCORES TEST DE PLACEMENT:
+${placement.pcts?['Passe Bande','Passe Croisée','Passe Déf','Tir Déf','Tir Att','Réactivité'].map((n,i)=>n+': '+(placement.pcts[i]||0)+'%').join(', '):'—'}
+
+Objectif déclaré: ${profile.goal||'—'}`;
+}
+
+async function askCoachIA() {
+  const question = document.getElementById('coachQuestion')?.value.trim();
+  if (!question) return;
+
+  document.getElementById('coachLoader').classList.add('visible');
+  document.getElementById('coachResponse').classList.remove('visible');
+  document.getElementById('coachResponse').innerHTML = '';
+
+  const context = buildPlayerContext();
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: `Tu es un coach expert en baby-foot compétitif. Tu analyses les données réelles du joueur et donnes des conseils précis, concrets et motivants. Réponds en français, de façon structurée mais conversationnelle. Utilise **gras** pour les points importants. Maximum 300 mots.`,
+        messages: [{ role: 'user', content: `${context}\n\nQUESTION DU JOUEUR: ${question}` }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.[0]?.text || 'Erreur de réponse.';
+    document.getElementById('coachLoader').classList.remove('visible');
+    document.getElementById('coachResponse').classList.add('visible');
+    document.getElementById('coachResponse').innerHTML = formatCoachText(text);
+    addXP(5, 'Consultation coach IA');
+  } catch(err) {
+    document.getElementById('coachLoader').classList.remove('visible');
+    document.getElementById('coachResponse').classList.add('visible');
+    document.getElementById('coachResponse').innerHTML = '<p style="color:var(--red)">Erreur de connexion. Vérifie ta connexion internet.</p>';
+  }
+}
+
+async function generateProgram() {
+  document.getElementById('programLoader').classList.add('visible');
+  document.getElementById('programContent').classList.remove('visible');
+
+  const context = buildPlayerContext();
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: `Tu es un coach expert en baby-foot compétitif. Génère un programme d'entraînement hebdomadaire personnalisé basé sur les données du joueur. Format JSON uniquement, pas de markdown, pas d'explication:
+{"days":[{"day":"Lundi","focus":"Passes","exercises":[{"name":"Passe bande","reps":"3x20","note":"..."}],"tip":"..."},...],"weekGoal":"...","motivation":"..."}
+7 jours. Adapte les exercices aux vrais points faibles du joueur.`,
+        messages: [{ role: 'user', content: context }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+    const clean = text.replace(/```json|```/g,'').trim();
+    let program;
+    try { program = JSON.parse(clean); } catch(e) { throw new Error('JSON invalide'); }
+    DB.set('coachProgram', program);
+    document.getElementById('programLoader').classList.remove('visible');
+    document.getElementById('programContent').classList.add('visible');
+    document.getElementById('programContent').innerHTML = renderProgram(program);
+    addXP(10, 'Programme IA généré');
+  } catch(err) {
+    document.getElementById('programLoader').classList.remove('visible');
+    document.getElementById('programContent').classList.add('visible');
+    document.getElementById('programContent').innerHTML = '<p style="color:var(--red)">Erreur lors de la génération. Réessaie.</p>';
+  }
+}
+
+function renderProgram(program) {
+  if (!program || !program.days) return '';
+  return `
+    <div style="background:rgba(201,168,76,0.1);border-radius:4px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--gold);">
+      🎯 ${program.weekGoal||''}
+    </div>
+    ${program.days.map(d=>`
+      <div class="program-day">
+        <div class="program-day-title">${d.day} — ${d.focus||''}</div>
+        <div class="program-day-content">
+          ${(d.exercises||[]).map(ex=>`<div>• <strong>${ex.name}</strong> ${ex.reps||''} ${ex.note?'— '+ex.note:''}</div>`).join('')}
+          ${d.tip?`<div style="color:var(--cyan);margin-top:4px;">💡 ${d.tip}</div>`:''}
+        </div>
+      </div>
+    `).join('')}
+    <div style="margin-top:12px;font-size:13px;color:var(--text-secondary);font-style:italic;">${program.motivation||''}</div>
+  `;
+}
+
+function formatCoachText(text) {
+  return '<p>' + text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>') + '</p>';
+}
+
+// ── app.js ──
+// ══════════════════════════════════════════
+// ONBOARDING
+// ══════════════════════════════════════════
+let obAvatar='⚽'; let obPhotoData=null;
+
+function selectAvatar(el) {
+  document.querySelectorAll('.avatar-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected'); obAvatar=el.dataset.emoji; obPhotoData=null;
+}
+
+function handlePhoto(inp) {
+  const file=inp.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    obPhotoData=e.target.result;
+    const prev=document.getElementById('photoPreview');
+    prev.src=obPhotoData; prev.style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function obNext(step) {
+  if(step===0){
+    const name=document.getElementById('ob-name').value.trim();
+    if(!name){
+      const inp=document.getElementById('ob-name');
+      inp.style.borderColor='#FF3B30'; inp.placeholder='Obligatoire !';
+      setTimeout(()=>{inp.style.borderColor='';inp.placeholder='Ex: Axel, Le Mur ...';},2000);
+      return;
+    }
+  }
+  document.getElementById('step'+step)?.classList.remove('active');
+  document.getElementById('dot'+step)?.classList.remove('active');
+  const next=step+1;
+  document.getElementById('step'+next)?.classList.add('active');
+  document.getElementById('dot'+next)?.classList.add('active');
+  document.getElementById('onboarding').scrollTo({top:0,behavior:'smooth'});
+}
+
+function finishOnboarding() {
+  const profile={
+    name:document.getElementById('ob-name').value.trim(),
+    hand:document.getElementById('ob-hand').value,
+    pos:document.getElementById('ob-pos').value,
+    level:document.getElementById('ob-level').value,
+    tables:document.getElementById('ob-tables').value,
+    elo:document.getElementById('ob-elo').value,
+    goal:document.getElementById('ob-goal').value,
+    avatar:obAvatar, photo:obPhotoData, createdAt:Date.now()
+  };
+  DB.set('profile',profile);
+  if(!DB.get('xp')) DB.set('xp',0);
+  if(!DB.get('exercises')) DB.set('exercises',DEFAULT_EXERCISES);
+  if(!DB.get('history')) DB.set('history',[]);
+  if(!DB.get('matchStats')) DB.set('matchStats',{att:{},def:{}});
+  if(!DB.get('trainStats')) DB.set('trainStats',{});
+  if(!DB.get('objectives')) DB.set('objectives',DEFAULT_OBJECTIVES);
+  document.getElementById('onboarding').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  initApp();
+  setTimeout(()=>{ if(!DB.get('rankGlobal')) openPlacement(); },800);
+}
+
+// ══════════════════════════════════════════
+// APP INIT
+// ══════════════════════════════════════════
+function initApp() {
+  renderTopbar(); renderDashboard();
+  renderTraining('passes'); renderMatch('att');
+  renderStats(); renderProfile();
+  renderObjectives(); renderCareer();
+  initVideoScreen(); initCoachIA();
+  checkBadges(); updateCoach();
+}
+
+function renderTopbar() {
+  const xp=DB.get('xp')||0; const lvl=RPG.getLevel(xp);
+  document.getElementById('tb-xp').textContent=xp+' XP';
+  document.getElementById('tb-lvl').textContent='NV.'+lvl;
+  const profile=DB.get('profile');
+  const av=document.getElementById('topbarAvatar');
+  if(profile?.photo) av.innerHTML=`<img src="${profile.photo}" alt="">`;
+  else av.textContent=profile?.avatar||'⚽';
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+function renderDashboard() {
+  const profile=DB.get('profile'); if(!profile) return;
+  const xp=DB.get('xp')||0; const lvl=RPG.getLevel(xp);
+  const rank=getRank(xp); const history=DB.get('history')||[];
+  const rankG=DB.get('rankGlobal');
+  const leagueStr=rankG?LEAGUES[rankG.leagueIdx].emoji+' '+LEAGUES[rankG.leagueIdx].name+' '+['I','II','III'][(rankG.division||1)-1]:rank.name;
+  const h=new Date().getHours();
+  const greeting=h<12?'Bon matin':h<18?'Bon après-midi':'Bonne soirée';
+  document.getElementById('dash-greeting').textContent=greeting;
+  document.getElementById('dash-name').textContent=profile.name;
+  document.getElementById('dash-rank').textContent=leagueStr;
+  document.getElementById('dash-level').textContent=lvl;
+  const curXP=RPG.levelXP(lvl); const nextXP=RPG.levelXP(lvl+1);
+  const pct=Math.min(100,Math.round(((xp-curXP)/(nextXP-curXP))*100));
+  document.getElementById('dash-xp-cur').textContent=xp+' XP';
+  document.getElementById('dash-xp-next').textContent=nextXP+' XP';
+  document.getElementById('dash-xp-fill').style.width=pct+'%';
+  const today=new Date().toDateString();
+  document.getElementById('stat-sessions').textContent=history.filter(h=>new Date(h.ts).toDateString()===today&&h.type==='training').length;
+  document.getElementById('stat-matches').textContent=history.filter(h=>new Date(h.ts).toDateString()===today&&h.type==='match').length;
+  const ts=DB.get('trainStats')||{};
+  let pOk=0,pT=0,gOk=0;
+  Object.values(ts).forEach(ex=>{ if(ex.type==='passes'){pOk+=ex.ok||0;pT+=ex.tried||0;} if(ex.type==='goals') gOk+=ex.ok||0; });
+  document.getElementById('stat-passes').textContent=pT>0?Math.round(pOk/pT*100)+'%':'—';
+  document.getElementById('stat-goals').textContent=gOk||'—';
+  const unlocked=DB.get('badges')||{};
+  renderBadgesRow(unlocked);
+}
+
+function getRank(xp) { let r=RPG.ranks[0]; RPG.ranks.forEach(rk=>{if(xp>=rk.xp)r=rk;}); return r; }
+
+// ══════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════
+function renderStats() {
+  const history=DB.get('history')||[]; const xp=DB.get('xp')||0; const ts=DB.get('trainStats')||{};
+  document.getElementById('s-total-sessions').textContent=history.filter(h=>h.type==='training').length;
+  document.getElementById('s-total-matches').textContent=history.filter(h=>h.type==='match').length;
+  document.getElementById('s-total-xp').textContent=xp;
+  let pOk=0,pT=0,gOk=0,gT=0;
+  Object.values(ts).forEach(ex=>{ if(ex.type==='passes'){pOk+=ex.ok||0;pT+=ex.tried||0;} if(ex.type==='goals'){gOk+=ex.ok||0;gT+=ex.tried||0;} });
+  document.getElementById('s-pass-att').textContent=pT;
+  document.getElementById('s-pass-pct').textContent=pT>0?Math.round(pOk/pT*100)+'%':'—';
+  document.getElementById('s-att-tries').textContent=gT;
+  document.getElementById('s-att-pct').textContent=gT>0?Math.round(gOk/gT*100)+'%':'—';
+  const sorted=[...history].sort((a,b)=>b.ts-a.ts).slice(0,20);
+  document.getElementById('historyList').innerHTML=sorted.length===0
+    ?`<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Aucune activité</div></div>`
+    :sorted.map(h=>{
+      const d=new Date(h.ts); const ds=d.toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
+      const desc=h.type==='match'?'Match · '+(h.role==='att'?'Attaquant':'Défenseur'):h.type==='video'?'Analyse vidéo · '+h.events+' événements':'Entraînement · '+(h.tried||0)+' rép.';
+      return `<div class="history-item"><div class="history-left"><div class="history-date">${ds}</div><div class="history-desc">${desc}</div></div><div class="history-xp">+${h.xp} XP</div></div>`;
+    }).join('');
+}
+
+// ══════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════
+function renderProfile() {
+  const profile=DB.get('profile'); if(!profile) return;
+  const xp=DB.get('xp')||0; const rank=getRank(xp);
+  const ts=DB.get('trainStats')||{}; const ms=DB.get('matchStats')||{att:{},def:{}};
+  const av=document.getElementById('prof-avatar');
+  if(profile.photo) av.innerHTML=`<img src="${profile.photo}" alt="">`;
+  else av.textContent=profile.avatar||'⚽';
+  document.getElementById('prof-name').textContent=profile.name;
+  document.getElementById('prof-rank').textContent=rank.name;
+  const tags=[profile.pos,profile.hand,profile.level,profile.elo?'ELO '+profile.elo:null].filter(Boolean);
+  document.getElementById('prof-tags').innerHTML=tags.map(t=>`<div class="profile-tag">${t}</div>`).join('');
+  let totalArr=(ms.def?.saves||0), totalButs=(ms.att?.goals||0);
+  Object.values(ts).forEach(ex=>{ if(ex.type==='saves')totalArr+=ex.ok||0; if(ex.type==='goals')totalButs+=ex.ok||0; });
+  const history=DB.get('history')||[];
+  const matchCount=history.filter(h=>h.type==='match').length;
+  let defLvl=0; RPG.defenseReqs.forEach((r,i)=>{if(totalArr>=r)defLvl=i;});
+  let attLvl=0; RPG.attackReqs.forEach((r,i)=>{if(totalButs>=r)attLvl=i;});
+  let multiLvl=0; RPG.multiReqs.forEach((r,i)=>{if(matchCount>=r)multiLvl=i;});
+  renderTitles('titles-def',RPG.titlesDefense,defLvl,RPG.defenseReqs,totalArr,'arrêts');
+  renderTitles('titles-att',RPG.titlesAttack,attLvl,RPG.attackReqs,totalButs,'buts');
+  renderTitles('titles-multi',RPG.titlesMulti,multiLvl,RPG.multiReqs,matchCount,'matchs');
+  const unlocked=DB.get('badges')||{};
+  const cats=[...new Set(BADGES.map(b=>b.cat))];
+  document.getElementById('prof-badges').innerHTML=cats.map(cat=>`
+    <div class="section-title" style="margin-top:12px;">${cat}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+    ${BADGES.filter(b=>b.cat===cat).map(b=>`
+      <div class="badge-chip ${unlocked[b.id]?'unlocked':''}" style="margin-bottom:0;">
+        <span class="badge-icon">${unlocked[b.id]?b.icon:'🔒'}</span>${b.label}
+      </div>`).join('')}
+    </div>`).join('');
+}
+
+function renderTitles(id, titles, cur, reqs, val, unit) {
+  document.getElementById(id).innerHTML=titles.map((t,i)=>`
+    <div class="title-row ${i<=cur?'unlocked':''}">
+      <div class="title-info">
+        <div class="title-name">${i<=cur?'🏆 ':''} ${t}</div>
+        <div class="title-req">${reqs[i]} ${unit} requis · Actuel : ${val}</div>
+      </div>
+      <span class="title-badge ${i<=cur?'unlocked-b':'locked'}">${i<=cur?'Débloqué':'Verrouillé'}</span>
+    </div>`).join('');
+}
+
+function openEditProfile() {
+  const p=DB.get('profile');
+  document.getElementById('edit-name').value=p.name||'';
+  document.getElementById('edit-hand').value=p.hand||'';
+  document.getElementById('edit-pos').value=p.pos||'';
+  document.getElementById('edit-tables').value=p.tables||'';
+  document.getElementById('edit-elo').value=p.elo||'';
+  document.getElementById('edit-goal').value=p.goal||'';
+  openModal('editModal');
+}
+
+function saveProfile() {
+  const p=DB.get('profile');
+  p.name=document.getElementById('edit-name').value.trim()||p.name;
+  p.hand=document.getElementById('edit-hand').value;
+  p.pos=document.getElementById('edit-pos').value;
+  p.tables=document.getElementById('edit-tables').value;
+  p.elo=document.getElementById('edit-elo').value;
+  p.goal=document.getElementById('edit-goal').value;
+  DB.set('profile',p); closeModal('editModal');
+  renderProfile(); renderDashboard(); renderTopbar();
+}
+
+// ══════════════════════════════════════════
+// COACH (règles)
+// ══════════════════════════════════════════
+function updateCoach() {
+  const ts=DB.get('trainStats')||{}; const history=DB.get('history')||[]; const msgs=[];
+  let pOk=0,pT=0;
+  Object.values(ts).forEach(ex=>{ if(ex.type==='passes'){pOk+=ex.ok||0;pT+=ex.tried||0;} });
+  if(pT>20){
+    const pct=Math.round(pOk/pT*100);
+    if(pct<50) msgs.push(`Tes passes milieu sont à <strong>${pct}%</strong> — point faible prioritaire. Recommandation : <strong>100 passes croisées aujourd'hui.</strong>`);
+    else if(pct>=80) msgs.push(`Excellent ! Tes passes à <strong>${pct}%</strong>. Concentre-toi sur l'attaque maintenant.`);
+    else msgs.push(`Passes à <strong>${pct}%</strong>. Objectif : 70%+.`);
+  }
+  const last7=history.filter(h=>Date.now()-h.ts<7*24*3600*1000&&h.type==='training').length;
+  if(last7===0&&history.length>0) msgs.push(`Aucun entraînement cette semaine. <strong>Reprends dès aujourd'hui !</strong>`);
+  else if(last7>=5) msgs.push(`<strong>${last7} sessions</strong> cette semaine — tu es en feu !`);
+  const coachEl=document.getElementById('coach-msg');
+  if(coachEl) coachEl.innerHTML=msgs[0]||'Commence ton premier entraînement pour recevoir une analyse personnalisée.';
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function navTo(screen) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('screen-'+screen)?.classList.add('active');
+  document.getElementById('nav-'+screen)?.classList.add('active');
+  if(screen==='stats'){ renderStats(); setTimeout(renderCharts,150); }
+  if(screen==='profile') renderProfile();
+  if(screen==='dash') renderDashboard();
+  if(screen==='objectives') renderObjectives();
+  if(screen==='league') renderLeague();
+  if(screen==='career') renderCareer();
+  if(screen==='video') initVideoScreen();
+  if(screen==='coach') initCoachIA();
+}
+
+// ══════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  const profile=DB.get('profile');
+  if(profile){ document.getElementById('onboarding').style.display='none'; initApp(); }
+});
+
+</script>
 </body>
 </html>
