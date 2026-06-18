@@ -836,38 +836,56 @@ const _cache = {};
 const IDB = {
   db: null,
   async open() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       if(this.db) return resolve(this.db);
-      const req = indexedDB.open('bfc_db', 1);
-      req.onupgradeneeded = e => {
-        const db = e.target.result;
-        if(!db.objectStoreNames.contains('data')) {
-          db.createObjectStore('data', {keyPath:'k'});
-        }
-      };
-      req.onsuccess = e => { this.db = e.target.result; resolve(this.db); };
-      req.onerror = () => resolve(null); // fallback silencieux
+      try {
+        const req = indexedDB.open('bfc_db', 2);
+        req.onupgradeneeded = e => {
+          const db = e.target.result;
+          if(!db.objectStoreNames.contains('data')) {
+            db.createObjectStore('data', {keyPath:'k'});
+          }
+        };
+        req.onsuccess = e => { this.db = e.target.result; resolve(this.db); };
+        req.onerror = () => resolve(null);
+        req.onblocked = () => resolve(null);
+      } catch(e) { resolve(null); }
     });
   },
   async get(k) {
     try {
       const db = await this.open(); if(!db) return null;
       return new Promise(resolve => {
-        const tx = db.transaction('data','readonly');
-        const req = tx.objectStore('data').get(k);
-        req.onsuccess = () => resolve(req.result?.v ?? null);
-        req.onerror = () => resolve(null);
+        try {
+          const tx = db.transaction('data','readonly');
+          const req = tx.objectStore('data').get(k);
+          req.onsuccess = () => {
+            const raw = req.result?.v;
+            if(raw === undefined || raw === null) return resolve(null);
+            // Always return parsed object
+            if(typeof raw === 'string') {
+              try { resolve(JSON.parse(raw)); } catch(e) { resolve(raw); }
+            } else {
+              resolve(raw);
+            }
+          };
+          req.onerror = () => resolve(null);
+        } catch(e) { resolve(null); }
       });
     } catch(e) { return null; }
   },
   async set(k, v) {
     try {
       const db = await this.open(); if(!db) return;
+      // Always store as JSON string to avoid IDB serialization issues
+      const serialized = JSON.stringify(v);
       return new Promise(resolve => {
-        const tx = db.transaction('data','readwrite');
-        tx.objectStore('data').put({k, v});
-        tx.oncomplete = resolve;
-        tx.onerror = resolve;
+        try {
+          const tx = db.transaction('data','readwrite');
+          tx.objectStore('data').put({k, v: serialized});
+          tx.oncomplete = resolve;
+          tx.onerror = resolve;
+        } catch(e) { resolve(); }
       });
     } catch(e) {}
   },
@@ -875,14 +893,26 @@ const IDB = {
     try {
       const db = await this.open(); if(!db) return {};
       return new Promise(resolve => {
-        const tx = db.transaction('data','readonly');
-        const req = tx.objectStore('data').getAll();
-        req.onsuccess = () => {
-          const result = {};
-          (req.result||[]).forEach(row => result[row.k] = row.v);
-          resolve(result);
-        };
-        req.onerror = () => resolve({});
+        try {
+          const tx = db.transaction('data','readonly');
+          const req = tx.objectStore('data').getAll();
+          req.onsuccess = () => {
+            const result = {};
+            (req.result||[]).forEach(row => {
+              if(row.k && row.k.startsWith('_auth')) {
+                result[row.k] = row.v; // keep raw for auth tokens
+              } else {
+                try {
+                  result[row.k] = typeof row.v === 'string' ? JSON.parse(row.v) : row.v;
+                } catch(e) {
+                  result[row.k] = row.v;
+                }
+              }
+            });
+            resolve(result);
+          };
+          req.onerror = () => resolve({});
+        } catch(e) { resolve({}); }
       });
     } catch(e) { return {}; }
   }
@@ -2601,9 +2631,10 @@ function renderTopbar() {
 function renderDashboard() {
   const profile=DB.get('profile'); if(!profile) return;
   const xp=DB.get('xp')||0; const lvl=RPG.getLevel(xp);
-  const rank=getRank(xp); const history=DB.get('history')||[];
+  const rank=getRank(xp); const historyRaw=DB.get('history'); const history=Array.isArray(historyRaw)?historyRaw:[];
   const rankG=DB.get('rankGlobal');
-  const leagueStr=rankG?LEAGUES[rankG.leagueIdx].emoji+' '+LEAGUES[rankG.leagueIdx].name+' '+['I','II','III'][(rankG.division||1)-1]:rank.name;
+  const _lg = rankG && rankG.leagueIdx >= 0 && rankG.leagueIdx < LEAGUES.length ? LEAGUES[rankG.leagueIdx] : null;
+  const leagueStr = _lg ? _lg.emoji+' '+_lg.name+' '+['I','II','III'][(rankG.division||1)-1] : rank.name;
   const h=new Date().getHours();
   document.getElementById('dash-greeting').textContent=h<12?'Bon matin':h<18?'Bon après-midi':'Bonne soirée';
   document.getElementById('dash-name').textContent=profile.name;
@@ -2617,7 +2648,7 @@ function renderDashboard() {
   const today=new Date().toDateString();
   document.getElementById('stat-sessions').textContent=history.filter(h=>new Date(h.ts).toDateString()===today&&h.type==='training').length;
   document.getElementById('stat-matches').textContent=history.filter(h=>new Date(h.ts).toDateString()===today&&h.type==='match').length;
-  const ts=DB.get('trainStats')||{};
+  const tsRaw=DB.get('trainStats'); const ts=(tsRaw&&typeof tsRaw==='object'&&!Array.isArray(tsRaw))?tsRaw:{};
   let pOk=0,pT=0,gOk=0;
   Object.values(ts).forEach(ex=>{ if(ex.type==='passes'){pOk+=ex.ok||0;pT+=ex.tried||0;} if(ex.type==='goals') gOk+=ex.ok||0; });
   document.getElementById('stat-passes').textContent=pT>0?Math.round(pOk/pT*100)+'%':'—';
@@ -2748,9 +2779,57 @@ function navTo(screen) {
 // ══════════════════════════════════════════
 // BOOT
 // ══════════════════════════════════════════
-window.addEventListener('DOMContentLoaded',()=>{
-  const profile=DB.get('profile');
-  if(profile){ document.getElementById('onboarding').style.display='none'; initApp(); }
+window.addEventListener('DOMContentLoaded', async () => {
+
+  // Sauvegarde avant fermeture
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'hidden') autoSaveToURL();
+  });
+  window.addEventListener('pagehide', autoSaveToURL);
+
+  // Loader visuel - évite l'écran noir
+  const loader = document.createElement('div');
+  loader.id = 'boot-loader';
+  loader.style.cssText = 'position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#080C12;z-index:9999;font-family:system-ui,sans-serif;';
+  loader.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">⚽</div><div style="font-size:13px;color:#C9A84C;letter-spacing:3px;text-transform:uppercase;">Chargement...</div>';
+  document.body.appendChild(loader);
+
+  const removeLoader = () => { try { loader.remove(); } catch(e) {} };
+
+  try {
+    // 1. IndexedDB → mémoire
+    const idbOk = await loadFromIDB();
+
+    // 2. Reconnexion cloud auto
+    await initCloud();
+
+    // 3. Si connecté, charge depuis Supabase
+    if(window._bfc_user) {
+      await loadFromCloud();
+    }
+
+    // 4. Vérifie si profil disponible
+    const profile = DB.get('profile');
+    removeLoader();
+
+    if(profile) {
+      document.getElementById('onboarding').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+      initApp();
+    }
+    // sinon onboarding s'affiche
+
+  } catch(e) {
+    console.error('Boot error:', e);
+    removeLoader();
+    // Fallback - tente quand même
+    const profile = DB.get('profile');
+    if(profile) {
+      document.getElementById('onboarding').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+      initApp();
+    }
+  }
 });
 
 // ══════════════════════════════════════════
