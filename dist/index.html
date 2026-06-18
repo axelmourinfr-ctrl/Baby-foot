@@ -387,6 +387,9 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
 <div id="app">
   <div class="topbar">
     <div class="topbar-logo">BFC·RPG</div>
+    <div id="cloudStatus" onclick="openModal('authModal')" style="cursor:pointer;font-size:11px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);color:var(--text-muted);display:flex;align-items:center;gap:4px;">
+      <span id="cloudIcon">☁️</span><span id="cloudLabel">Cloud</span>
+    </div>
     <div class="topbar-right">
       <div class="topbar-xp"><span id="tb-xp">0 XP</span><span style="color:var(--text-muted)">·</span><span id="tb-lvl" style="color:var(--gold)">NV.1</span></div>
       <div class="topbar-avatar" id="topbarAvatar" onclick="navTo('profile')">⚽</div>
@@ -521,6 +524,8 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
       <div class="section-title" style="margin-top:16px;">Titres Multi-table</div><div class="title-grid" id="titles-multi"></div>
       <div class="section-title" style="margin-top:16px;">Badges</div><div id="prof-badges"></div>
       <button type="button" class="profile-edit-btn" onclick="openEditProfile()">✏️ Modifier le profil</button>
+      <button type="button" class="profile-edit-btn" style="border-color:var(--cyan);color:var(--cyan);margin-top:6px;" onclick="openModal('authModal')">☁️ Compte Cloud</button>
+      <button type="button" class="profile-edit-btn" style="border-color:var(--green);color:var(--green);margin-top:6px;" onclick="openModal('saveModal')">💾 Sauvegarder / Restaurer</button>
       <button type="button" class="profile-edit-btn" style="border-color:var(--red);color:var(--red);margin-top:6px;" onclick="resetAll()">🔄 Recommencer à zéro</button>
     </div>
 
@@ -732,6 +737,7 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 function toggleMoreMenu(){const m=document.getElementById('moreMenu');m.style.display=m.style.display==='none'?'block':'none';}
 document.addEventListener('click',e=>{const m=document.getElementById('moreMenu');if(m&&!m.contains(e.target)&&!e.target.closest('#nav-more'))m.style.display='none';});
@@ -744,15 +750,149 @@ document.addEventListener('click',e=>{const m=document.getElementById('moreMenu'
 
 
 
+
+
+<!-- MODAL: Connexion / Compte -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <div id="authLogin">
+      <div class="modal-title">☁️ Mon Compte</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+        Connecte-toi pour sauvegarder tes données dans le cloud — disponibles sur tous tes appareils.
+      </div>
+      <div id="authStatus" style="display:none;background:rgba(0,230,118,0.1);border:1px solid var(--green);border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--green);"></div>
+      <div id="authError" style="display:none;background:rgba(255,59,48,0.1);border:1px solid var(--red);border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--red);"></div>
+      <div class="modal-field"><label>Email</label><input type="email" id="authEmail" placeholder="ton@email.com" autocomplete="email"></div>
+      <div class="modal-field"><label>Mot de passe</label><input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="modal-actions" style="flex-direction:column;gap:8px;">
+        <button type="button" class="modal-confirm" style="flex:none;width:100%;" onclick="authSignIn()">🔐 Se connecter</button>
+        <button type="button" class="modal-cancel" style="flex:none;width:100%;" onclick="authSignUp()">✨ Créer un compte</button>
+        <button type="button" class="modal-cancel" style="flex:none;width:100%;" onclick="closeModal('authModal')">Plus tard</button>
+      </div>
+    </div>
+    <div id="authConnected" style="display:none;">
+      <div class="modal-title">☁️ Connecté</div>
+      <div style="text-align:center;padding:16px 0;">
+        <div style="font-size:48px;margin-bottom:8px;">✅</div>
+        <div style="font-size:14px;color:var(--text-secondary);" id="authUserEmail"></div>
+        <div style="font-size:13px;color:var(--green);margin-top:4px;">Données synchronisées</div>
+      </div>
+      <button type="button" class="btn-primary" onclick="authSignOut()" style="background:var(--red);margin-bottom:8px;">Se déconnecter</button>
+      <button type="button" class="modal-cancel" style="width:100%;" onclick="closeModal('authModal')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Sauvegarde -->
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <div class="modal-title">💾 Mes données</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+      Sur iPhone, Safari peut effacer les données locales. Sauvegarde régulièrement ton profil.
+    </div>
+    <div style="background:rgba(255,59,48,0.1);border:1px solid var(--red);border-radius:6px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--red);">
+      ⚠️ Si l'écran devient noir, importe ta dernière sauvegarde.
+    </div>
+    <button type="button" class="btn-primary" onclick="exportData()" style="margin-bottom:10px;">
+      📥 Télécharger ma sauvegarde
+    </button>
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Restaurer une sauvegarde</label>
+      <div style="position:relative;border:2px dashed var(--border-bright);border-radius:4px;padding:14px;text-align:center;background:var(--bg-surface);cursor:pointer;">
+        <input type="file" accept=".json" onchange="importData(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+        <span style="font-size:13px;color:var(--text-secondary);">📂 Charger un fichier .json</span>
+      </div>
+    </div>
+    <button type="button" class="modal-cancel" onclick="closeModal('saveModal')" style="width:100%;">Fermer</button>
+  </div>
+</div>
+
 <script>
 // ── js/db-data.js ──
 // ══════════════════════════════════════════
-// STORAGE LAYER
+// CONFIGURATION SUPABASE
+// ══════════════════════════════════════════
+const SUPABASE_URL = 'https://qpnuiyzovxtvldmbelnk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_MeMOvjdCR_UOequRjiWrxQ_BiXGijzS';
+
+// ══════════════════════════════════════════
+// STORAGE LAYER — Local + Cloud sync
 // ══════════════════════════════════════════
 const DB = {
+  // Local cache (instantané)
   get: (k) => { try { return JSON.parse(localStorage.getItem('bfc_'+k)); } catch(e) { return null; } },
-  set: (k,v) => localStorage.setItem('bfc_'+k, JSON.stringify(v)),
-  push: (k,v) => { const a = DB.get(k)||[]; a.push(v); DB.set(k,a); return a; }
+  set: (k,v) => {
+    localStorage.setItem('bfc_'+k, JSON.stringify(v));
+    // Sync cloud si connecté
+    if(window._bfc_user) CloudDB.sync(k, v);
+  },
+  push: (k,v) => { const a=DB.get(k)||[]; a.push(v); DB.set(k,a); return a; }
+};
+
+// ══════════════════════════════════════════
+// CLOUD DB (Supabase)
+// ══════════════════════════════════════════
+const CloudDB = {
+  client: null,
+
+  init() {
+    if(!window.supabase || SUPABASE_URL === 'SUPABASE_URL_HERE') return;
+    this.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  },
+
+  async sync(key, value) {
+    if(!this.client || !window._bfc_user) return;
+    try {
+      await this.client.from('player_data').upsert({
+        user_id: window._bfc_user.id,
+        key,
+        value: JSON.stringify(value),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id,key' });
+    } catch(e) { console.warn('Sync failed:', e); }
+  },
+
+  async loadAll() {
+    if(!this.client || !window._bfc_user) return false;
+    try {
+      const { data, error } = await this.client
+        .from('player_data')
+        .select('key,value')
+        .eq('user_id', window._bfc_user.id);
+      if(error || !data?.length) return false;
+      data.forEach(row => {
+        localStorage.setItem('bfc_'+row.key, row.value);
+      });
+      return true;
+    } catch(e) { return false; }
+  },
+
+  async signUp(email, password) {
+    if(!this.client) return { error:'Non configuré' };
+    const { data, error } = await this.client.auth.signUp({ email, password });
+    if(data?.user) window._bfc_user = data.user;
+    return { data, error };
+  },
+
+  async signIn(email, password) {
+    if(!this.client) return { error:'Non configuré' };
+    const { data, error } = await this.client.auth.signInWithPassword({ email, password });
+    if(data?.user) window._bfc_user = data.user;
+    return { data, error };
+  },
+
+  async signOut() {
+    if(!this.client) return;
+    await this.client.auth.signOut();
+    window._bfc_user = null;
+  },
+
+  async getSession() {
+    if(!this.client) return null;
+    const { data } = await this.client.auth.getSession();
+    if(data?.session?.user) window._bfc_user = data.session.user;
+    return data?.session;
+  }
 };
 
 // ══════════════════════════════════════════
@@ -788,22 +928,18 @@ const DEFAULT_EXERCISES = {
 
 const RPG = {
   ranks: [
-    { name:'Recrue', xp:0 },
-    { name:'Apprenti', xp:100 },
-    { name:'Joueur', xp:300 },
-    { name:'Compétiteur', xp:700 },
-    { name:'Expert', xp:1500 },
-    { name:'Élite', xp:3000 },
-    { name:'Maître', xp:6000 },
-    { name:'Légende', xp:12000 },
+    { name:'Recrue', xp:0 }, { name:'Apprenti', xp:100 },
+    { name:'Joueur', xp:300 }, { name:'Compétiteur', xp:700 },
+    { name:'Expert', xp:1500 }, { name:'Élite', xp:3000 },
+    { name:'Maître', xp:6000 }, { name:'Légende', xp:12000 },
   ],
   titlesDefense: ['Apprenti Gardien','Gardien','Rempart','Muraille','Forteresse','Bastion','Légende Défensive'],
-  titlesAttack: ['Buteur','Finisseur','Chasseur','Tireur d\'Élite','Bourreau','Machine à Buts','Légende Offensive'],
-  titlesMulti: ['Voyageur','Aventurier','Polyvalent','Maître Multi-table','Ambassadeur International'],
-  defenseReqs: [0, 50, 200, 500, 1000, 2500, 5000],
-  attackReqs:  [0, 50, 200, 500, 1000, 2500, 5000],
-  multiReqs:   [0, 2, 5, 10, 20],
-  levelXP: (lvl) => 100 * lvl * lvl,
+  titlesAttack:  ['Buteur','Finisseur','Chasseur','Tireur d\'Élite','Bourreau','Machine à Buts','Légende Offensive'],
+  titlesMulti:   ['Voyageur','Aventurier','Polyvalent','Maître Multi-table','Ambassadeur International'],
+  defenseReqs: [0,50,200,500,1000,2500,5000],
+  attackReqs:  [0,50,200,500,1000,2500,5000],
+  multiReqs:   [0,2,5,10,20],
+  levelXP: (lvl) => 100*lvl*lvl,
   getLevel: (xp) => { let l=1; while(RPG.levelXP(l)<=xp) l++; return l-1; }
 };
 
@@ -818,7 +954,6 @@ const LEAGUES = [
   { id:'legend',      name:'Légende',      emoji:'🏆', color:'#C9A84C', divisions:1, minScore:96 },
 ];
 
-// Reactive test bank — solo-executable actions only
 const REACT_ACTIONS = [
   { zone:'DÉFENSE', action:'Relance bande' },
   { zone:'DÉFENSE', action:'Relance centre' },
@@ -843,18 +978,18 @@ const REACT_ACTIONS = [
 ];
 
 const CAREER_MILESTONES = [
-  { id:'c1', label:'Premier tournoi', icon:'🏟️', desc:'Participe à ton premier tournoi officiel' },
-  { id:'c2', label:'Première victoire', icon:'🏆', desc:'Remporte ton premier match en tournoi' },
-  { id:'c3', label:'Montée de division', icon:'📈', desc:'Monte en division supérieure' },
-  { id:'c4', label:'Ranking 3', icon:'3️⃣', desc:'Atteins le top 3 d\'un tournoi' },
-  { id:'c5', label:'Ranking 2', icon:'2️⃣', desc:'Atteins la 2ème place' },
-  { id:'c6', label:'Ranking 1', icon:'1️⃣', desc:'Remporte un tournoi' },
-  { id:'c7', label:'Top 100', icon:'💯', desc:'Entre dans le top 100 national' },
-  { id:'c8', label:'Top 50', icon:'⭐', desc:'Entre dans le top 50 national' },
-  { id:'c9', label:'Top 20', icon:'🌟', desc:'Entre dans le top 20 national' },
-  { id:'c10', label:'Sélection nationale', icon:'🏳️', desc:'Sélectionné en équipe nationale' },
-  { id:'c11', label:'Tournoi ITSF', icon:'🌍', desc:'Participe à un tournoi ITSF officiel' },
-  { id:'c12', label:'World Series', icon:'🔥', desc:'Participe aux World Series ITSF' },
+  { id:'c1',  label:'Premier tournoi',       icon:'🏟️', desc:'Participe à ton premier tournoi officiel' },
+  { id:'c2',  label:'Première victoire',      icon:'🏆', desc:'Remporte ton premier match en tournoi' },
+  { id:'c3',  label:'Montée de division',     icon:'📈', desc:'Monte en division supérieure' },
+  { id:'c4',  label:'Ranking 3',              icon:'3️⃣', desc:'Atteins le top 3 d\'un tournoi' },
+  { id:'c5',  label:'Ranking 2',              icon:'2️⃣', desc:'Atteins la 2ème place' },
+  { id:'c6',  label:'Ranking 1',              icon:'1️⃣', desc:'Remporte un tournoi' },
+  { id:'c7',  label:'Top 100',                icon:'💯', desc:'Entre dans le top 100 national' },
+  { id:'c8',  label:'Top 50',                 icon:'⭐', desc:'Entre dans le top 50 national' },
+  { id:'c9',  label:'Top 20',                 icon:'🌟', desc:'Entre dans le top 20 national' },
+  { id:'c10', label:'Sélection nationale',    icon:'🏳️', desc:'Sélectionné en équipe nationale' },
+  { id:'c11', label:'Tournoi ITSF',           icon:'🌍', desc:'Participe à un tournoi ITSF officiel' },
+  { id:'c12', label:'World Series',           icon:'🔥', desc:'Participe aux World Series ITSF' },
 ];
 
 // ── js/xp-badges.js ──
@@ -2414,6 +2549,150 @@ window.addEventListener('DOMContentLoaded',()=>{
   const profile=DB.get('profile');
   if(profile){ document.getElementById('onboarding').style.display='none'; initApp(); }
 });
+
+// ══════════════════════════════════════════
+// SAUVEGARDE & RESTAURATION
+// ══════════════════════════════════════════
+const SAVE_KEYS = ['profile','xp','exercises','history','matchStats','trainStats',
+  'placement','placementHistory','rankGlobal','rankAttack','rankDefense',
+  'validated','badges','missions','totalMissionsDone','videoSessions','career','coachProgram'];
+
+function exportData() {
+  const data = {};
+  SAVE_KEYS.forEach(k => { const v = DB.get(k); if(v !== null) data[k] = v; });
+  const json = JSON.stringify(data);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'bfc-sauvegarde.json'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Sauvegarde téléchargée !', '#1A3A1A');
+}
+
+function importData(input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      SAVE_KEYS.forEach(k => { if(data[k] !== undefined) DB.set(k, data[k]); });
+      showToast('✅ Données restaurées !', '#1A3A1A');
+      setTimeout(() => { closeModal('saveModal'); initApp(); }, 800);
+    } catch(err) {
+      showToast('❌ Fichier invalide', '#3A1A1A');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function autoSaveToURL() {
+  // Sauvegarde légère dans sessionStorage comme backup
+  try {
+    const data = {};
+    SAVE_KEYS.forEach(k => { const v = DB.get(k); if(v !== null) data[k] = v; });
+    sessionStorage.setItem('bfc_backup', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function restoreFromBackup() {
+  // Tente de restaurer depuis sessionStorage si localStorage vide
+  try {
+    const profile = DB.get('profile');
+    if(!profile) {
+      const backup = sessionStorage.getItem('bfc_backup');
+      if(backup) {
+        const data = JSON.parse(backup);
+        SAVE_KEYS.forEach(k => { if(data[k] !== undefined) DB.set(k, data[k]); });
+        return true;
+      }
+    }
+  } catch(e) {}
+  return false;
+}
+
+// Auto-save every 30 seconds
+setInterval(autoSaveToURL, 30000);
+
+// ══════════════════════════════════════════
+// AUTH & CLOUD SYNC
+// ══════════════════════════════════════════
+async function initCloud() {
+  CloudDB.init();
+  if(!CloudDB.client) return;
+  const session = await CloudDB.getSession();
+  if(session) {
+    updateCloudStatus(true, session.user.email);
+    const loaded = await CloudDB.loadAll();
+    if(loaded) { initApp(); }
+  }
+}
+
+function updateCloudStatus(connected, email) {
+  const icon = document.getElementById('cloudIcon');
+  const label = document.getElementById('cloudLabel');
+  const conn = document.getElementById('authConnected');
+  const login = document.getElementById('authLogin');
+  const userEmail = document.getElementById('authUserEmail');
+  if(icon) icon.textContent = connected ? '✅' : '☁️';
+  if(label) { label.textContent = connected ? 'Sync' : 'Cloud'; label.style.color = connected ? 'var(--green)' : ''; }
+  if(conn) conn.style.display = connected ? 'block' : 'none';
+  if(login) login.style.display = connected ? 'none' : 'block';
+  if(userEmail && email) userEmail.textContent = email;
+}
+
+async function authSignIn() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if(!email || !password) return;
+  showAuthMsg('Connexion...', 'status');
+  const { data, error } = await CloudDB.signIn(email, password);
+  if(error) { showAuthMsg('Erreur : '+error.message, 'error'); return; }
+  showAuthMsg('Connecté ! Chargement des données...', 'status');
+  updateCloudStatus(true, email);
+  const loaded = await CloudDB.loadAll();
+  if(loaded) {
+    showAuthMsg('Données chargées !', 'status');
+    setTimeout(() => { closeModal('authModal'); initApp(); }, 800);
+  } else {
+    // First login — push local data to cloud
+    const SAVE_KEYS = ['profile','xp','exercises','history','matchStats','trainStats',
+      'placement','placementHistory','rankGlobal','rankAttack','rankDefense',
+      'validated','badges','missions','totalMissionsDone','career'];
+    SAVE_KEYS.forEach(k => { const v = DB.get(k); if(v) CloudDB.sync(k, v); });
+    setTimeout(() => { closeModal('authModal'); }, 800);
+  }
+}
+
+async function authSignUp() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if(!email || !password) { showAuthMsg('Entre ton email et mot de passe', 'error'); return; }
+  if(password.length < 6) { showAuthMsg('Mot de passe minimum 6 caractères', 'error'); return; }
+  showAuthMsg('Création du compte...', 'status');
+  const { data, error } = await CloudDB.signUp(email, password);
+  if(error) { showAuthMsg('Erreur : '+error.message, 'error'); return; }
+  showAuthMsg('Compte créé ! Vérifie ton email puis connecte-toi.', 'status');
+  updateCloudStatus(false, null);
+}
+
+async function authSignOut() {
+  await CloudDB.signOut();
+  updateCloudStatus(false, null);
+  closeModal('authModal');
+  showToast('Déconnecté', '#3A1A1A');
+}
+
+function showAuthMsg(msg, type) {
+  const status = document.getElementById('authStatus');
+  const error = document.getElementById('authError');
+  if(type === 'status') {
+    if(status){ status.textContent=msg; status.style.display='block'; }
+    if(error) error.style.display='none';
+  } else {
+    if(error){ error.textContent=msg; error.style.display='block'; }
+    if(status) status.style.display='none';
+  }
+}
 
 </script>
 </body>
