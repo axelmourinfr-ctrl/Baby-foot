@@ -2,153 +2,142 @@
 // XP SYSTEM
 // ══════════════════════════════════════════
 function addXP(amount, label) {
-  const prev = DB.get('xp') || 0;
-  const newXP = prev + amount;
-  DB.set('xp', newXP);
+  const prev = DB.get('xp')||0;
+  DB.set('xp', prev+amount);
   const toast = document.getElementById('xpToast');
-  if(toast){ toast.textContent = '+'+amount+' XP — '+label; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2500); }
+  if(toast){ toast.textContent='+'+amount+' XP — '+label; toast.style.background=''; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2500); }
   renderTopbar();
 }
 
 function showToast(msg, color) {
   const toast = document.getElementById('xpToast');
   if(!toast) return;
-  toast.textContent = msg;
-  toast.style.background = color||'';
-  toast.classList.add('show');
-  setTimeout(()=>{ toast.classList.remove('show'); toast.style.background=''; },3000);
+  toast.textContent=msg; toast.style.background=color||'';
+  toast.classList.add('show'); setTimeout(()=>{ toast.classList.remove('show'); toast.style.background=''; },3000);
 }
 
 // ══════════════════════════════════════════
-// BADGES
+// BADGES — avec progression
 // ══════════════════════════════════════════
 const BADGES = [
-  // Premiers pas
-  { id:'firsttrain',  label:'Première fois',    icon:'👶', cat:'Débuts',      check:(ts,ms,h)=>h.filter(x=>x.type==='training').length>=1 },
-  { id:'firstmatch',  label:'Premier match',     icon:'⚽', cat:'Débuts',      check:(ts,ms,h)=>h.filter(x=>x.type==='match').length>=1 },
-  { id:'placement',   label:'Placé',             icon:'🎯', cat:'Débuts',      check:()=>!!DB.get('rankGlobal') },
+  // Débuts
+  { id:'firsttrain',   label:'Première fois',      icon:'👶', cat:'Débuts',      desc:'1 session',         check:(ts,ms,h)=>h.filter(x=>x.type==='training').length>=1, progress:(ts,ms,h)=>({val:h.filter(x=>x.type==='training').length,max:1}) },
+  { id:'firstmatch',   label:'Premier match',       icon:'⚽', cat:'Débuts',      desc:'1 match',           check:(ts,ms,h)=>h.filter(x=>x.type==='match').length>=1, progress:(ts,ms,h)=>({val:h.filter(x=>x.type==='match').length,max:1}) },
+  { id:'placement',    label:'Placé',               icon:'🎯', cat:'Débuts',      desc:'Test de placement', check:()=>!!DB.get('rankGlobal'), progress:()=>({val:DB.get('rankGlobal')?1:0,max:1}) },
   // Régularité
-  { id:'streak3',     label:'3 jours d\'affilée',icon:'🔥', cat:'Régularité',  check:(ts,ms,h)=>checkStreak(h,3) },
-  { id:'streak7',     label:'7 jours d\'affilée',icon:'⚡', cat:'Régularité',  check:(ts,ms,h)=>checkStreak(h,7) },
-  { id:'sessions10',  label:'10 sessions',       icon:'📋', cat:'Régularité',  check:(ts,ms,h)=>h.filter(x=>x.type==='training').length>=10 },
-  { id:'sessions50',  label:'50 sessions',       icon:'🏃', cat:'Régularité',  check:(ts,ms,h)=>h.filter(x=>x.type==='training').length>=50 },
-  // Heures
-  { id:'early',       label:'Lève-tôt',          icon:'🌅', cat:'Fun',         check:(ts,ms,h)=>h.some(x=>new Date(x.ts).getHours()<8) },
-  { id:'night',       label:'Nocturne',           icon:'🦉', cat:'Fun',         check:(ts,ms,h)=>h.some(x=>new Date(x.ts).getHours()>=22) },
-  // Performance passes
-  { id:'facteur',     label:'Le Facteur',         icon:'📬', cat:'Passes',      check:(ts)=>{ let t=0; Object.values(ts).forEach(e=>{if(e.type==='passes')t+=e.ok||0;}); return t>=1000; }},
-  { id:'pass500',     label:'500 passes',         icon:'✋', cat:'Passes',      check:(ts)=>{ let t=0; Object.values(ts).forEach(e=>{if(e.type==='passes')t+=e.ok||0;}); return t>=500; }},
-  { id:'perfect',     label:'Parfait',            icon:'💯', cat:'Performance', check:(ts)=>Object.values(ts).some(e=>e.tried>=10&&e.ok>=e.tried) },
-  // Performance tirs
-  { id:'machine',     label:'Machine à Buts',     icon:'🔥', cat:'Attaque',     check:(ts,ms)=>{ let t=(ms?.att?.goals||0); Object.values(ts).forEach(e=>{if(e.type==='goals')t+=e.ok||0;}); return t>=1000; }},
-  { id:'goals100',    label:'100 buts',           icon:'⚽', cat:'Attaque',     check:(ts,ms)=>{ let t=(ms?.att?.goals||0); Object.values(ts).forEach(e=>{if(e.type==='goals')t+=e.ok||0;}); return t>=100; }},
-  // Performance défense
-  { id:'mur',         label:'Mur Défensif',       icon:'🧱', cat:'Défense',     check:(ts,ms)=>{ let t=(ms?.def?.saves||0); Object.values(ts).forEach(e=>{if(e.type==='saves')t+=e.ok||0;}); return t>=1000; }},
-  { id:'saves50',     label:'50 arrêts',          icon:'🛡️', cat:'Défense',     check:(ts,ms)=>{ let t=(ms?.def?.saves||0); Object.values(ts).forEach(e=>{if(e.type==='saves')t+=e.ok||0;}); return t>=50; }},
+  { id:'streak3',      label:'3 jours',             icon:'🔥', cat:'Régularité',  desc:'3 jours consécutifs', check:(ts,ms,h)=>checkStreakN(h,3), progress:(ts,ms,h)=>({val:getStreak(h),max:3}) },
+  { id:'streak7',      label:'7 jours',             icon:'⚡', cat:'Régularité',  desc:'7 jours consécutifs', check:(ts,ms,h)=>checkStreakN(h,7), progress:(ts,ms,h)=>({val:getStreak(h),max:7}) },
+  { id:'streak14',     label:'14 jours',            icon:'🌟', cat:'Régularité',  desc:'14 jours consécutifs',check:(ts,ms,h)=>checkStreakN(h,14),progress:(ts,ms,h)=>({val:getStreak(h),max:14}) },
+  { id:'sessions10',   label:'10 sessions',         icon:'📋', cat:'Régularité',  desc:'10 sessions',       check:(ts,ms,h)=>h.filter(x=>x.type==='training').length>=10, progress:(ts,ms,h)=>({val:h.filter(x=>x.type==='training').length,max:10}) },
+  { id:'sessions50',   label:'50 sessions',         icon:'🏃', cat:'Régularité',  desc:'50 sessions',       check:(ts,ms,h)=>h.filter(x=>x.type==='training').length>=50, progress:(ts,ms,h)=>({val:h.filter(x=>x.type==='training').length,max:50}) },
+  // Heures fun
+  { id:'early',        label:'Lève-tôt',            icon:'🌅', cat:'Fun',         desc:'S\'entraîner avant 8h', check:(ts,ms,h)=>h.some(x=>new Date(x.ts).getHours()<8), progress:(ts,ms,h)=>({val:h.some(x=>new Date(x.ts).getHours()<8)?1:0,max:1}) },
+  { id:'night',        label:'Nocturne',             icon:'🦉', cat:'Fun',         desc:'S\'entraîner après 22h',check:(ts,ms,h)=>h.some(x=>new Date(x.ts).getHours()>=22),progress:(ts,ms,h)=>({val:h.some(x=>new Date(x.ts).getHours()>=22)?1:0,max:1}) },
+  { id:'perfect',      label:'Parfait',              icon:'💯', cat:'Fun',         desc:'100% sur un exercice (10 min)', check:(ts)=>Object.values(ts).some(e=>e.tried>=10&&e.ok>=e.tried), progress:(ts)=>({val:Object.values(ts).some(e=>e.tried>=10&&e.ok>=e.tried)?1:0,max:1}) },
+  // Passes
+  { id:'pass500',      label:'500 passes',           icon:'✋', cat:'Passes',      desc:'500 passes réussies', check:(ts)=>getTotalStat(ts,'passes')>=500,  progress:(ts)=>({val:getTotalStat(ts,'passes'),max:500}) },
+  { id:'facteur',      label:'Le Facteur',           icon:'📬', cat:'Passes',      desc:'1000 passes réussies',check:(ts)=>getTotalStat(ts,'passes')>=1000, progress:(ts)=>({val:getTotalStat(ts,'passes'),max:1000}) },
+  { id:'pass5000',     label:'5000 passes',          icon:'🤝', cat:'Passes',      desc:'5000 passes réussies',check:(ts)=>getTotalStat(ts,'passes')>=5000, progress:(ts)=>({val:getTotalStat(ts,'passes'),max:5000}) },
+  // Attaque
+  { id:'goals100',     label:'100 buts',             icon:'⚽', cat:'Attaque',     desc:'100 buts marqués',  check:(ts,ms)=>getTotalGoals(ts,ms)>=100,  progress:(ts,ms)=>({val:getTotalGoals(ts,ms),max:100}) },
+  { id:'machine',      label:'Machine à Buts',       icon:'🔥', cat:'Attaque',     desc:'1000 buts marqués', check:(ts,ms)=>getTotalGoals(ts,ms)>=1000, progress:(ts,ms)=>({val:getTotalGoals(ts,ms),max:1000}) },
+  // Défense
+  { id:'saves50',      label:'50 arrêts',            icon:'🛡️', cat:'Défense',     desc:'50 arrêts',         check:(ts,ms)=>getTotalSaves(ts,ms)>=50,   progress:(ts,ms)=>({val:getTotalSaves(ts,ms),max:50}) },
+  { id:'mur',          label:'Mur Défensif',         icon:'🧱', cat:'Défense',     desc:'1000 arrêts',       check:(ts,ms)=>getTotalSaves(ts,ms)>=1000, progress:(ts,ms)=>({val:getTotalSaves(ts,ms),max:1000}) },
   // Matchs
-  { id:'polyvalent',  label:'Polyvalent',         icon:'⚡', cat:'Matchs',      check:(ts,ms,h)=>h.filter(x=>x.type==='match'&&x.role==='att').length>=10&&h.filter(x=>x.type==='match'&&x.role==='def').length>=10 },
-  { id:'matches10',   label:'10 matchs',          icon:'🏅', cat:'Matchs',      check:(ts,ms,h)=>h.filter(x=>x.type==='match').length>=10 },
-  { id:'globe',       label:'Globe-Trotter',      icon:'🌍', cat:'Matchs',      check:(ts,ms,h)=>{ const tables=(DB.get('profile')?.tables||'').split(',').filter(Boolean); return tables.length>=2&&h.filter(x=>x.type==='match').length>=10; }},
+  { id:'matches10',    label:'10 matchs',            icon:'🏅', cat:'Matchs',      desc:'10 matchs joués',   check:(ts,ms,h)=>h.filter(x=>x.type==='match').length>=10, progress:(ts,ms,h)=>({val:h.filter(x=>x.type==='match').length,max:10}) },
+  { id:'polyvalent',   label:'Polyvalent',           icon:'⚡', cat:'Matchs',      desc:'10 matchs att. ET 10 def.', check:(ts,ms,h)=>h.filter(x=>x.type==='match'&&x.role==='att').length>=10&&h.filter(x=>x.type==='match'&&x.role==='def').length>=10, progress:(ts,ms,h)=>({val:Math.min(h.filter(x=>x.type==='match'&&x.role==='att').length,h.filter(x=>x.type==='match'&&x.role==='def').length),max:10}) },
+  { id:'globe',        label:'Globe-Trotter',        icon:'🌍', cat:'Matchs',      desc:'2 tables + 10 matchs',check:(ts,ms,h)=>{ const t=(DB.get('profile')?.tables||'').split(',').filter(Boolean); return t.length>=2&&h.filter(x=>x.type==='match').length>=10; }, progress:(ts,ms,h)=>({val:h.filter(x=>x.type==='match').length,max:10}) },
   // Rang
-  { id:'level5',      label:'Décollage',          icon:'🚀', cat:'Rang',        check:()=>RPG.getLevel(DB.get('xp')||0)>=5 },
-  { id:'gold_rank',   label:'Rang Or+',           icon:'🥇', cat:'Rang',        check:()=>{ const r=DB.get('rankGlobal'); return r&&r.leagueIdx>=2; }},
-  { id:'diamond_rank',label:'Rang Diamant+',      icon:'💠', cat:'Rang',        check:()=>{ const r=DB.get('rankGlobal'); return r&&r.leagueIdx>=4; }},
+  { id:'level5',       label:'Décollage',            icon:'🚀', cat:'Rang',        desc:'Niveau 5',          check:()=>RPG.getLevel(DB.get('xp')||0)>=5,  progress:()=>({val:RPG.getLevel(DB.get('xp')||0),max:5}) },
+  { id:'gold_rank',    label:'Rang Or+',             icon:'🥇', cat:'Rang',        desc:'Atteindre Or',      check:()=>{ const r=DB.get('rankGlobal'); return r&&r.leagueIdx>=2; }, progress:()=>({val:DB.get('rankGlobal')?.leagueIdx||0,max:2}) },
+  { id:'diamond_rank', label:'Rang Diamant+',        icon:'💠', cat:'Rang',        desc:'Atteindre Diamant', check:()=>{ const r=DB.get('rankGlobal'); return r&&r.leagueIdx>=4; }, progress:()=>({val:DB.get('rankGlobal')?.leagueIdx||0,max:4}) },
   // Carrière
-  { id:'validated',   label:'Homologué',          icon:'✅', cat:'Carrière',    check:()=>!!DB.get('validated') },
-  { id:'video1',      label:'Analyste',           icon:'🎬', cat:'Carrière',    check:(ts,ms,h)=>h.filter(x=>x.type==='video').length>=1 },
+  { id:'validated',    label:'Homologué',            icon:'✅', cat:'Carrière',    desc:'Homologuer son rang',check:()=>!!DB.get('validated'), progress:()=>({val:DB.get('validated')?1:0,max:1}) },
+  { id:'video1',       label:'Analyste',             icon:'🎬', cat:'Carrière',    desc:'1 analyse vidéo',   check:(ts,ms,h)=>h.filter(x=>x.type==='video').length>=1, progress:(ts,ms,h)=>({val:h.filter(x=>x.type==='video').length,max:1}) },
+  // Missions
+  { id:'missions5',    label:'Discipliné',           icon:'📋', cat:'Missions',    desc:'5 missions accomplies',  check:()=>getMissionTotal()>=5,   progress:()=>({val:getMissionTotal(),max:5}) },
+  { id:'missions20',   label:'Régulier',             icon:'🔄', cat:'Missions',    desc:'20 missions accomplies', check:()=>getMissionTotal()>=20,  progress:()=>({val:getMissionTotal(),max:20}) },
+  { id:'missions50',   label:'Acharné',              icon:'💪', cat:'Missions',    desc:'50 missions accomplies', check:()=>getMissionTotal()>=50,  progress:()=>({val:getMissionTotal(),max:50}) },
+  { id:'missions100',  label:'Obsessionnel',         icon:'🔥', cat:'Missions',    desc:'100 missions',           check:()=>getMissionTotal()>=100, progress:()=>({val:getMissionTotal(),max:100}) },
 ];
 
-function checkStreak(history, days) {
-  const trainDays = [...new Set(history.filter(h=>h.type==='training').map(h=>new Date(h.ts).toDateString()))];
-  if(trainDays.length<days) return false;
-  const today = new Date(); let streak=0;
-  for(let i=0;i<days+3;i++){
-    const d=new Date(today); d.setDate(d.getDate()-i);
-    if(trainDays.includes(d.toDateString())) streak++; else if(streak>0) break;
-  }
-  return streak>=days;
+function getMissionTotal() {
+  const m = DB.get('missions')||{};
+  let t = DB.get('totalMissionsDone')||0;
+  ['daily','weekly','monthly','custom'].forEach(p=>{ t+=(m[p]||[]).filter(x=>x.done).length; });
+  return t;
 }
+function getTotalStat(ts, type) { let t=0; Object.values(ts).forEach(e=>{ if(e.type===type) t+=e.ok||0; }); return t; }
+function getTotalGoals(ts,ms) { return getTotalStat(ts,'goals')+(ms?.att?.goals||0); }
+function getTotalSaves(ts,ms) { return getTotalStat(ts,'saves')+(ms?.def?.saves||0); }
+function getStreak(history) {
+  const days=[...new Set(history.filter(h=>h.type==='training').map(h=>new Date(h.ts).toDateString()))];
+  let streak=0; const today=new Date();
+  for(let i=0;i<60;i++){ const d=new Date(today); d.setDate(d.getDate()-i); if(days.includes(d.toDateString())) streak++; else if(streak>0) break; }
+  return streak;
+}
+function checkStreakN(h,n) { return getStreak(h)>=n; }
 
 function checkBadges() {
-  const ts = DB.get('trainStats')||{};
-  const ms = DB.get('matchStats')||{att:{},def:{}};
-  const hist = DB.get('history')||[];
-  const unlocked = DB.get('badges')||{};
-  BADGES.forEach(b=>{
-    if(!unlocked[b.id] && b.check(ts,ms,hist)){
-      unlocked[b.id]=true;
-      DB.set('badges',unlocked);
-      showToast('🏅 Badge : '+b.label, '#1A3A1A');
-    }
-  });
+  const ts=DB.get('trainStats')||{}; const ms=DB.get('matchStats')||{att:{},def:{}}; const hist=DB.get('history')||[];
+  const unlocked=DB.get('badges')||{};
+  BADGES.forEach(b=>{ if(!unlocked[b.id]&&b.check(ts,ms,hist)){ unlocked[b.id]=true; DB.set('badges',unlocked); showToast('🏅 Badge : '+b.label,'#1A3A1A'); } });
   renderBadgesRow(unlocked);
 }
 
 function renderBadgesRow(unlocked) {
-  const row = document.getElementById('badges-row');
-  if(!row) return;
-  const unlockedBadges = BADGES.filter(b=>unlocked[b.id]);
-  const locked = BADGES.filter(b=>!unlocked[b.id]).slice(0,3);
-  row.innerHTML = [
-    ...unlockedBadges.map(b=>`<div class="badge-chip unlocked"><span class="badge-icon">${b.icon}</span>${b.label}</div>`),
-    ...locked.map(b=>`<div class="badge-chip"><span class="badge-icon">🔒</span>${b.label}</div>`)
+  const row=document.getElementById('badges-row'); if(!row) return;
+  const ul=BADGES.filter(b=>unlocked[b.id]);
+  const lk=BADGES.filter(b=>!unlocked[b.id]).slice(0,3);
+  row.innerHTML=[
+    ...ul.map(b=>`<div class="badge-chip unlocked"><span class="badge-icon">${b.icon}</span>${b.label}</div>`),
+    ...lk.map(b=>`<div class="badge-chip"><span class="badge-icon">🔒</span>${b.label}</div>`)
   ].join('');
 }
 
-// ══════════════════════════════════════════
-// AUTO-COMPLETE OBJECTIVES
-// ══════════════════════════════════════════
-function autoCheckObjectives() {
-  const objectives = DB.get('objectives');
-  if(!objectives) return;
-  const ts = DB.get('trainStats')||{};
-  const ms = DB.get('matchStats')||{att:{},def:{}};
-  const history = DB.get('history')||[];
+// ── PAGE BADGES AVEC PROGRESSION ──
+function renderBadgesPage() {
+  const el=document.getElementById('prof-badges'); if(!el) return;
+  const ts=DB.get('trainStats')||{}; const ms=DB.get('matchStats')||{att:{},def:{}}; const hist=DB.get('history')||[];
+  const unlocked=DB.get('badges')||{};
+  const cats=[...new Set(BADGES.map(b=>b.cat))];
+  const totalUnlocked=BADGES.filter(b=>unlocked[b.id]).length;
 
-  let totalPassOk=0, totalPassTried=0, totalGoals=0, totalGoalTried=0, totalSaves=0;
-  Object.values(ts).forEach(ex=>{
-    if(ex.type==='passes'){ totalPassOk+=ex.ok||0; totalPassTried+=ex.tried||0; }
-    if(ex.type==='goals'){ totalGoals+=ex.ok||0; totalGoalTried+=ex.tried||0; }
-    if(ex.type==='saves'){ totalSaves+=ex.ok||0; }
-  });
-  totalGoals += ms.att?.goals||0;
-  totalSaves += ms.def?.saves||0;
-
-  const now = Date.now();
-  const todayStr = new Date().toDateString();
-  const weekAgo = now - 7*24*3600*1000;
-  const monthAgo = now - 30*24*3600*1000;
-  const sessionsToday  = history.filter(h=>h.type==='training'&&new Date(h.ts).toDateString()===todayStr).length;
-  const matchesToday   = history.filter(h=>h.type==='match'&&new Date(h.ts).toDateString()===todayStr).length;
-  const sessionsWeek   = history.filter(h=>h.type==='training'&&h.ts>weekAgo).length;
-  const sessionsMonth  = history.filter(h=>h.type==='training'&&h.ts>monthAgo).length;
-  const matchesMonth   = history.filter(h=>h.type==='match'&&h.ts>monthAgo).length;
-
-  const matchers = [
-    { re:/(\d+)\s*passe/i,    val:(n)=> totalPassOk>=n },
-    { re:/(\d+)\s*but/i,      val:(n)=> totalGoals>=n },
-    { re:/(\d+)\s*arrêt/i,    val:(n)=> totalSaves>=n },
-    { re:/1\s*(session|entraîn)/i, val:()=> sessionsToday>=1 },
-    { re:/(\d+)\s*(session|entraîn)/i, val:(n)=> n<=2?sessionsToday>=n:sessionsWeek>=n },
-    { re:/1\s*match/i,        val:()=> matchesToday>=1 },
-    { re:/(\d+)\s*match/i,    val:(n)=> n<=2?matchesToday>=n:matchesMonth>=n },
-    { re:/(\d+)\s*tir/i,      val:(n)=> totalGoalTried>=n },
-  ];
-
-  let changed = false;
-  ['daily','weekly','monthly','custom'].forEach(period=>{
-    (objectives[period]||[]).forEach(obj=>{
-      if(obj.done) return;
-      const title = obj.title.toLowerCase();
-      for(const m of matchers){
-        const match = title.match(m.re);
-        if(match && m.val(parseInt(match[1])||1)){
-          obj.done = true; obj.autoCompleted = true; changed = true;
-          setTimeout(()=>{ showToast('🎯 Objectif accompli : '+obj.title,'#0A2A0A'); addXP(obj.xp,'Objectif : '+obj.title); },400);
-          break;
-        }
-      }
-    });
-  });
-  if(changed){ DB.set('objectives',objectives); if(document.getElementById('screen-objectives')?.classList.contains('active')) renderObjectives(); }
+  el.innerHTML=`
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+      <div style="font-size:28px;">🏅</div>
+      <div>
+        <div style="font-size:22px;font-weight:900;color:var(--gold);">${totalUnlocked} / ${BADGES.length}</div>
+        <div style="font-size:11px;color:var(--text-secondary);">badges débloqués</div>
+      </div>
+      <div style="flex:1;margin-left:8px;">
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:var(--gold);border-radius:3px;width:${Math.round(totalUnlocked/BADGES.length*100)}%;"></div>
+        </div>
+      </div>
+    </div>
+  `+cats.map(cat=>`
+    <div style="margin-bottom:4px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-secondary);margin-top:12px;">${cat}</div>
+    ${BADGES.filter(b=>b.cat===cat).map(b=>{
+      const done=unlocked[b.id];
+      const prog=b.progress?b.progress(ts,ms,hist):{val:0,max:1};
+      const pct=Math.min(100,Math.round(prog.val/prog.max*100));
+      return `<div style="background:var(--bg-card);border:1px solid ${done?'var(--gold-dim)':'var(--border)'};border-radius:6px;padding:12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:24px;opacity:${done?1:0.4};">${b.icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;color:${done?'var(--gold)':'var(--text-primary)'};">${b.label}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${b.desc}</div>
+          <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;">
+            <div style="height:100%;background:${done?'var(--gold)':'var(--border-bright)'};border-radius:2px;width:${pct}%;transition:width 0.4s;"></div>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${prog.val} / ${prog.max}</div>
+        </div>
+        ${done?'<div style="font-size:16px;">✅</div>':''}
+      </div>`;
+    }).join('')}
+  `).join('');
 }
+
+// ── AUTO-COMPLETE linked to missions ──
+function autoCheckObjectives() { autoCheckMissions(); }

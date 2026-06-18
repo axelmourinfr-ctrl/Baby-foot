@@ -112,6 +112,7 @@
         <div class="coach-msg" id="coach-msg">Commence ton premier entraînement pour recevoir une analyse.</div>
       </div>
       <div class="section-title">Badges récents</div>
+      <div id="dash-streak" style="margin-bottom:12px;font-size:13px;font-weight:700;"></div>
       <div class="badges-row" id="badges-row"></div>
     </div>
 
@@ -193,6 +194,7 @@
 
     <!-- PROFILE -->
     <div class="screen" id="screen-profile">
+      <div id="prof-stats"></div>
       <div class="profile-hero">
         <div class="profile-avatar" id="prof-avatar">⚽</div>
         <div class="profile-name" id="prof-name">—</div>
@@ -389,10 +391,8 @@
 </div>
 <div class="modal-overlay" id="addObjModal">
   <div class="modal">
-    <div class="modal-title">Nouvel objectif</div>
-    <div class="modal-field"><label>Description</label><input type="text" id="newObjTitle" placeholder="Ex: Réussir 200 passes bande"></div>
-    <div class="modal-field"><label>Période</label>
-      <select id="newObjPeriod"><option value="daily">Journalier</option><option value="weekly">Hebdomadaire</option><option value="monthly">Mensuel</option><option value="custom">Personnalisé</option></select></div>
+    <div class="modal-title">Mission personnalisée</div>
+    <div class="modal-field"><label>Description</label><input type="text" id="newObjTitle" placeholder="Ex: Mon objectif perso..."></div>
     <div class="modal-field"><label>XP récompense</label><input type="number" id="newObjXP" value="50" min="5" max="500"></div>
     <div class="modal-actions"><button type="button" class="modal-cancel" onclick="closeModal('addObjModal')">Annuler</button><button type="button" class="modal-confirm" onclick="confirmAddObj()">Créer</button></div>
   </div>

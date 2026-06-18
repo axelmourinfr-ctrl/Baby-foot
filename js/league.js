@@ -2,8 +2,7 @@
 // LEAGUE SYSTEM
 // ══════════════════════════════════════════
 let plData = { scores:[0,0,0,0,0,0], tries:[0,0,0,0,0,0], step:0, choices:{passeDef:'',tirDef:'',tirAtt:''} };
-let reactQueue = [];
-let reactIdx = 0;
+let reactQueue = []; let reactIdx = 0;
 
 function openPlacement() {
   plData = { scores:[0,0,0,0,0,0], tries:[0,0,0,0,0,0], step:0, choices:{passeDef:'',tirDef:'',tirAtt:''} };
@@ -14,7 +13,7 @@ function openPlacement() {
     const b=document.getElementById('plbar'+i);   if(b) b.style.width='0%';
     const s=document.getElementById('plscore'+i); if(s) s.textContent='Réussites : 0';
   }
-  for(let i=0;i<=6;i++){ document.getElementById('plstep'+i)?.classList.remove('active'); }
+  for(let i=0;i<=6;i++) document.getElementById('plstep'+i)?.classList.remove('active');
   for(let i=0;i<6;i++){ const d=document.getElementById('pldot'+i); if(d){d.classList.remove('done','active');} }
   document.getElementById('plstep0').classList.add('active');
   document.getElementById('pldot0').classList.add('active');
@@ -29,17 +28,15 @@ function openPlacement() {
 
 function selectPlChoice(type, el, name) {
   el.closest('.pl-tir-grid').querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
-  el.classList.add('selected');
-  plData.choices[type] = name;
+  el.classList.add('selected'); plData.choices[type]=name;
   const btnMap={passeDef:'plPasseDefStart',tirDef:'plTirDefStart',tirAtt:'plTirAttStart'};
-  const btn=document.getElementById(btnMap[type]);
-  if(btn){btn.style.opacity='1';btn.style.pointerEvents='auto';}
+  const btn=document.getElementById(btnMap[type]); if(btn){btn.style.opacity='1';btn.style.pointerEvents='auto';}
 }
 
 function startPlStep(step) {
   const pMap={2:'plPasseDefPicker',3:'plTirDefPicker',4:'plTirAttPicker'};
-  const tMap={2:'plPasseDefTest',  3:'plTirDefTest',  4:'plTirAttTest'};
-  const lMap={2:'plPasseDefLabel', 3:'plTirDefLabel', 4:'plTirAttLabel'};
+  const tMap={2:'plPasseDefTest',3:'plTirDefTest',4:'plTirAttTest'};
+  const lMap={2:'plPasseDefLabel',3:'plTirDefLabel',4:'plTirAttLabel'};
   const cMap={2:'passeDef',3:'tirDef',4:'tirAtt'};
   if(pMap[step]) document.getElementById(pMap[step]).style.display='none';
   if(tMap[step]) document.getElementById(tMap[step]).style.display='block';
@@ -62,8 +59,7 @@ function showNextReact() {
 
 function plRecord(step, success) {
   if(plData.tries[step]>=20) return;
-  plData.tries[step]++;
-  if(success) plData.scores[step]++;
+  plData.tries[step]++; if(success) plData.scores[step]++;
   const pct=Math.round(plData.tries[step]/20*100);
   const c=document.getElementById('plcount'+step); if(c) c.textContent=plData.tries[step];
   const b=document.getElementById('plbar'+step);   if(b) b.style.width=pct+'%';
@@ -84,13 +80,12 @@ function plNextStep(step) {
 }
 
 function showPlacementResult() {
-  const pcts = plData.scores.map((s,i)=>plData.tries[i]>0?Math.round(s/plData.tries[i]*100):0);
+  const pcts=plData.scores.map((s,i)=>plData.tries[i]>0?Math.round(s/plData.tries[i]*100):0);
   const weights=[0.20,0.20,0.15,0.15,0.20,0.10];
-  const globalScore = pcts.reduce((sum,p,i)=>sum+p*weights[i],0);
+  const globalScore=pcts.reduce((sum,p,i)=>sum+p*weights[i],0);
   const passAvg=(pcts[0]+pcts[1]+pcts[2])/3;
-  const capped = passAvg<25 ? Math.min(globalScore,34) : globalScore;
-  let leagueIdx=0;
-  LEAGUES.forEach((l,i)=>{ if(capped>=l.minScore) leagueIdx=i; });
+  const capped=passAvg<25?Math.min(globalScore,34):globalScore;
+  let leagueIdx=0; LEAGUES.forEach((l,i)=>{ if(capped>=l.minScore) leagueIdx=i; });
   const league=LEAGUES[leagueIdx];
   const nextMin=leagueIdx<LEAGUES.length-1?LEAGUES[leagueIdx+1].minScore:100;
   const rangeSize=Math.max(1,nextMin-league.minScore);
@@ -110,6 +105,9 @@ function showPlacementResult() {
   const lp=Math.round(divFraction*100)%100;
   const attIdx=Math.max(0,Math.min(leagueIdx,Math.round(leagueIdx*(pcts[4]/100))));
   const defIdx=Math.max(0,Math.min(leagueIdx,Math.round(leagueIdx*(pcts[2]/100))));
+  const history=DB.get('history')||[];
+  const oldPlacement=DB.get('placement');
+  if(oldPlacement) DB.push('placementHistory',{...oldPlacement});
   DB.set('placement',{leagueIdx,division,lp,globalScore:Math.round(capped),pcts,choices:plData.choices,date:Date.now()});
   DB.set('rankGlobal',{leagueIdx,division,lp});
   DB.set('rankAttack',{leagueIdx:attIdx,division:Math.min(3,league.divisions),lp:40});
@@ -132,7 +130,7 @@ function renderLeague() {
   if(!rankG){
     el.innerHTML=`<div style="text-align:center;padding:40px 20px;">
       <div style="font-size:64px;margin-bottom:16px;">🎯</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">TEST DE PLACEMENT</div>
+      <div style="font-size:24px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">TEST DE PLACEMENT</div>
       <div style="font-size:14px;color:var(--text-secondary);margin-bottom:24px;">Détermine ta ligue de départ en 15 minutes.</div>
       <button type="button" class="btn-primary" onclick="openPlacement()">Commencer le test →</button>
     </div>`; return;
@@ -142,33 +140,83 @@ function renderLeague() {
   const ld=LEAGUES[rankD?rankD.leagueIdx:0];
   const dn=['I','II','III'];
   const placement=DB.get('placement')||{};
+  const pcts=placement.pcts||[0,0,0,0,0,0];
   const seasonEnd=(placement.date||Date.now())+90*24*3600*1000;
   const daysLeft=Math.max(0,Math.ceil((seasonEnd-Date.now())/(24*3600*1000)));
   const valLabel=validated?(typeof validated==='object'?validated.label:validated):null;
   const valPhoto=validated&&typeof validated==='object'?validated.photo:null;
+
+  // What to improve to rank up
+  const nextLeague=LEAGUES[Math.min(rankG.leagueIdx+1,LEAGUES.length-1)];
+  const scoreNeeded=nextLeague.minScore;
+  const currentScore=placement.globalScore||0;
+  const gap=Math.max(0,scoreNeeded-currentScore);
+  const weakest=pcts.indexOf(Math.min(...pcts));
+  const weakNames=['Passe Bande','Passe Croisée','Passe Défense','Tir Défense','Tir Attaque','Réactivité'];
+
+  // Placement history
+  const placementHistory=DB.get('placementHistory')||[];
+
   el.innerHTML=`
   <div class="section-title">Rang Global</div>
   <div class="league-card" style="border:1px solid ${lg.color}40;">
     <span class="league-badge-big">${lg.emoji}</span>
     <div class="league-name" style="color:${lg.color}">${lg.name} ${dn[(rankG.division||1)-1]}</div>
-    <div class="league-division">Score placement : ${placement.globalScore||'—'}%</div>
+    <div class="league-division">Score placement : ${currentScore}%</div>
     <div class="league-points"><span>${rankG.lp||0} LP</span><span style="color:var(--text-muted)">/ 100</span></div>
     <div class="lp-bar"><div class="lp-fill" style="width:${rankG.lp||0}%;background:${lg.color}"></div></div>
   </div>
+
+  <!-- POURQUOI CETTE LIGUE -->
+  <div class="section-title">Pourquoi ${lg.name} ?</div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:16px;">
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Tes scores au test de placement :</div>
+    ${['Passe Bande','Passe Croisée','Passe Défense','Tir Défense','Tir Attaque','Réactivité'].map((n,i)=>`
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span style="color:${i===weakest?'var(--red)':'var(--text-secondary)'};">${n}${i===weakest?' ← point faible':''}</span>
+          <span style="color:${pcts[i]>=70?'var(--green)':pcts[i]>=40?'#FF9500':'var(--red)'};">${pcts[i]}%</span>
+        </div>
+        <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+          <div style="height:100%;background:${pcts[i]>=70?'var(--green)':pcts[i]>=40?'#FF9500':'var(--red)'};border-radius:2px;width:${pcts[i]}%;"></div>
+        </div>
+      </div>`).join('')}
+  </div>
+
+  <!-- POUR MONTER -->
+  ${rankG.leagueIdx<LEAGUES.length-1?`
+  <div class="section-title">Pour atteindre ${nextLeague.emoji} ${nextLeague.name}</div>
+  <div style="background:var(--bg-card);border:1px solid ${nextLeague.color}40;border-radius:6px;padding:14px;margin-bottom:16px;">
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">Il te faut un score global de <strong style="color:${nextLeague.color}">${scoreNeeded}%</strong> (actuellement ${currentScore}%, manque ${gap}%)</div>
+    <div style="font-size:13px;color:var(--text-primary);margin-bottom:6px;">🎯 Priorité : améliorer <strong style="color:var(--gold)">${weakNames[weakest]}</strong> (${pcts[weakest]}%)</div>
+    <div style="font-size:12px;color:var(--text-muted);">Refais le test de placement après t'être entraîné sur ce point.</div>
+  </div>`:'<div style="background:var(--bg-card);border:1px solid var(--gold);border-radius:6px;padding:14px;margin-bottom:16px;text-align:center;font-size:14px;color:var(--gold);">🏆 Tu es au rang maximum !</div>'}
+
   <div class="${valLabel?'validation-banner validated':'validation-banner unvalidated'}">
     <span>${valLabel?'✅':'⚪'}</span>
     <span>${valLabel?'Homologué — '+valLabel:'Non homologué — compétition réelle requise'}</span>
   </div>
   ${valPhoto?`<div style="margin-bottom:8px;border-radius:6px;overflow:hidden;border:1px solid var(--green);"><img src="${valPhoto}" style="width:100%;max-height:150px;object-fit:contain;background:#000;" alt="Preuve"></div>`:''}
   <button type="button" class="validate-btn" onclick="openModal('validateModal')">🏆 ${valLabel?'Mettre à jour':'Homologuer mon rang'}</button>
+
   <div class="section-title" style="margin-top:4px;">Spécialisations</div>
   <div class="ranks-grid">
     <div class="rank-mini"><div class="rank-mini-icon">${lg.emoji}</div><div class="rank-mini-label">Global</div><div class="rank-mini-val">${lg.name}</div><div class="rank-mini-div">${dn[(rankG.division||1)-1]}</div></div>
     <div class="rank-mini"><div class="rank-mini-icon">${la.emoji}</div><div class="rank-mini-label">Attaque</div><div class="rank-mini-val">${la.name}</div><div class="rank-mini-div">${dn[(rankA?.division||1)-1]}</div></div>
     <div class="rank-mini"><div class="rank-mini-icon">${ld.emoji}</div><div class="rank-mini-label">Défense</div><div class="rank-mini-val">${ld.name}</div><div class="rank-mini-div">${dn[(rankD?.division||1)-1]}</div></div>
   </div>
+
   <div class="section-title">Saison</div>
   <div class="season-card"><div class="season-label">Temps restant</div><div class="season-val">${daysLeft} jours</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Promotion / Maintien / Relégation à la fin</div></div>
+
+  ${placementHistory.length>0?`
+  <div class="section-title" style="margin-top:8px;">Historique des tests</div>
+  ${placementHistory.slice(-3).reverse().map(p=>`
+    <div class="history-item">
+      <div><div class="history-date">${new Date(p.date).toLocaleDateString('fr-BE')}</div>
+      <div class="history-desc">${LEAGUES[p.leagueIdx]?.emoji} ${LEAGUES[p.leagueIdx]?.name} — ${p.globalScore}%</div></div>
+    </div>`).join('')}`:''}
+
   <button type="button" class="add-exercise-btn" style="margin-top:8px;" onclick="openPlacement()">🔄 Refaire le test de placement</button>`;
 }
 
@@ -178,7 +226,7 @@ function updateLeagueFromTraining(pct) {
   rank.lp=Math.min(100,Math.max(0,(rank.lp||0)+gain));
   if(rank.lp>=100){
     if(rank.division>1){rank.division--;rank.lp=0;}
-    else if(rank.leagueIdx<LEAGUES.length-1){rank.leagueIdx++;rank.division=LEAGUES[rank.leagueIdx].divisions;rank.lp=0;}
+    else if(rank.leagueIdx<LEAGUES.length-1){rank.leagueIdx++;rank.division=LEAGUES[rank.leagueIdx].divisions;rank.lp=0;showToast('🎉 Promotion ! '+LEAGUES[rank.leagueIdx].emoji+' '+LEAGUES[rank.leagueIdx].name,'#1A3A1A');}
   }
   if(rank.lp<=0&&rank.leagueIdx>0){
     if(rank.division<LEAGUES[rank.leagueIdx].divisions){rank.division++;rank.lp=75;}
@@ -212,14 +260,12 @@ function confirmValidation() {
   document.getElementById('valPhotoPreview').style.display='none';
   document.getElementById('valPhotoText').style.display='block';
   closeModal('validateModal');
-  renderLeague();
-  addXP(200,'Rang homologué ! 🏆');
-  checkBadges();
+  renderLeague(); addXP(200,'Rang homologué ! 🏆'); checkBadges();
 }
 
 function resetAll() {
   if(!confirm('Effacer toutes les données et recommencer à zéro ?')) return;
-  ['profile','xp','exercises','history','matchStats','trainStats','placement','rankGlobal','rankAttack','rankDefense','validated','badges','objectives','videoSessions','coachProgram'].forEach(k=>localStorage.removeItem('bfc_'+k));
+  ['profile','xp','exercises','history','matchStats','trainStats','placement','placementHistory','rankGlobal','rankAttack','rankDefense','validated','badges','missions','totalMissionsDone','videoSessions','coachProgram','career'].forEach(k=>localStorage.removeItem('bfc_'+k));
   document.getElementById('placementOverlay').classList.remove('open');
   document.getElementById('app').classList.remove('visible');
   document.getElementById('onboarding').style.display='block';
