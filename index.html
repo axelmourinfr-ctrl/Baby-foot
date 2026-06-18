@@ -745,7 +745,7 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <script>
 function toggleMoreMenu(){const m=document.getElementById('moreMenu');m.style.display=m.style.display==='none'?'block':'none';}
 document.addEventListener('click',e=>{const m=document.getElementById('moreMenu');if(m&&!m.contains(e.target)&&!e.target.closest('#nav-more'))m.style.display='none';});
@@ -821,7 +821,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('moreMenu'
 // CONFIGURATION SUPABASE
 // ══════════════════════════════════════════
 const SUPABASE_URL = 'https://qpnuiyzovxtvldmbelnk.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_MeMOvjdCR_UOequRjiWrxQ_BiXGijzS';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwbnVpeXpvdnh0dmxkbWJlbG5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3ODk1MzUsImV4cCI6MjA5NzM2NTUzNX0.nyntTMkJ6nkbhR6yNnIyshEciZVOIEhpEg5lygnAYZs';
 
 // ══════════════════════════════════════════
 // STORAGE LAYER — IndexedDB + localStorage + Cloud
@@ -924,68 +924,146 @@ async function loadFromIDB() {
 }
 
 // ══════════════════════════════════════════
-// CLOUD DB (Supabase)
+// CLOUD DB — REST API directe (sans SDK)
 // ══════════════════════════════════════════
 const CloudDB = {
-  client: null,
+  _token: null,
+  _refreshToken: null,
+
+  // Headers pour les requêtes
+  _headers(auth) {
+    const h = {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY,
+    };
+    if(auth && this._token) h['Authorization'] = 'Bearer ' + this._token;
+    return h;
+  },
 
   init() {
-    if(!window.supabase || SUPABASE_URL === 'SUPABASE_URL_HERE') return;
-    this.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Pas de SDK — on utilise l'API REST directement
+    // Restaure la session depuis localStorage
+    try {
+      const s = JSON.parse(localStorage.getItem('bfc_cloud_session'));
+      if(s) { this._token = s.token; this._refreshToken = s.refresh; window._bfc_user = s.user; }
+    } catch(e) {}
+  },
+
+  _saveSession(token, refresh, user) {
+    this._token = token; this._refreshToken = refresh; window._bfc_user = user;
+    localStorage.setItem('bfc_cloud_session', JSON.stringify({token, refresh, user}));
+  },
+
+  async signUp(email, password) {
+    try {
+      const r = await fetch(SUPABASE_URL+'/auth/v1/signup', {
+        method:'POST', headers: this._headers(false),
+        body: JSON.stringify({email, password})
+      });
+      const data = await r.json();
+      if(data.error || data.msg) return { error: data.error_description || data.msg || data.error };
+      if(data.access_token) this._saveSession(data.access_token, data.refresh_token, data.user);
+      return { data, error: null };
+    } catch(e) { return { error: 'Erreur réseau : '+e.message }; }
+  },
+
+  async signIn(email, password) {
+    try {
+      const r = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password', {
+        method:'POST', headers: this._headers(false),
+        body: JSON.stringify({email, password})
+      });
+      const data = await r.json();
+      if(data.error || data.error_description) return { error: data.error_description || data.error };
+      if(data.access_token) this._saveSession(data.access_token, data.refresh_token, data.user);
+      return { data, error: null };
+    } catch(e) { return { error: 'Erreur réseau : '+e.message }; }
+  },
+
+  async signOut() {
+    try {
+      await fetch(SUPABASE_URL+'/auth/v1/logout', {
+        method:'POST', headers: this._headers(true)
+      });
+    } catch(e) {}
+    this._token = null; window._bfc_user = null;
+    localStorage.removeItem('bfc_cloud_session');
+  },
+
+  async getSession() {
+    if(!this._token) return null;
+    // Verify token still valid
+    try {
+      const r = await fetch(SUPABASE_URL+'/auth/v1/user', {
+        headers: this._headers(true)
+      });
+      if(r.ok) { const u = await r.json(); window._bfc_user = u; return {user:u}; }
+      // Token expired — try refresh
+      if(this._refreshToken) {
+        const rr = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token', {
+          method:'POST', headers: this._headers(false),
+          body: JSON.stringify({refresh_token: this._refreshToken})
+        });
+        if(rr.ok) {
+          const rd = await rr.json();
+          this._saveSession(rd.access_token, rd.refresh_token, rd.user);
+          return {user: rd.user};
+        }
+      }
+    } catch(e) {}
+    return null;
   },
 
   async sync(key, value) {
-    if(!this.client || !window._bfc_user) return;
+    if(!this._token || !window._bfc_user) return;
     try {
-      await this.client.from('player_data').upsert({
-        user_id: window._bfc_user.id,
-        key,
-        value: JSON.stringify(value),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id,key' });
-    } catch(e) { console.warn('Sync failed:', e); }
+      await fetch(SUPABASE_URL+'/rest/v1/player_data', {
+        method:'POST',
+        headers: {
+          ...this._headers(true),
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          user_id: window._bfc_user.id,
+          key,
+          value: JSON.stringify(value),
+          updated_at: new Date().toISOString()
+        })
+      });
+    } catch(e) {}
   },
 
   async loadAll() {
-    if(!this.client || !window._bfc_user) return false;
+    if(!this._token || !window._bfc_user) return false;
     try {
-      const { data, error } = await this.client
-        .from('player_data')
-        .select('key,value')
-        .eq('user_id', window._bfc_user.id);
-      if(error || !data?.length) return false;
+      const r = await fetch(
+        SUPABASE_URL+'/rest/v1/player_data?user_id=eq.'+window._bfc_user.id+'&select=key,value',
+        { headers: this._headers(true) }
+      );
+      if(!r.ok) return false;
+      const data = await r.json();
+      if(!data?.length) return false;
       data.forEach(row => {
-        localStorage.setItem('bfc_'+row.key, row.value);
+        try {
+          const v = JSON.parse(row.value);
+          _cache[row.key] = v;
+          localStorage.setItem('bfc_'+row.key, row.value);
+          IDB.set(row.key, v);
+        } catch(e) {}
       });
       return true;
     } catch(e) { return false; }
   },
 
-  async signUp(email, password) {
-    if(!this.client) return { error:'Non configuré' };
-    const { data, error } = await this.client.auth.signUp({ email, password });
-    if(data?.user) window._bfc_user = data.user;
-    return { data, error };
-  },
-
-  async signIn(email, password) {
-    if(!this.client) return { error:'Non configuré' };
-    const { data, error } = await this.client.auth.signInWithPassword({ email, password });
-    if(data?.user) window._bfc_user = data.user;
-    return { data, error };
-  },
-
-  async signOut() {
-    if(!this.client) return;
-    await this.client.auth.signOut();
-    window._bfc_user = null;
-  },
-
-  async getSession() {
-    if(!this.client) return null;
-    const { data } = await this.client.auth.getSession();
-    if(data?.session?.user) window._bfc_user = data.session.user;
-    return data?.session;
+  async pushAll() {
+    if(!this._token || !window._bfc_user) return;
+    const KEYS = ['profile','xp','exercises','history','matchStats','trainStats',
+      'placement','placementHistory','rankGlobal','rankAttack','rankDefense',
+      'validated','badges','missions','totalMissionsDone','career'];
+    for(const k of KEYS) {
+      const v = DB.get(k);
+      if(v !== null) await this.sync(k, v);
+    }
   }
 };
 
@@ -2712,12 +2790,10 @@ setInterval(autoSaveToURL, 30000);
 // ══════════════════════════════════════════
 async function initCloud() {
   CloudDB.init();
-  if(!CloudDB.client) return;
   const session = await CloudDB.getSession();
   if(session) {
-    updateCloudStatus(true, session.user.email);
-    const loaded = await CloudDB.loadAll();
-    if(loaded) { initApp(); }
+    updateCloudStatus(true, session.user?.email || '');
+    await CloudDB.loadAll();
   }
 }
 
@@ -2740,7 +2816,7 @@ async function authSignIn() {
   if(!email || !password) return;
   showAuthMsg('Connexion...', 'status');
   const { data, error } = await CloudDB.signIn(email, password);
-  if(error) { showAuthMsg('Erreur : '+error.message, 'error'); return; }
+  if(error) { showAuthMsg('Erreur : '+error, 'error'); return; }
   showAuthMsg('Connecté ! Chargement des données...', 'status');
   updateCloudStatus(true, email);
   const loaded = await CloudDB.loadAll();
@@ -2748,12 +2824,11 @@ async function authSignIn() {
     showAuthMsg('Données chargées !', 'status');
     setTimeout(() => { closeModal('authModal'); initApp(); }, 800);
   } else {
-    // First login — push local data to cloud
-    const SAVE_KEYS = ['profile','xp','exercises','history','matchStats','trainStats',
-      'placement','placementHistory','rankGlobal','rankAttack','rankDefense',
-      'validated','badges','missions','totalMissionsDone','career'];
-    SAVE_KEYS.forEach(k => { const v = DB.get(k); if(v) CloudDB.sync(k, v); });
-    setTimeout(() => { closeModal('authModal'); }, 800);
+    // Première connexion — envoie les données locales vers le cloud
+    showAuthMsg('Synchronisation en cours...', 'status');
+    await CloudDB.pushAll();
+    showAuthMsg('Données synchronisées !', 'status');
+    setTimeout(() => { closeModal('authModal'); }, 1000);
   }
 }
 
@@ -2764,22 +2839,15 @@ async function authSignUp() {
   if(password.length < 6) { showAuthMsg('Mot de passe minimum 6 caractères', 'error'); return; }
   showAuthMsg('Création du compte...', 'status');
   const { data, error } = await CloudDB.signUp(email, password);
-  if(error) { showAuthMsg('Erreur : '+error.message, 'error'); return; }
-  
-  // Si confirmation email désactivée, on est connecté directement
-  if(data?.session) {
-    window._bfc_user = data.user;
-    showAuthMsg('Compte créé et connecté !', 'status');
+  if(error) { showAuthMsg('Erreur : '+error, 'error'); return; }
+  if(window._bfc_user) {
+    showAuthMsg('Compte créé ! Synchronisation...', 'status');
     updateCloudStatus(true, email);
-    // Push toutes les données locales vers le cloud
-    const SAVE_KEYS = ['profile','xp','exercises','history','matchStats','trainStats',
-      'placement','placementHistory','rankGlobal','rankAttack','rankDefense',
-      'validated','badges','missions','totalMissionsDone','career'];
-    SAVE_KEYS.forEach(k => { const v = DB.get(k); if(v) CloudDB.sync(k, v); });
+    await CloudDB.pushAll();
+    showAuthMsg('Tout est synchronisé !', 'status');
     setTimeout(() => closeModal('authModal'), 1000);
   } else {
-    // Confirmation email requise
-    showAuthMsg('Compte créé ! Va dans Supabase → Authentication → Providers → Email → désactive "Confirm email", puis réessaie.', 'status');
+    showAuthMsg('Compte créé ! Connecte-toi maintenant.', 'status');
   }
 }
 
