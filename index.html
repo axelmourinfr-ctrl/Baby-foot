@@ -914,13 +914,44 @@ const DB = {
 
 // Charge tout IndexedDB en mémoire au démarrage
 async function loadFromIDB() {
-  const all = await IDB.getAll();
-  if(!Object.keys(all).length) return false;
-  Object.entries(all).forEach(([k,v]) => {
-    _cache[k] = v;
-    try { localStorage.setItem('bfc_'+k, JSON.stringify(v)); } catch(e) {}
-  });
-  return !!all['profile'];
+  try {
+    const all = await IDB.getAll();
+    if(!all || !Object.keys(all).length) return false;
+    Object.entries(all).forEach(([k,v]) => {
+      _cache[k] = v;
+      try { localStorage.setItem('bfc_'+k, JSON.stringify(v)); } catch(e) {}
+    });
+    console.log('IDB loaded:', Object.keys(all).length, 'keys, profile:', !!all['profile']);
+    return !!all['profile'];
+  } catch(e) {
+    console.error('IDB load error:', e);
+    return false;
+  }
+}
+
+// Charge données cloud dans localStorage + cache + IDB
+async function loadFromCloud() {
+  if(!CloudDB.client || !window._bfc_user) return false;
+  try {
+    const { data, error } = await CloudDB.client
+      .from('player_data')
+      .select('key,value')
+      .eq('user_id', window._bfc_user.id);
+    if(error || !data?.length) return false;
+    data.forEach(row => {
+      try {
+        const parsed = JSON.parse(row.value);
+        _cache[row.key] = parsed;
+        localStorage.setItem('bfc_'+row.key, row.value);
+        IDB.set(row.key, parsed); // aussi dans IDB pour persistance
+      } catch(e) {}
+    });
+    console.log('Cloud loaded:', data.length, 'keys');
+    return data.some(r => r.key === 'profile');
+  } catch(e) {
+    console.error('Cloud load error:', e);
+    return false;
+  }
 }
 
 // ══════════════════════════════════════════
