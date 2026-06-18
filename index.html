@@ -348,9 +348,22 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
       <button type="button" class="btn-primary" onclick="obNext(0)">Continuer →</button>
       <div style="margin-top:16px;text-align:center;">
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">— ou —</div>
-        <button type="button" onclick="openModal('authModal')" style="width:100%;padding:14px;background:transparent;border:1px solid var(--cyan);color:var(--cyan);font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:6px;cursor:pointer;margin-bottom:10px;">
-          ☁️ Se connecter au cloud
-        </button>
+        <div id="obCloudForm" style="background:var(--bg-card);border:1px solid var(--cyan-dim);border-radius:8px;padding:16px;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;">☁️ Se connecter au cloud</div>
+          <div id="obCloudError" style="display:none;background:rgba(255,59,48,0.1);border:1px solid var(--red);border-radius:4px;padding:8px;margin-bottom:10px;font-size:12px;color:var(--red);"></div>
+          <div id="obCloudStatus" style="display:none;background:rgba(0,230,118,0.1);border:1px solid var(--green);border-radius:4px;padding:8px;margin-bottom:10px;font-size:12px;color:var(--green);"></div>
+          <div style="margin-bottom:8px;">
+            <input type="email" id="ob-cloud-email" placeholder="ton@email.com" autocomplete="email"
+              style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:16px;padding:10px 12px;border-radius:4px;outline:none;-webkit-appearance:none;">
+          </div>
+          <div style="margin-bottom:12px;">
+            <input type="password" id="ob-cloud-pass" placeholder="Mot de passe" autocomplete="current-password"
+              style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:16px;padding:10px 12px;border-radius:4px;outline:none;-webkit-appearance:none;">
+          </div>
+          <button type="button" onclick="obCloudLogin()" style="width:100%;padding:12px;background:var(--cyan-dim);border:none;color:var(--text-primary);font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:4px;cursor:pointer;">
+            Se connecter
+          </button>
+        </div>
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">— ou —</div>
         <div style="position:relative;border:1px dashed var(--border-bright);border-radius:6px;padding:14px;text-align:center;background:var(--bg-surface);cursor:pointer;">
           <input type="file" accept=".json" onchange="restoreAndSkipOnboarding(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
@@ -3009,6 +3022,51 @@ function restoreAndSkipOnboarding(input) {
     }
   };
   reader.readAsText(file);
+}
+
+// ══════════════════════════════════════════
+// CLOUD LOGIN FROM ONBOARDING
+// ══════════════════════════════════════════
+async function obCloudLogin() {
+  const email = document.getElementById('ob-cloud-email')?.value.trim();
+  const pass  = document.getElementById('ob-cloud-pass')?.value;
+  const errEl = document.getElementById('obCloudError');
+  const stEl  = document.getElementById('obCloudStatus');
+
+  if(!email || !pass) {
+    if(errEl){ errEl.textContent='Entre ton email et mot de passe.'; errEl.style.display='block'; }
+    return;
+  }
+  if(errEl) errEl.style.display='none';
+  if(stEl){ stEl.textContent='Connexion...'; stEl.style.display='block'; }
+
+  // Init cloud if not done yet
+  if(!CloudDB.client) CloudDB.init();
+
+  const { data, error } = await CloudDB.signIn(email, pass);
+  if(error) {
+    if(stEl) stEl.style.display='none';
+    if(errEl){ errEl.textContent='Erreur : '+(error.message||'Connexion impossible'); errEl.style.display='block'; }
+    return;
+  }
+
+  if(stEl) stEl.textContent = 'Chargement des données...';
+
+  // Load data from cloud
+  const loaded = await loadFromCloud();
+
+  if(loaded) {
+    if(stEl) stEl.textContent = '✅ Données chargées !';
+    setTimeout(() => {
+      document.getElementById('onboarding').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+      initApp();
+      updateCloudStatus(true, email);
+    }, 600);
+  } else {
+    if(stEl) stEl.textContent = 'Connecté mais aucune donnée trouvée.';
+    if(errEl){ errEl.textContent = 'Aucune donnée dans le cloud. Inscris-toi normalement.'; errEl.style.display='block'; }
+  }
 }
 
 </script>
