@@ -3064,8 +3064,30 @@ async function obCloudLogin() {
       updateCloudStatus(true, email);
     }, 600);
   } else {
-    if(stEl) stEl.textContent = 'Connecté mais aucune donnée trouvée.';
-    if(errEl){ errEl.textContent = 'Aucune donnée dans le cloud. Inscris-toi normalement.'; errEl.style.display='block'; }
+    // Aucune donnée dans le cloud — on vérifie si données locales à uploader
+    const localProfile = DB.get('profile');
+    if(localProfile) {
+      if(stEl) stEl.textContent = 'Upload des données locales vers le cloud...';
+      const SAVE_KEYS = ['profile','xp','exercises','history','matchStats','trainStats',
+        'placement','placementHistory','rankGlobal','rankAttack','rankDefense',
+        'validated','badges','missions','totalMissionsDone','career'];
+      for(const k of SAVE_KEYS) {
+        const v = DB.get(k);
+        if(v) await CloudDB.sync(k, v);
+      }
+      if(stEl) stEl.textContent = '✅ Données sauvegardées dans le cloud !';
+      setTimeout(() => {
+        document.getElementById('onboarding').style.display = 'none';
+        document.getElementById('app').classList.add('visible');
+        initApp();
+        updateCloudStatus(true, email);
+      }, 800);
+    } else {
+      // Vraiment aucune donnée nulle part — nouvel utilisateur
+      if(stEl) stEl.textContent = '✅ Connecté ! Continue ton inscription.';
+      if(errEl) errEl.style.display = 'none';
+      // Laisse l'onboarding continuer normalement
+    }
   }
 }
 
