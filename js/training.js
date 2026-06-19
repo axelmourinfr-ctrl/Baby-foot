@@ -1,0 +1,551 @@
+// ══════════════════════════════════════════
+// TRAINING — Mode classique + Mode chrono
+// ══════════════════════════════════════════
+let currentCat = 'passes';
+let pendingExCat = 'passes';
+
+// ── Mode chrono state ──
+let chronoState = {
+  active: false,
+  exerciseId: null,
+  exerciseName: null,
+  exerciseType: null,
+  table: 'other',
+  totalReps: 20,
+  currentRep: 0,
+  results: [], // {success, time, penalty}
+  timerLimit: 35,
+  timerStart: null,
+  timerInterval: null,
+  waiting: true // waiting for "Prêt" press
+};
+
+function getTimerLimit(cat, table) {
+  // Le bouton "Prêt" gère déjà le temps de manipulation.
+  // Temps réel réglementaire une fois "Prêt" pressé :
+  if(table === 'jupiter') return 15; // Jupiter : 15 sec partout
+  return cat === 'passes' ? 10 : 15; // Autres tables : 10 sec milieu, 15 sec attaque/défense
+}
+
+function switchCat(cat, el) {
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentCat = cat;
+  renderTraining(cat);
+}
+
+function renderTraining(cat) {
+  const exercises = DB.get('exercises') || DEFAULT_EXERCISES;
+  const list = exercises[cat] || [];
+  const ts = DB.get('trainStats') || {};
+  const labels = { passes:['Tentatives','Réussites'], goals:['Tentatives','Buts'], saves:['Tentatives','Arrêts'] };
+
+  let html = `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+    <div class="qa-btn accent" onclick="showChronoSetup('${cat}')">
+      <div class="qa-btn-icon">⏱️</div>
+      <div class="qa-btn-label">Mode Chrono</div>
+      <div class="qa-btn-sub">Avec timer réaliste</div>
+    </div>
+    <div class="qa-btn" onclick="document.getElementById('classicMode').style.display='block';document.getElementById('chronoSetup').style.display='none';">
+      <div class="qa-btn-icon">📋</div>
+      <div class="qa-btn-label">Mode Classique</div>
+      <div class="qa-btn-sub">Saisie totaux</div>
+    </div>
+  </div>
+  <div id="chronoSetup" style="display:none;"></div>
+  <div id="chronoSession" style="display:none;"></div>
+  <div id="classicMode">
+    <div class="exercise-list">`;
+
+  list.forEach(ex => {
+    const s = ts[ex.id]||{tried:0,ok:0};
+    const pct = s.tried>0 ? Math.round(s.ok/s.tried*100) : null;
+    const pc = pct===null?'':pct>=70?' good':pct>=40?' mid':' low';
+    const [l1,l2] = labels[ex.type]||['Tentatives','Réussites'];
+    html += `
+    <div class="exercise-card">
+      <div class="exercise-header">
+        <div class="exercise-name">${ex.name}</div>
+        <div class="exercise-pct${pc}">${pct===null?'—':pct+'%'}</div>
+      </div>
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">Total : ${s.tried} essais · ${s.ok} réussites</div>
+      <div class="exercise-inputs">
+        <div class="ex-input-wrap"><label>${l1}</label>
+          <input type="number" id="tried-${ex.id}" placeholder="0" min="0" oninput="updatePct('${ex.id}','${ex.type}')">
+        </div>
+        <div class="ex-input-wrap"><label>${l2}</label>
+          <input type="number" id="ok-${ex.id}" placeholder="0" min="0" oninput="updatePct('${ex.id}','${ex.type}')">
+        </div>
+      </div>
+      <div class="ex-bar"><div class="ex-bar-fill" id="bar-${ex.id}" style="width:${pct||0}%"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;">
+        <button type="button" class="ex-save-btn" onclick="saveExercise('${ex.id}','${ex.type}')">💾 Enregistrer</button>
+        <button type="button" class="ex-save-btn" style="border-color:var(--cyan-dim);color:var(--cyan);" onclick="showChronoSetup('${currentCat}','${ex.id}')">⏱️ Chrono</button>
+      </div>
+    </div>`;
+  });
+
+  html += `</div>
+    <button type="button" class="add-exercise-btn" onclick="openAddExercise('${cat}')">+ Ajouter un exercice</button>
+  </div>`;
+
+  document.getElementById('trainingContent').innerHTML = html;
+}
+
+function showChronoSetup(cat, preselectedId) {
+  document.getElementById('classicMode').style.display = 'none';
+  document.getElementById('chronoSession').style.display = 'none';
+  const exercises = DB.get('exercises') || DEFAULT_EXERCISES;
+  const list = exercises[cat] || [];
+
+  const setupEl = document.getElementById('chronoSetup');
+  setupEl.style.display = 'block';
+  setupEl.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--gold-dim);border-radius:8px;padding:16px;margin-bottom:12px;">
+      <div class="section-title" style="margin-bottom:12px;">⏱️ Configuration Chrono</div>
+
+      <div class="modal-field" style="margin-bottom:12px;">
+        <label>Table pratiquée</label>
+        <select id="chrono-table" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:15px;padding:10px 12px;border-radius:4px;outline:none;" onchange="updateChronoTimer()">
+          <option value="jupiter">Jupiter (15 sec · passe à l'arrêt OK)</option>
+          <option value="other" selected>Bonzini / Tornado / Autre (10-15 sec · passe en mouvement)</option>
+        </select>
+      </div>
+
+      <div class="modal-field" style="margin-bottom:12px;">
+        <label>Exercice</label>
+        <select id="chrono-exercise" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:15px;padding:10px 12px;border-radius:4px;outline:none;">
+          ${list.map(ex => `<option value="${ex.id}" data-type="${ex.type}" ${ex.id===preselectedId?'selected':''}>${ex.name}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="modal-field" style="margin-bottom:12px;">
+        <label>Nombre de tentatives</label>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+          ${[10,20,30,50].map(n=>`<button type="button" id="reps-${n}" onclick="selectReps(${n})" style="padding:10px;background:${n===20?'var(--gold)':'var(--bg-surface)'};color:${n===20?'#000':'var(--text-primary)'};border:1px solid var(--border-bright);border-radius:4px;font-size:15px;font-weight:700;cursor:pointer;">${n}</button>`).join('')}
+        </div>
+      </div>
+
+      <div style="background:var(--bg-surface);border-radius:6px;padding:10px;margin-bottom:14px;font-size:12px;color:var(--text-secondary);">
+        ⏱️ Timer : <span id="chrono-timer-info" style="color:var(--gold);font-weight:700;">35 secondes</span> par tentative
+        <div style="margin-top:4px;font-size:11px;color:var(--text-muted);">Le timer démarre quand tu appuies sur "Prêt !"</div>
+      </div>
+
+      <button type="button" class="btn-primary" onclick="startChronoSession()">🚀 Lancer la session</button>
+      <button type="button" class="add-exercise-btn" style="margin-top:8px;" onclick="renderTraining(currentCat)">← Retour</button>
+    </div>`;
+
+  // Default selected reps
+  window._chronoReps = 20;
+  updateChronoTimer();
+}
+
+function selectReps(n) {
+  window._chronoReps = n;
+  [10,20,30,50].forEach(r => {
+    const btn = document.getElementById('reps-'+r);
+    if(btn) {
+      btn.style.background = r===n ? 'var(--gold)' : 'var(--bg-surface)';
+      btn.style.color = r===n ? '#000' : 'var(--text-primary)';
+    }
+  });
+}
+
+function updateChronoTimer() {
+  const table = document.getElementById('chrono-table')?.value || 'other';
+  const cat = currentCat;
+  const limit = getTimerLimit(cat, table);
+  const infoEl = document.getElementById('chrono-timer-info');
+  if(infoEl) infoEl.textContent = limit + ' secondes';
+}
+
+function startChronoSession() {
+  const exSelect = document.getElementById('chrono-exercise');
+  const exId = exSelect?.value;
+  const exName = exSelect?.options[exSelect.selectedIndex]?.text;
+  const exType = exSelect?.options[exSelect.selectedIndex]?.dataset.type || 'passes';
+  const table = document.getElementById('chrono-table')?.value || 'other';
+  const totalReps = window._chronoReps || 20;
+  const timerLimit = getTimerLimit(currentCat, table);
+
+  chronoState = {
+    active: true,
+    exerciseId: exId,
+    exerciseName: exName,
+    exerciseType: exType,
+    cat: currentCat,
+    table,
+    totalReps,
+    currentRep: 0,
+    results: [],
+    timerLimit,
+    timerStart: null,
+    timerInterval: null,
+    waiting: true
+  };
+
+  document.getElementById('chronoSetup').style.display = 'none';
+  renderChronoSession();
+}
+
+function renderChronoSession() {
+  const s = chronoState;
+  const sessionEl = document.getElementById('chronoSession');
+  sessionEl.style.display = 'block';
+
+  const resultDots = Array(s.totalReps).fill(null).map((_, i) => {
+    if(i >= s.results.length) return `<div style="width:12px;height:12px;border-radius:50%;background:var(--border);display:inline-block;margin:2px;"></div>`;
+    const r = s.results[i];
+    const color = r.success ? (r.penalty ? '#FF9500' : 'var(--green)') : 'var(--red)';
+    return `<div style="width:12px;height:12px;border-radius:50%;background:${color};display:inline-block;margin:2px;" title="${r.success?'✓':'✗'}${r.penalty?' (pénalité)':''}"></div>`;
+  }).join('');
+
+  const successCount = s.results.filter(r=>r.success).length;
+  const pct = s.results.length > 0 ? Math.round(successCount/s.results.length*100) : 0;
+
+  sessionEl.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;">
+
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">⏱️ Mode Chrono</div>
+          <div style="font-size:18px;font-weight:900;color:var(--text-primary);">${s.exerciseName}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:28px;font-weight:900;color:var(--gold);">${s.currentRep}/${s.totalReps}</div>
+          <div style="font-size:13px;color:var(--text-muted);">${successCount} réussites · ${pct}%</div>
+        </div>
+      </div>
+
+      <!-- Result dots -->
+      <div style="text-align:center;margin-bottom:16px;padding:8px;background:var(--bg-surface);border-radius:6px;">
+        ${resultDots}
+      </div>
+
+      <!-- Timer display -->
+      <div id="chrono-display" style="text-align:center;margin-bottom:16px;">
+        ${s.waiting && s.currentRep === 0 ? `
+          <div style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;">Place ta balle et prépare-toi</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Tu as <strong style="color:var(--gold);">${s.timerLimit} secondes</strong> par tentative</div>
+          <button type="button" onclick="chronoReady()" style="width:100%;padding:18px;background:var(--green);border:none;color:#000;font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;border-radius:8px;cursor:pointer;">
+            ✋ PRÊT !
+          </button>
+        ` : s.waiting ? `
+          <div style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;">Replace la balle et prépare la tentative ${s.currentRep+1}</div>
+          <button type="button" onclick="chronoReady()" style="width:100%;padding:18px;background:var(--green);border:none;color:#000;font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;border-radius:8px;cursor:pointer;">
+            ✋ PRÊT !
+          </button>
+        ` : `
+          <div style="background:var(--bg-surface);border-radius:8px;padding:16px;margin-bottom:12px;">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;letter-spacing:2px;text-transform:uppercase;">TEMPS RESTANT</div>
+            <div id="chrono-timer-val" style="font-size:64px;font-weight:900;color:var(--gold);line-height:1;">${s.timerLimit}</div>
+            <div style="height:6px;background:var(--border);border-radius:3px;margin-top:8px;overflow:hidden;">
+              <div id="chrono-timer-bar" style="height:100%;background:var(--green);border-radius:3px;width:100%;transition:width 0.1s;"></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <button type="button" onclick="chronoRecord(true)" style="padding:20px;background:rgba(0,230,118,0.1);border:2px solid var(--green);border-radius:8px;color:var(--green);font-size:24px;font-weight:900;cursor:pointer;">✓ Réussi</button>
+            <button type="button" onclick="chronoRecord(false)" style="padding:20px;background:rgba(255,59,48,0.1);border:2px solid var(--red);border-radius:8px;color:var(--red);font-size:24px;font-weight:900;cursor:pointer;">✗ Raté</button>
+          </div>
+        `}
+      </div>
+
+      <!-- Stop button -->
+      <button type="button" onclick="stopChronoSession()" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-bright);color:var(--text-muted);font-size:13px;font-weight:700;text-transform:uppercase;border-radius:4px;cursor:pointer;margin-top:8px;">
+        Arrêter la session
+      </button>
+    </div>`;
+}
+
+function chronoReady() {
+  chronoState.waiting = false;
+  chronoState.timerStart = Date.now();
+
+  // Start countdown
+  let elapsed = 0;
+  chronoState.timerInterval = setInterval(() => {
+    elapsed = (Date.now() - chronoState.timerStart) / 1000;
+    const remaining = Math.max(0, chronoState.timerLimit - elapsed);
+    const pct = (remaining / chronoState.timerLimit) * 100;
+
+    const timerVal = document.getElementById('chrono-timer-val');
+    const timerBar = document.getElementById('chrono-timer-bar');
+    if(timerVal) timerVal.textContent = Math.ceil(remaining);
+    if(timerBar) {
+      timerBar.style.width = pct + '%';
+      timerBar.style.background = remaining > chronoState.timerLimit*0.5 ? 'var(--green)' : remaining > chronoState.timerLimit*0.25 ? '#FF9500' : 'var(--red)';
+    }
+    if(timerVal) timerVal.style.color = remaining > chronoState.timerLimit*0.5 ? 'var(--gold)' : remaining > chronoState.timerLimit*0.25 ? '#FF9500' : 'var(--red)';
+
+    if(remaining <= 0) {
+      clearInterval(chronoState.timerInterval);
+      // Temps dépassé - vibrer si possible
+      if(navigator.vibrate) navigator.vibrate([100,50,100]);
+    }
+  }, 100);
+
+  renderChronoSession();
+}
+
+function chronoRecord(success) {
+  clearInterval(chronoState.timerInterval);
+
+  const elapsed = chronoState.timerStart ? (Date.now() - chronoState.timerStart) / 1000 : 0;
+  const penalty = elapsed > chronoState.timerLimit;
+
+  // Score avec pénalité si dépassement
+  const effectiveSuccess = success && !penalty ? true : success && penalty ? 'penalty' : false;
+
+  chronoState.results.push({
+    success: success,
+    penalty: penalty,
+    time: Math.round(elapsed * 10) / 10,
+    rep: chronoState.currentRep + 1
+  });
+
+  chronoState.currentRep++;
+  chronoState.waiting = true;
+  chronoState.timerStart = null;
+
+  if(chronoState.currentRep >= chronoState.totalReps) {
+    finishChronoSession();
+  } else {
+    renderChronoSession();
+  }
+}
+
+function finishChronoSession() {
+  const s = chronoState;
+  clearInterval(s.timerInterval);
+
+  // Calculate stats
+  const total = s.results.length;
+  const successes = s.results.filter(r=>r.success && !r.penalty).length;
+  const successesPenalty = s.results.filter(r=>r.success && r.penalty).length;
+  const fails = s.results.filter(r=>!r.success).length;
+  const pct = Math.round(successes/total*100);
+  const avgTime = Math.round(s.results.reduce((a,r)=>a+r.time,0)/total*10)/10;
+
+  // Constance score
+  const first5 = s.results.slice(0,5).filter(r=>r.success).length;
+  const last5  = s.results.slice(-5).filter(r=>r.success).length;
+  const mid    = s.results.slice(5,-5).filter(r=>r.success).length;
+  const midTotal = Math.max(1, total - 10);
+  const constanceBonus = last5 >= first5 ? 3 : last5 < first5 - 2 ? -5 : 0;
+  const regularityBonus = Math.abs(last5 - first5) <= 1 ? 5 : 0;
+  const adjustedPct = Math.min(100, Math.max(0, pct + constanceBonus + regularityBonus));
+
+  // Heat map
+  const heatmap = s.results.map(r => {
+    const color = !r.success ? 'var(--red)' : r.penalty ? '#FF9500' : 'var(--green)';
+    return `<div style="width:14px;height:14px;border-radius:3px;background:${color};display:inline-block;margin:2px;" title="T${r.rep}: ${r.success?'✓':'✗'} (${r.time}s)"></div>`;
+  }).join('');
+
+  // Save to trainStats
+  const ts = DB.get('trainStats') || {};
+  const prev = ts[s.exerciseId] || { tried:0, ok:0, type:s.exerciseType };
+  ts[s.exerciseId] = { tried:prev.tried+total, ok:prev.ok+successes+successesPenalty, type:s.exerciseType };
+  DB.set('trainStats', ts);
+
+  // XP
+  const xpGain = Math.max(10, Math.round(total*0.5) + (pct>=70?15:0) + regularityBonus*2);
+  addXP(xpGain, 'Chrono · '+s.exerciseName+' · '+pct+'%');
+  DB.push('history', {type:'training',ts:Date.now(),exerciseId:s.exerciseId,tried:total,ok:successes,xp:xpGain,chrono:true,avgTime});
+
+  // Save chrono history for comparison
+  const chronoHist = DB.get('chronoHistory') || [];
+  chronoHist.push({ exerciseId:s.exerciseId, name:s.exerciseName, date:Date.now(), pct, adjustedPct, avgTime, results:s.results });
+  if(chronoHist.length > 50) chronoHist.shift();
+  DB.set('chronoHistory', chronoHist);
+
+  // Previous best for comparison
+  const prevSessions = chronoHist.slice(0,-1).filter(h=>h.exerciseId===s.exerciseId);
+  const prevBest = prevSessions.length > 0 ? Math.max(...prevSessions.map(h=>h.pct)) : null;
+  const prevAvg  = prevSessions.length > 0 ? Math.round(prevSessions.reduce((a,h)=>a+h.avgTime,0)/prevSessions.length*10)/10 : null;
+
+  const sessionEl = document.getElementById('chronoSession');
+  sessionEl.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--gold-dim);border-radius:8px;padding:16px;margin-bottom:12px;">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Session terminée</div>
+        <div style="font-size:22px;font-weight:900;color:var(--text-primary);">${s.exerciseName}</div>
+        <div style="font-size:48px;font-weight:900;color:${pct>=70?'var(--green)':pct>=40?'#FF9500':'var(--red)'};">${pct}%</div>
+        ${constanceBonus !== 0 || regularityBonus !== 0 ? `<div style="font-size:12px;color:var(--cyan);margin-top:4px;">Score ajusté : ${adjustedPct}% (constance ${constanceBonus>=0?'+':''}${constanceBonus}% ${regularityBonus>0?'régularité +'+regularityBonus+'%':''})</div>` : ''}
+      </div>
+
+      <!-- Stats grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div class="stats-pill"><div class="stats-pill-val" style="color:var(--green);">${successes}</div><div class="stats-pill-lbl">Réussites</div></div>
+        <div class="stats-pill"><div class="stats-pill-val" style="color:#FF9500;">${successesPenalty}</div><div class="stats-pill-lbl">Pénalités</div></div>
+        <div class="stats-pill"><div class="stats-pill-val" style="color:var(--red);">${fails}</div><div class="stats-pill-lbl">Ratés</div></div>
+      </div>
+
+      <!-- Timing -->
+      <div style="background:var(--bg-surface);border-radius:6px;padding:10px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:var(--text-secondary);">Temps moyen</span>
+          <span style="color:var(--gold);font-weight:700;">${avgTime}s</span>
+        </div>
+        ${prevAvg ? `<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px;">
+          <span style="color:var(--text-muted);">Session précédente</span>
+          <span style="color:${avgTime<prevAvg?'var(--green)':'var(--red)'};font-weight:700;">${prevAvg}s ${avgTime<prevAvg?'↓ plus rapide':'↑ plus lent'}</span>
+        </div>` : ''}
+        ${prevBest !== null ? `<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px;">
+          <span style="color:var(--text-muted);">Meilleur % précédent</span>
+          <span style="color:${pct>=prevBest?'var(--green)':'var(--text-muted)'};font-weight:700;">${prevBest}% ${pct>=prevBest?'🏆 Nouveau record !':''}</span>
+        </div>` : ''}
+      </div>
+
+      <!-- Constance analysis -->
+      <div style="background:var(--bg-surface);border-radius:6px;padding:10px;margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Analyse constance</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span style="color:var(--text-secondary);">5 premières (chauffe)</span>
+          <span style="color:var(--gold);">${first5}/5</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span style="color:var(--text-secondary);">Milieu de série</span>
+          <span style="color:var(--gold);">${mid}/${midTotal}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;">
+          <span style="color:var(--text-secondary);">5 dernières (niveau réel)</span>
+          <span style="color:${last5>=first5?'var(--green)':'var(--red)'}">${last5}/5 ${last5>=first5?'✓':last5<first5-2?'⚠️ chute':''}</span>
+        </div>
+      </div>
+
+      <!-- Heatmap -->
+      <div style="background:var(--bg-surface);border-radius:6px;padding:10px;margin-bottom:16px;">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Carte des tentatives</div>
+        <div style="text-align:center;">${heatmap}</div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:6px;font-size:10px;color:var(--text-muted);">
+          <span>🟢 Réussi</span><span>🟠 Réussi+pénalité</span><span>🔴 Raté</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button type="button" onclick="showChronoSetup(currentCat)" style="padding:12px;background:var(--gold);border:none;color:#000;font-size:14px;font-weight:700;text-transform:uppercase;border-radius:6px;cursor:pointer;">🔄 Refaire</button>
+        <button type="button" onclick="renderTraining(currentCat)" style="padding:12px;background:transparent;border:1px solid var(--border-bright);color:var(--text-secondary);font-size:14px;font-weight:700;text-transform:uppercase;border-radius:6px;cursor:pointer;">← Retour</button>
+      </div>
+    </div>`;
+
+  autoCheckObjectives();
+  checkBadges();
+  updateCoach();
+  renderDashboard();
+}
+
+function stopChronoSession() {
+  clearInterval(chronoState.timerInterval);
+  chronoState.active = false;
+  renderTraining(currentCat);
+}
+
+function updatePct(id, type) {
+  const tried = parseInt(document.getElementById('tried-'+id)?.value)||0;
+  const ok    = parseInt(document.getElementById('ok-'+id)?.value)||0;
+  const pct = tried>0 ? Math.round(ok/tried*100) : null;
+  const pEl = document.getElementById('pct-'+id);
+  const bEl = document.getElementById('bar-'+id);
+  if(pEl){ pEl.textContent=pct===null?'—':pct+'%'; pEl.className='exercise-pct'+(pct===null?'':pct>=70?' good':pct>=40?' mid':' low'); }
+  if(bEl) bEl.style.width=(pct||0)+'%';
+}
+
+function saveExercise(id, type) {
+  const tried = parseInt(document.getElementById('tried-'+id)?.value)||0;
+  const ok    = parseInt(document.getElementById('ok-'+id)?.value)||0;
+  if(!tried) return;
+  const ts = DB.get('trainStats')||{};
+  const prev = ts[id]||{tried:0,ok:0,type};
+  ts[id] = { tried:prev.tried+tried, ok:prev.ok+ok, type };
+  DB.set('trainStats',ts);
+  document.getElementById('tried-'+id).value='';
+  document.getElementById('ok-'+id).value='';
+  updatePct(id,type);
+  const xpGain = Math.max(5, Math.round(tried*0.5)+(ok>=tried*0.7?10:0));
+  addXP(xpGain, 'Entraînement · '+tried+' rép.');
+  DB.push('history',{type:'training',ts:Date.now(),exerciseId:id,tried,ok,xp:xpGain});
+  if(tried>0) updateLeagueFromTraining(Math.round(ok/tried*100));
+  renderDashboard(); checkBadges(); autoCheckObjectives(); updateCoach();
+}
+
+function openAddExercise(cat) {
+  pendingExCat = cat;
+  document.getElementById('newExName').value='';
+  document.getElementById('addExModal').classList.add('open');
+}
+
+function confirmAddExercise() {
+  const name = document.getElementById('newExName').value.trim();
+  const type = document.getElementById('newExType').value;
+  if(!name) return;
+  const exercises = DB.get('exercises')||DEFAULT_EXERCISES;
+  const id = 'custom_'+Date.now();
+  exercises[pendingExCat] = exercises[pendingExCat]||[];
+  exercises[pendingExCat].push({id,name,type});
+  DB.set('exercises',exercises);
+  closeModal('addExModal');
+  renderTraining(pendingExCat);
+}
+
+// ══════════════════════════════════════════
+// MATCH
+// ══════════════════════════════════════════
+let matchRole = 'att';
+let matchCounts = {};
+
+const matchFields = {
+  att:[
+    {key:'passTried',  label:'Passes tentées'},
+    {key:'passOk',     label:'Passes réussies'},
+    {key:'shotTried',  label:'Tirs tentés'},
+    {key:'goals',      label:'Buts marqués'},
+    {key:'recovered',  label:'Balles récupérées'},
+  ],
+  def:[
+    {key:'saves',        label:'Arrêts'},
+    {key:'passTried',    label:'Passes tentées'},
+    {key:'passOk',       label:'Passes réussies'},
+    {key:'lostRelance',  label:'Relances perdues'},
+    {key:'goalsConceded',label:'Buts encaissés'},
+  ]
+};
+
+function selectRole(role) {
+  matchRole = role;
+  document.getElementById('role-att').classList.toggle('selected',role==='att');
+  document.getElementById('role-def').classList.toggle('selected',role==='def');
+  renderMatch(role);
+}
+
+function renderMatch(role) {
+  matchCounts = {};
+  matchFields[role].forEach(f=>matchCounts[f.key]=0);
+  document.getElementById('matchForm').innerHTML = matchFields[role].map(f=>`
+    <div class="match-stat-input">
+      <div class="msi-label">${f.label}</div>
+      <div class="msi-controls">
+        <div class="msi-btn" onclick="matchAdj('${f.key}',-1)">−</div>
+        <div class="msi-val" id="msi-${f.key}">0</div>
+        <div class="msi-btn" onclick="matchAdj('${f.key}',1)">+</div>
+      </div>
+    </div>`).join('');
+}
+
+function matchAdj(key, delta) {
+  matchCounts[key] = Math.max(0,(matchCounts[key]||0)+delta);
+  document.getElementById('msi-'+key).textContent = matchCounts[key];
+}
+
+function saveMatch() {
+  const xpGain = 30+(matchRole==='att'?(matchCounts.goals||0)*5:(matchCounts.saves||0)*3);
+  addXP(xpGain,'Match · '+(matchRole==='att'?'Attaquant':'Défenseur'));
+  const ms = DB.get('matchStats')||{att:{},def:{}};
+  Object.entries(matchCounts).forEach(([k,v])=>{ ms[matchRole][k]=(ms[matchRole][k]||0)+v; });
+  DB.set('matchStats',ms);
+  DB.push('history',{type:'match',ts:Date.now(),role:matchRole,counts:{...matchCounts},xp:xpGain});
+  renderMatch(matchRole);
+  renderDashboard(); checkBadges(); autoCheckObjectives(); updateCoach();
+  navTo('dash');
+}

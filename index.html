@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080C12">
+<title>BabyFoot Coach RPG</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ══ ONBOARDING ══ -->
+<div id="onboarding">
+  <div class="ob-wrap">
+    <div class="ob-logo">Babyfoot Coach</div>
+    <div class="ob-title">LEVEL<br><span>UP</span><br>YOUR<br>GAME</div>
+    <div class="ob-sub">Entraîne-toi comme un pro. Progresse comme un RPG.</div>
+    <div class="ob-dots">
+      <div class="ob-dot active" id="dot0"></div>
+      <div class="ob-dot" id="dot1"></div>
+      <div class="ob-dot" id="dot2"></div>
+    </div>
+    <div class="ob-step active" id="step0">
+      <div class="ob-step-label">Étape 1 / 3</div>
+      <div class="ob-step-title">Qui es-tu ?</div>
+      <div class="ob-field"><label>Ton nom / pseudo</label><input type="text" id="ob-name" placeholder="Ex: Axel, Le Mur ..." maxlength="30"></div>
+      <div class="ob-field"><label>Main dominante</label>
+        <select id="ob-hand"><option value="">— Choisir —</option><option>Droitier</option><option>Gaucher</option><option>Ambidextre</option></select></div>
+      <div class="ob-field"><label>Poste préféré</label>
+        <select id="ob-pos"><option value="">— Choisir —</option><option>Défenseur</option><option>Attaquant</option><option>Polyvalent</option></select></div>
+      <button type="button" class="btn-primary" onclick="obNext(0)">Continuer →</button>
+      <div style="margin-top:16px;text-align:center;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">— ou —</div>
+        <div id="obCloudForm" style="background:var(--bg-card);border:1px solid var(--cyan-dim);border-radius:8px;padding:16px;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;">☁️ Se connecter au cloud</div>
+          <div id="obCloudError" style="display:none;background:rgba(255,59,48,0.1);border:1px solid var(--red);border-radius:4px;padding:8px;margin-bottom:10px;font-size:12px;color:var(--red);"></div>
+          <div id="obCloudStatus" style="display:none;background:rgba(0,230,118,0.1);border:1px solid var(--green);border-radius:4px;padding:8px;margin-bottom:10px;font-size:12px;color:var(--green);"></div>
+          <div style="margin-bottom:8px;">
+            <input type="email" id="ob-cloud-email" placeholder="ton@email.com" autocomplete="email"
+              style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:16px;padding:10px 12px;border-radius:4px;outline:none;-webkit-appearance:none;">
+          </div>
+          <div style="margin-bottom:12px;">
+            <input type="password" id="ob-cloud-pass" placeholder="Mot de passe" autocomplete="current-password"
+              style="width:100%;background:var(--bg-surface);border:1px solid var(--border-bright);color:var(--text-primary);font-size:16px;padding:10px 12px;border-radius:4px;outline:none;-webkit-appearance:none;">
+          </div>
+          <button type="button" onclick="obCloudLogin()" style="width:100%;padding:12px;background:var(--cyan-dim);border:none;color:var(--text-primary);font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:4px;cursor:pointer;">
+            Se connecter
+          </button>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">— ou —</div>
+        <div style="position:relative;border:1px dashed var(--border-bright);border-radius:6px;padding:14px;text-align:center;background:var(--bg-surface);cursor:pointer;">
+          <input type="file" accept=".json" onchange="restoreAndSkipOnboarding(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+          <div style="font-size:14px;color:var(--gold);font-weight:700;">📂 Restaurer une sauvegarde</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Charge ton fichier .json pour retrouver ton profil</div>
+        </div>
+      </div>
+    </div>
+    <div class="ob-step" id="step1">
+      <div class="ob-step-label">Étape 2 / 3</div>
+      <div class="ob-step-title">Ton avatar</div>
+      <div style="margin-bottom:12px;">
+        <img id="photoPreview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:none;border:2px solid var(--gold);display:none;" alt="">
+        <div class="ob-photo-upload"><input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(this)">📷 Ajouter une photo (optionnel)</div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;text-align:center;">— ou choisir un emoji —</div>
+      <div class="ob-avatar-picker">
+        <div class="avatar-opt selected" data-emoji="⚽" onclick="selectAvatar(this)">⚽</div>
+        <div class="avatar-opt" data-emoji="🥅" onclick="selectAvatar(this)">🥅</div>
+        <div class="avatar-opt" data-emoji="🎯" onclick="selectAvatar(this)">🎯</div>
+        <div class="avatar-opt" data-emoji="🛡️" onclick="selectAvatar(this)">🛡️</div>
+        <div class="avatar-opt" data-emoji="⚡" onclick="selectAvatar(this)">⚡</div>
+        <div class="avatar-opt" data-emoji="🔥" onclick="selectAvatar(this)">🔥</div>
+        <div class="avatar-opt" data-emoji="💪" onclick="selectAvatar(this)">💪</div>
+        <div class="avatar-opt" data-emoji="🏆" onclick="selectAvatar(this)">🏆</div>
+      </div>
+      <button type="button" class="btn-primary" onclick="obNext(1)">Continuer →</button>
+    </div>
+    <div class="ob-step" id="step2">
+      <div class="ob-step-label">Étape 3 / 3</div>
+      <div class="ob-step-title">Niveau & Tables</div>
+      <div class="ob-field"><label>Niveau actuel</label>
+        <select id="ob-level"><option>Débutant</option><option selected>Intermédiaire</option><option>Confirmé</option><option>Expert</option><option>Elite</option></select></div>
+      <div class="ob-field"><label>Tables pratiquées</label><input type="text" id="ob-tables" placeholder="Ex: Bonzini, Tornado, Garlando"></div>
+      <div class="ob-field"><label>ELO réel (optionnel)</label><input type="number" id="ob-elo" placeholder="Ex: 1250"></div>
+      <div class="ob-field"><label>Objectif principal</label><input type="text" id="ob-goal" placeholder="Ex: Monter en division 2"></div>
+      <button type="button" class="btn-primary" onclick="finishOnboarding()">🚀 Commencer</button>
+    </div>
+  </div>
+</div>
+
+<!-- XP TOAST -->
+<div class="xp-toast" id="xpToast"></div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">BFC·RPG</div>
+    <div id="cloudStatus" onclick="openModal('authModal')" style="cursor:pointer;font-size:11px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);color:var(--text-muted);display:flex;align-items:center;gap:4px;">
+      <span id="cloudIcon">☁️</span><span id="cloudLabel">Cloud</span>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-xp"><span id="tb-xp">0 XP</span><span style="color:var(--text-muted)">·</span><span id="tb-lvl" style="color:var(--gold)">NV.1</span></div>
+      <div class="topbar-avatar" id="topbarAvatar" onclick="navTo('profile')">⚽</div>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- DASHBOARD -->
+    <div class="screen active" id="screen-dash">
+      <div class="dash-hero">
+        <div class="dash-hero-greeting" id="dash-greeting">Bienvenue</div>
+        <div class="dash-hero-name" id="dash-name">—</div>
+        <div class="dash-hero-rank" id="dash-rank">—</div>
+        <div class="dash-xp-bar-wrap">
+          <div class="dash-xp-label"><span id="dash-xp-cur">0 XP</span><span id="dash-xp-next">100 XP</span></div>
+          <div class="dash-xp-bar"><div class="dash-xp-fill" id="dash-xp-fill" style="width:0%"></div></div>
+        </div>
+        <div class="dash-level-badge"><div class="dash-level-num" id="dash-level">1</div><div class="dash-level-lbl">Niv.</div></div>
+      </div>
+      <div class="section-title">Aujourd'hui</div>
+      <div class="stat-grid">
+        <div class="stat-card highlight"><div class="stat-card-label">Sessions</div><div class="stat-card-value" id="stat-sessions">0</div><div class="stat-card-sub">aujourd'hui</div></div>
+        <div class="stat-card"><div class="stat-card-label">Matchs</div><div class="stat-card-value" id="stat-matches">0</div><div class="stat-card-sub">aujourd'hui</div></div>
+        <div class="stat-card"><div class="stat-card-label">% Passes</div><div class="stat-card-value" id="stat-passes">—</div><div class="stat-card-sub">global</div></div>
+        <div class="stat-card"><div class="stat-card-label">Buts</div><div class="stat-card-value" id="stat-goals">—</div><div class="stat-card-sub">total</div></div>
+      </div>
+      <div class="section-title">Actions rapides</div>
+      <div class="quick-actions">
+        <div class="qa-btn accent" onclick="navTo('training')"><div class="qa-btn-icon">🏃</div><div class="qa-btn-label">Training</div><div class="qa-btn-sub">Logger une session</div></div>
+        <div class="qa-btn" onclick="navTo('match')"><div class="qa-btn-icon">⚽</div><div class="qa-btn-label">Match</div><div class="qa-btn-sub">Encoder rapidement</div></div>
+        <div class="qa-btn" onclick="navTo('video')"><div class="qa-btn-icon">🎬</div><div class="qa-btn-label">Vidéo</div><div class="qa-btn-sub">Analyser un match</div></div>
+        <div class="qa-btn" onclick="navTo('coach')"><div class="qa-btn-icon">🤖</div><div class="qa-btn-label">Coach IA</div><div class="qa-btn-sub">Analyse personnalisée</div></div>
+      </div>
+      <div class="section-title">Coach</div>
+      <div class="coach-card">
+        <div class="coach-card-head"><div class="coach-icon">🎯</div><div class="coach-card-title">Analyse du jour</div></div>
+        <div class="coach-msg" id="coach-msg">Commence ton premier entraînement pour recevoir une analyse.</div>
+      </div>
+      <div class="section-title">Badges récents</div>
+      <div id="dash-streak" style="margin-bottom:12px;font-size:13px;font-weight:700;"></div>
+      <div class="badges-row" id="badges-row"></div>
+    </div>
+
+    <!-- TRAINING -->
+    <div class="screen" id="screen-training">
+      <div class="section-title" style="margin-bottom:4px">Entraînement</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Les totaux s'accumulent. Chaque session = XP.</div>
+      <div class="training-cats">
+        <div class="cat-tab active" onclick="switchCat('passes',this)">Passes</div>
+        <div class="cat-tab" onclick="switchCat('attack',this)">Attaque</div>
+        <div class="cat-tab" onclick="switchCat('defense',this)">Défense</div>
+      </div>
+      <div id="trainingContent"></div>
+    </div>
+
+    <!-- MATCH -->
+    <div class="screen" id="screen-match">
+      <div class="section-title" style="margin-bottom:4px">Encoder un match</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Mode rapide — moins de 30 secondes.</div>
+      <div class="match-role-picker">
+        <div class="role-card selected" id="role-att" onclick="selectRole('att')"><div class="role-card-icon">⚔️</div><div class="role-card-name">Attaquant</div></div>
+        <div class="role-card" id="role-def" onclick="selectRole('def')"><div class="role-card-icon">🛡️</div><div class="role-card-name">Défenseur</div></div>
+      </div>
+      <div class="match-form" id="matchForm"></div>
+      <button type="button" class="match-submit" onclick="saveMatch()">Valider le match</button>
+    </div>
+
+    <!-- LEAGUE -->
+    <div class="screen" id="screen-league"><div id="leagueContent"></div></div>
+
+    <!-- OBJECTIVES -->
+    <div class="screen" id="screen-objectives">
+      <div class="section-title" style="margin-bottom:4px">Objectifs</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Se complètent <strong style="color:var(--gold)">automatiquement</strong> selon tes stats.</div>
+      <div class="obj-tabs">
+        <div class="obj-tab active" onclick="switchObjTab('daily',this)">Journalier</div>
+        <div class="obj-tab" onclick="switchObjTab('weekly',this)">Hebdo</div>
+        <div class="obj-tab" onclick="switchObjTab('monthly',this)">Mensuel</div>
+        <div class="obj-tab" onclick="switchObjTab('custom',this)">Perso</div>
+      </div>
+      <div id="objList"></div>
+      <button type="button" class="add-obj-btn" onclick="openAddObj()">+ Ajouter un objectif</button>
+    </div>
+
+    <!-- CAREER -->
+    <div class="screen" id="screen-career"><div id="careerContent"></div></div>
+
+    <!-- VIDEO -->
+    <div class="screen" id="screen-video"><div id="videoContent"></div></div>
+
+    <!-- COACH IA -->
+    <div class="screen" id="screen-coach"><div id="coachIAContent"></div></div>
+
+    <!-- STATS -->
+    <div class="screen" id="screen-stats">
+      <div class="section-title" style="margin-bottom:4px">Statistiques</div>
+      <div class="stats-overview">
+        <div class="stats-pill"><div class="stats-pill-val" id="s-total-sessions">0</div><div class="stats-pill-lbl">Sessions</div></div>
+        <div class="stats-pill"><div class="stats-pill-val" id="s-total-matches">0</div><div class="stats-pill-lbl">Matchs</div></div>
+        <div class="stats-pill"><div class="stats-pill-val" id="s-total-xp">0</div><div class="stats-pill-lbl">XP</div></div>
+      </div>
+      <div class="section-title">Passes</div>
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat-card"><div class="stat-card-label">Tentatives</div><div class="stat-card-value" id="s-pass-att">0</div></div>
+        <div class="stat-card highlight"><div class="stat-card-label">% Réussite</div><div class="stat-card-value" id="s-pass-pct">—</div></div>
+      </div>
+      <div class="section-title">Attaque</div>
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat-card"><div class="stat-card-label">Tirs tentés</div><div class="stat-card-value" id="s-att-tries">0</div></div>
+        <div class="stat-card highlight"><div class="stat-card-label">% Conversion</div><div class="stat-card-value" id="s-att-pct">—</div></div>
+      </div>
+      <div class="section-title">Progression XP</div>
+      <div class="chart-wrap"><div class="chart-title">XP par jour</div><canvas id="chartXP" style="width:100%;height:120px;"></canvas></div>
+      <div class="section-title">% Passes</div>
+      <div class="chart-wrap"><div class="chart-title">Évolution sur 10 sessions</div><canvas id="chartPass" style="width:100%;height:120px;"></canvas></div>
+      <div class="section-title">Historique</div>
+      <div id="historyList"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="screen-profile">
+      <div id="prof-stats"></div>
+      <div class="profile-hero">
+        <div class="profile-avatar" id="prof-avatar">⚽</div>
+        <div class="profile-name" id="prof-name">—</div>
+        <div class="profile-rank" id="prof-rank">—</div>
+        <div class="profile-tags" id="prof-tags"></div>
+      </div>
+      <div class="section-title">Titres Défense</div><div class="title-grid" id="titles-def"></div>
+      <div class="section-title" style="margin-top:16px;">Titres Attaque</div><div class="title-grid" id="titles-att"></div>
+      <div class="section-title" style="margin-top:16px;">Titres Multi-table</div><div class="title-grid" id="titles-multi"></div>
+      <div class="section-title" style="margin-top:16px;">Badges</div><div id="prof-badges"></div>
+      <button type="button" class="profile-edit-btn" onclick="openEditProfile()">✏️ Modifier le profil</button>
+      <button type="button" class="profile-edit-btn" style="border-color:var(--cyan);color:var(--cyan);margin-top:6px;" onclick="openModal('authModal')">☁️ Compte Cloud</button>
+      <button type="button" class="profile-edit-btn" style="border-color:var(--green);color:var(--green);margin-top:6px;" onclick="openModal('saveModal')">💾 Sauvegarder / Restaurer</button>
+      <button type="button" class="profile-edit-btn" style="border-color:var(--red);color:var(--red);margin-top:6px;" onclick="resetAll()">🔄 Recommencer à zéro</button>
+    </div>
+
+  </div><!-- /main-content -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-dash" onclick="navTo('dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Accueil
+    </div>
+    <div class="nav-item" id="nav-training" onclick="navTo('training')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4v16M18 4v16M6 12h12"/></svg>
+      Training
+    </div>
+    <div class="nav-item" id="nav-match" onclick="navTo('match')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      Match
+    </div>
+    <div class="nav-item" id="nav-league" onclick="navTo('league')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 6.5L22 9.3l-5 4.9 1.2 6.8L12 17.7l-6.2 3.3L7 14.2 2 9.3l7-.8z"/></svg>
+      Ligue
+    </div>
+    <div class="nav-item" id="nav-more" onclick="toggleMoreMenu()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+      Plus
+    </div>
+  </div>
+
+  <!-- MORE MENU -->
+  <div id="moreMenu" style="display:none;position:fixed;bottom:70px;right:12px;background:var(--bg-card);border:1px solid var(--border-bright);border-radius:8px;overflow:hidden;z-index:200;min-width:160px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+    <div onclick="navTo('objectives');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🎯 Objectifs</div>
+    <div onclick="navTo('career');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🏆 Carrière</div>
+    <div onclick="navTo('video');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🎬 Vidéo</div>
+    <div onclick="navTo('coach');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🤖 Coach IA</div>
+    <div onclick="navTo('stats');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">📊 Stats</div>
+    <div onclick="navTo('profile');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">👤 Profil</div>
+  </div>
+</div>
+
+<!-- PLACEMENT TEST -->
+<div class="placement-overlay" id="placementOverlay">
+  <div class="pl-wrap">
+    <div class="pl-header">
+      <span class="pl-badge">🎯</span>
+      <div class="pl-title">Test de Placement</div>
+      <div class="pl-sub">7 épreuves avec chronomètre réaliste</div>
+    </div>
+    <div style="text-align:right;margin-bottom:12px;">
+      <button type="button" onclick="resetAll()" style="background:transparent;border:1px solid var(--red);color:var(--red);font-size:12px;font-weight:700;padding:5px 12px;border-radius:4px;cursor:pointer;">🔄 Recommencer à zéro</button>
+    </div>
+
+    <!-- Step dots -->
+    <div class="pl-step-indicator">
+      <div class="pl-step-dot active" id="pldot0"></div>
+      <div class="pl-step-dot" id="pldot1"></div>
+      <div class="pl-step-dot" id="pldot2"></div>
+      <div class="pl-step-dot" id="pldot3"></div>
+      <div class="pl-step-dot" id="pldot4"></div>
+      <div class="pl-step-dot" id="pldot5"></div>
+      <div class="pl-step-dot" id="pldot6"></div>
+    </div>
+
+    <!-- Step -1: Table selection -->
+    <div class="pl-step active" id="plstep-1">
+      <div class="pl-step-title">Choisis ta table</div>
+      <div class="pl-step-desc">Le test s'adapte aux règles de ta table</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+        <div class="role-card selected" id="table-jupiter" onclick="selectPlTable('jupiter')">
+          <div style="font-size:28px;margin-bottom:6px;">🏓</div>
+          <div style="font-size:18px;font-weight:900;color:var(--text-primary);">Jupiter</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Passe à l'arrêt · 15 sec/balle</div>
+        </div>
+        <div class="role-card" id="table-other" onclick="selectPlTable('other')">
+          <div style="font-size:28px;margin-bottom:6px;">⚽</div>
+          <div style="font-size:18px;font-weight:900;color:var(--text-primary);">Bonzini / Tornado / Autre</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Passe en mouvement · 10 sec milieu · 15 sec att/déf</div>
+        </div>
+      </div>
+      <button type="button" class="btn-primary" onclick="startPlacement()">Commencer →</button>
+    </div>
+
+    <!-- Steps 0-6: Épreuves avec timer -->
+    <div class="pl-step" id="plstep0">
+      <div class="pl-step-title">① Passe Bande</div>
+      <div class="pl-step-desc">20 tentatives · Milieu</div>
+      <div id="plContent0"></div>
+    </div>
+    <div class="pl-step" id="plstep1">
+      <div class="pl-step-title">② Passe Croisée</div>
+      <div class="pl-step-desc">20 tentatives · Milieu</div>
+      <div id="plContent1"></div>
+    </div>
+    <div class="pl-step" id="plstep2">
+      <div class="pl-step-title">③ Passe Défense → Milieu</div>
+      <div class="pl-step-desc">20 tentatives · Transmets la balle de la défense vers le milieu</div>
+      <div id="plContent2"></div>
+    </div>
+    <div class="pl-step" id="plstep3">
+      <div class="pl-step-title">④ Tir Défense Favori</div>
+      <div class="pl-step-desc">Choisis ton tir depuis la défense · 20 tentatives</div>
+      <div id="plTirDefPicker">
+        <div class="pl-tir-grid">
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer courte')">Tirer courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer longue')">Tirer longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Tirer croisée')">Tirer croisée</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser courte')">Pousser courte</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser longue')">Pousser longue</div>
+          <div class="pl-tir-opt" onclick="selectPlChoice('tirDef',this,'Pousser décroisée')">Pousser décroisée</div>
+        </div>
+        <button type="button" class="btn-primary" id="plTirDefStart" onclick="startPlStep(3)" style="opacity:0.4;pointer-events:none;">Commencer →</button>
+      </div>
+      <div id="plContent3" style="display:none;"></div>
+    </div>
+    <div class="pl-step" id="plstep4">
+      <div class="pl-step-title">⑤ 3 Tirs Attaque Favoris</div>
+      <div class="pl-step-desc">Choisis 3 tirs · 30 tentatives (10 par tir · ordre aléatoire)</div>
+      <div id="plTirAttPicker">
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">Sélectionne exactement 3 tirs :</div>
+        <div class="pl-tir-grid">
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Tirer courte')">Tirer courte</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Tirer longue')">Tirer longue</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Tirer croisée')">Tirer croisée</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Pousser courte')">Pousser courte</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Pousser longue')">Pousser longue</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Pousser décroisée')">Pousser décroisée</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Fixe')">Fixe</div>
+          <div class="pl-tir-opt" onclick="selectPlTirAtt(this,'Aller-retour tirer')">Aller-retour</div>
+        </div>
+        <div id="plTirAttSelected" style="font-size:12px;color:var(--gold);margin:10px 0;">0/3 sélectionnés</div>
+        <button type="button" class="btn-primary" id="plTirAttStart" onclick="startPlTirAtt()" style="opacity:0.4;pointer-events:none;">Commencer →</button>
+      </div>
+      <div id="plContent4" style="display:none;"></div>
+    </div>
+    <div class="pl-step" id="plstep5">
+      <div class="pl-step-title">⑥ Réactivité</div>
+      <div class="pl-step-desc">20 actions aléatoires · Toutes zones</div>
+      <div id="plReactStart">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;">
+          <div style="font-size:32px;margin-bottom:8px;">🎲</div>
+          <div style="font-size:14px;color:var(--text-secondary);">L'app affiche une action — exécute-la puis dis si tu as réussi</div>
+        </div>
+        <button type="button" class="btn-primary" onclick="startReact()">Commencer →</button>
+      </div>
+      <div id="plContent5" style="display:none;"></div>
+    </div>
+
+    <!-- Results -->
+    <div class="pl-step" id="plstep6">
+      <div style="text-align:center;margin-bottom:24px;">
+        <span style="font-size:64px;" id="plResultBadge">🥉</span>
+        <div style="font-size:36px;font-weight:900;margin:8px 0 4px;" id="plResultLeague">Bronze</div>
+        <div style="font-size:14px;color:var(--text-secondary);" id="plResultDiv">Division II</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:4px;" id="plResultScore"></div>
+      </div>
+      <div id="plResultCards"></div>
+      <button type="button" class="btn-primary" onclick="confirmPlacement()">🚀 Commencer l'aventure</button>
+      <button type="button" onclick="openPlacement()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-bright);color:var(--text-secondary);font-size:14px;font-weight:700;text-transform:uppercase;border-radius:4px;cursor:pointer;margin-top:8px;">🔄 Refaire le test</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">Modifier le profil</div>
+    <div class="modal-field"><label>Nom</label><input type="text" id="edit-name" maxlength="30"></div>
+    <div class="modal-field"><label>Main dominante</label><input type="text" id="edit-hand"></div>
+    <div class="modal-field"><label>Poste préféré</label><input type="text" id="edit-pos"></div>
+    <div class="modal-field"><label>Tables</label><input type="text" id="edit-tables"></div>
+    <div class="modal-field"><label>ELO</label><input type="number" id="edit-elo"></div>
+    <div class="modal-field"><label>Objectif</label><input type="text" id="edit-goal"></div>
+    <div class="modal-actions"><button type="button" class="modal-cancel" onclick="closeModal('editModal')">Annuler</button><button type="button" class="modal-confirm" onclick="saveProfile()">Sauvegarder</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="addExModal">
+  <div class="modal">
+    <div class="modal-title">Ajouter un exercice</div>
+    <div class="modal-field"><label>Nom</label><input type="text" id="newExName" placeholder="Ex: Tir coupé gauche..."></div>
+    <div class="modal-field"><label>Type</label>
+      <select id="newExType"><option value="passes">Passes (tentatives / réussites)</option><option value="goals">Buts (tentatives / buts)</option><option value="saves">Arrêts (tentatives / réussites)</option></select></div>
+    <div class="modal-actions"><button type="button" class="modal-cancel" onclick="closeModal('addExModal')">Annuler</button><button type="button" class="modal-confirm" onclick="confirmAddExercise()">Ajouter</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="addObjModal">
+  <div class="modal">
+    <div class="modal-title">Mission personnalisée</div>
+    <div class="modal-field"><label>Description</label><input type="text" id="newObjTitle" placeholder="Ex: Mon objectif perso..."></div>
+    <div class="modal-field"><label>XP récompense</label><input type="number" id="newObjXP" value="50" min="5" max="500"></div>
+    <div class="modal-actions"><button type="button" class="modal-cancel" onclick="closeModal('addObjModal')">Annuler</button><button type="button" class="modal-confirm" onclick="confirmAddObj()">Créer</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="validateModal">
+  <div class="modal">
+    <div class="modal-title">Homologation</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Prouve ta valeur en compétition réelle.</div>
+    <div class="modal-field"><label>Type de preuve</label>
+      <select id="valType"><option>Résultat tournoi</option><option>Classement ELO</option><option>Montée de division</option><option>Participation internationale</option></select></div>
+    <div class="modal-field"><label>Détails</label><input type="text" id="valDetails" placeholder="Ex: Top 4 tournoi régional Ath"></div>
+    <div class="modal-field"><label>Date</label><input type="date" id="valDate"></div>
+    <div class="modal-field">
+      <label>Capture d'écran (preuve)</label>
+      <div style="position:relative;border:2px dashed var(--border-bright);border-radius:4px;padding:16px;text-align:center;background:var(--bg-surface);cursor:pointer;">
+        <input type="file" accept="image/*" id="valPhoto" onchange="handleValPhoto(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+        <div id="valPhotoText" style="font-size:13px;color:var(--text-secondary);">📸 Ajouter une capture d'écran</div>
+        <img id="valPhotoPreview" style="display:none;width:100%;max-height:120px;object-fit:contain;border-radius:4px;margin-top:8px;" alt="Preuve">
+      </div>
+    </div>
+    <div class="modal-actions"><button type="button" class="modal-cancel" onclick="closeModal('validateModal')">Annuler</button><button type="button" class="modal-confirm" onclick="confirmValidation()">Homologuer ✅</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script>
+function toggleMoreMenu(){const m=document.getElementById('moreMenu');m.style.display=m.style.display==='none'?'block':'none';}
+document.addEventListener('click',e=>{const m=document.getElementById('moreMenu');if(m&&!m.contains(e.target)&&!e.target.closest('#nav-more'))m.style.display='none';});
+</script>
+<script src="js/db-data.js"></script>
+<script src="js/xp-badges.js"></script>
+<script src="js/training.js"></script>
+<script src="js/league.js"></script>
+<script src="js/objectives.js"></script>
+<script src="js/video.js"></script>
+<script src="js/coach-ia.js"></script>
+<script src="js/app.js"></script>
+
+
+<!-- MODAL: Connexion / Compte -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <div id="authLogin">
+      <div class="modal-title">☁️ Mon Compte</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+        Connecte-toi pour sauvegarder tes données dans le cloud — disponibles sur tous tes appareils.
+      </div>
+      <div id="authStatus" style="display:none;background:rgba(0,230,118,0.1);border:1px solid var(--green);border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--green);"></div>
+      <div id="authError" style="display:none;background:rgba(255,59,48,0.1);border:1px solid var(--red);border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--red);"></div>
+      <div class="modal-field"><label>Email</label><input type="email" id="authEmail" placeholder="ton@email.com" autocomplete="email"></div>
+      <div class="modal-field"><label>Mot de passe</label><input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="modal-actions" style="flex-direction:column;gap:8px;">
+        <button type="button" class="modal-confirm" style="flex:none;width:100%;" onclick="authSignIn()">🔐 Se connecter</button>
+        <button type="button" class="modal-cancel" style="flex:none;width:100%;" onclick="authSignUp()">✨ Créer un compte</button>
+        <button type="button" class="modal-cancel" style="flex:none;width:100%;" onclick="closeModal('authModal')">Plus tard</button>
+      </div>
+    </div>
+    <div id="authConnected" style="display:none;">
+      <div class="modal-title">☁️ Connecté</div>
+      <div style="text-align:center;padding:16px 0;">
+        <div style="font-size:48px;margin-bottom:8px;">✅</div>
+        <div style="font-size:14px;color:var(--text-secondary);" id="authUserEmail"></div>
+        <div style="font-size:13px;color:var(--green);margin-top:4px;">Données synchronisées</div>
+      </div>
+      <button type="button" class="btn-primary" onclick="authSignOut()" style="background:var(--red);margin-bottom:8px;">Se déconnecter</button>
+      <button type="button" class="modal-cancel" style="width:100%;" onclick="closeModal('authModal')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Sauvegarde -->
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <div class="modal-title">💾 Mes données</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+      Sur iPhone, Safari peut effacer les données locales. Sauvegarde régulièrement ton profil.
+    </div>
+    <div style="background:rgba(255,59,48,0.1);border:1px solid var(--red);border-radius:6px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--red);">
+      ⚠️ Si l'écran devient noir, importe ta dernière sauvegarde.
+    </div>
+    <button type="button" class="btn-primary" onclick="exportData()" style="margin-bottom:10px;">
+      📥 Télécharger ma sauvegarde
+    </button>
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Restaurer une sauvegarde</label>
+      <div style="position:relative;border:2px dashed var(--border-bright);border-radius:4px;padding:14px;text-align:center;background:var(--bg-surface);cursor:pointer;">
+        <input type="file" accept=".json" onchange="importData(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+        <span style="font-size:13px;color:var(--text-secondary);">📂 Charger un fichier .json</span>
+      </div>
+    </div>
+    <button type="button" class="modal-cancel" onclick="closeModal('saveModal')" style="width:100%;">Fermer</button>
+  </div>
+</div>
+
+</body>
+</html>
