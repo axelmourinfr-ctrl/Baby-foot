@@ -2388,6 +2388,90 @@ function showPlacementResult() {
   document.getElementById('placementOverlay').scrollTo({top:0,behavior:'smooth'});
 }
 
+function renderLeague() {
+  const el = document.getElementById('leagueContent');
+  if(!el) return;
+
+  const placement = DB.get('placement');
+  const rankG = DB.get('rankGlobal');
+  const validated = DB.get('validated');
+  const history = DB.get('placementHistory') || [];
+
+  if(!placement || !rankG) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🎯</div>
+        <div class="empty-state-text">Pas encore de test de placement</div>
+      </div>
+      <button type="button" class="btn-primary" onclick="openPlacement()" style="margin-top:12px;">🚀 Passer le test de placement</button>`;
+    return;
+  }
+
+  const league = LEAGUES[rankG.leagueIdx] || LEAGUES[0];
+  const divLabel = ['I','II','III'][(rankG.division||1)-1] || 'I';
+  const lp = rankG.lp || 0;
+
+  const names = [
+    'Passe Bande','Passe Croisée','Passe Défense → Milieu',
+    'Tir Défense','Tirs Attaque','Réactivité'
+  ];
+
+  // Détail des scores du dernier test, avec point faible identifié
+  let weakestIdx = 0, weakestVal = 101;
+  (placement.pcts||[]).forEach((p,i) => { if(p < weakestVal) { weakestVal = p; weakestIdx = i; } });
+
+  const scoreCards = (placement.pcts||[]).map((p,i) => `
+    <div class="pl-result-card">
+      <div class="pl-result-label">${names[i]}</div>
+      <div class="pl-result-pct" style="color:${p>=70?'#00E676':p>=40?'#FF9500':'#FF3B30'}">${p}%</div>
+    </div>`).join('');
+
+  // Historique des tests précédents
+  const histHTML = history.length > 0 ? history.slice(-5).reverse().map(h => {
+    const hLeague = LEAGUES[h.leagueIdx] || LEAGUES[0];
+    const d = new Date(h.date).toLocaleDateString('fr-BE');
+    return `<div class="history-item">
+      <div class="history-left">
+        <div class="history-date">${d}</div>
+        <div class="history-desc">${hLeague.emoji} ${hLeague.name} · Score ${h.globalScore}%</div>
+      </div>
+    </div>`;
+  }).join('') : `<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:12px;">Aucun test précédent</div>`;
+
+  el.innerHTML = `
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:64px;">${league.emoji}</div>
+      <div style="font-size:30px;font-weight:900;color:${league.color};margin:6px 0 2px;">${league.name}</div>
+      <div style="font-size:14px;color:var(--text-secondary);">Division ${divLabel}</div>
+      <div style="height:6px;background:var(--border);border-radius:3px;margin-top:10px;overflow:hidden;max-width:200px;margin-left:auto;margin-right:auto;">
+        <div style="height:100%;background:${league.color};border-radius:3px;width:${lp}%;"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${lp} / 100 LP</div>
+    </div>
+
+    <div class="section-title">Pourquoi cette ligue</div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">Score global du dernier test : <strong style="color:var(--gold);">${placement.globalScore}%</strong></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">${scoreCards}</div>
+
+    <div style="background:var(--bg-card);border:1px solid var(--gold-dim);border-radius:6px;padding:12px;margin-bottom:16px;">
+      <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">💡 Pour monter de division</div>
+      <div style="font-size:13px;color:var(--text-primary);">Ton point faible actuel : <strong style="color:#FF9500;">${names[weakestIdx]}</strong> (${weakestVal}%). Concentre tes prochaines sessions là-dessus.</div>
+    </div>
+
+    <div class="section-title">Historique des tests</div>
+    <div style="margin-bottom:16px;">${histHTML}</div>
+
+    <div class="section-title">Homologation</div>
+    ${validated ? `
+      <div style="background:var(--bg-card);border:1px solid var(--green);border-radius:6px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:13px;color:var(--green);">✅ ${validated.label}</div>
+      </div>` : `
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Fais homologuer ton rang avec une preuve (tournoi, classement ELO réel...).</div>`}
+    <button type="button" class="btn-primary" onclick="openModal('validateModal')" style="margin-bottom:8px;">🏆 ${validated?'Mettre à jour':'Homologuer mon rang'}</button>
+    <button type="button" onclick="openPlacement()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-bright);color:var(--text-secondary);font-size:14px;font-weight:700;text-transform:uppercase;border-radius:4px;cursor:pointer;">🔄 Refaire le test de placement</button>
+  `;
+}
+
 function updateLeagueFromTraining(pct) {
   const rank=DB.get('rankGlobal'); if(!rank) return;
   const gain=pct>=70?3:pct>=50?1:-1;
