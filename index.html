@@ -1421,10 +1421,10 @@ let chronoState = {
 };
 
 function getTimerLimit(cat, table) {
-  if(table === 'jupiter') {
-    return cat === 'passes' ? 35 : 35;
-  }
-  return cat === 'passes' ? 25 : 35;
+  // Le bouton "Prêt" gère déjà le temps de manipulation.
+  // Temps réel réglementaire une fois "Prêt" pressé :
+  if(table === 'jupiter') return 15; // Jupiter : 15 sec partout
+  return cat === 'passes' ? 10 : 15; // Autres tables : 10 sec milieu, 15 sec attaque/défense
 }
 
 function switchCat(cat, el) {
@@ -1965,10 +1965,12 @@ let plData = {
 let reactQueue = []; let reactIdx = 0;
 
 function getPlTimerLimit(step, table) {
-  // step 0,1 = passes milieu, step 2 = passe def, step 3 = tir def, step 4,5,6 = tirs att, step 7 = react
-  if(table === 'jupiter') return 35;
-  if(step <= 1) return 25; // milieu autres tables = 10 sec + marge
-  return 35;
+  // step 0,1 = passes milieu, step 2 = passe def, step 3 = tir def, step 4 = tirs att, step 5 = réactivité (mixte)
+  // Le bouton "Prêt" gère déjà le temps de manipulation (récupérer/replacer la balle).
+  // Une fois "Prêt" pressé, c'est le vrai temps de jeu réglementaire :
+  if(table === 'jupiter') return 15; // Jupiter : 15 sec partout, toujours
+  if(step === 0 || step === 1 || step === 2) return 10; // Milieu (passes bande/croisée/défense) autres tables : 10 sec
+  return 15; // Attaque, défense (tirs) et réactivité (mix de zones) autres tables : 15 sec
 }
 
 function openPlacement() {
@@ -2247,7 +2249,7 @@ function renderReactStep() {
           <div style="font-size:24px;font-weight:900;color:var(--gold);" id="plReactAction">${action?.action||''}</div>
         </div>
         <div style="background:var(--bg-surface);border-radius:6px;padding:10px;margin-bottom:12px;">
-          <div id="pl-timer-val-5" style="font-size:40px;font-weight:900;color:var(--gold);text-align:center;">35</div>
+          <div id="pl-timer-val-5" style="font-size:40px;font-weight:900;color:var(--gold);text-align:center;">${plData.timerLimit}</div>
           <div style="height:4px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden;">
             <div id="pl-timer-bar-5" style="height:100%;background:var(--green);border-radius:2px;width:100%;"></div>
           </div>
@@ -2263,15 +2265,17 @@ function renderReactStep() {
 function plReactReady() {
   plData.waiting = false;
   plData.timerStart = Date.now();
+  plData.timerLimit = getPlTimerLimit(5, plData.table); // réactivité = temps "milieu" car actions variées
   clearInterval(plData.timerInterval);
+  const limit = plData.timerLimit;
   plData.timerInterval = setInterval(() => {
     const elapsed = (Date.now()-plData.timerStart)/1000;
-    const remaining = Math.max(0, 35-elapsed);
-    const pct = (remaining/35)*100;
+    const remaining = Math.max(0, limit-elapsed);
+    const pct = (remaining/limit)*100;
     const v=document.getElementById('pl-timer-val-5');
     const b=document.getElementById('pl-timer-bar-5');
-    if(v){ v.textContent=Math.ceil(remaining); v.style.color=remaining>17?'var(--gold)':remaining>8?'#FF9500':'var(--red)'; }
-    if(b){ b.style.width=pct+'%'; b.style.background=remaining>17?'var(--green)':remaining>8?'#FF9500':'var(--red)'; }
+    if(v){ v.textContent=Math.ceil(remaining); v.style.color=remaining>limit*0.5?'var(--gold)':remaining>limit*0.25?'#FF9500':'var(--red)'; }
+    if(b){ b.style.width=pct+'%'; b.style.background=remaining>limit*0.5?'var(--green)':remaining>limit*0.25?'#FF9500':'var(--red)'; }
     if(remaining<=0) clearInterval(plData.timerInterval);
   }, 100);
   renderReactStep();
