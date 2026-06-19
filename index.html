@@ -645,17 +645,9 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
       <div id="plContent1"></div>
     </div>
     <div class="pl-step" id="plstep2">
-      <div class="pl-step-title">③ Passe Défense Favorite</div>
-      <div class="pl-step-desc">Choisis ta passe défense préférée · 20 tentatives</div>
-      <div id="plPasseDefPicker">
-        <div class="pl-tir-grid">
-          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Relance bande')">Relance bande</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Relance centre')">Relance centre</div>
-          <div class="pl-tir-opt" onclick="selectPlChoice('passeDef',this,'Passe')">Passe</div>
-        </div>
-        <button type="button" class="btn-primary" id="plPasseDefStart" onclick="startPlStep(2)" style="opacity:0.4;pointer-events:none;">Commencer →</button>
-      </div>
-      <div id="plContent2" style="display:none;"></div>
+      <div class="pl-step-title">③ Passe Défense → Milieu</div>
+      <div class="pl-step-desc">20 tentatives · Transmets la balle de la défense vers le milieu</div>
+      <div id="plContent2"></div>
     </div>
     <div class="pl-step" id="plstep3">
       <div class="pl-step-title">④ Tir Défense Favori</div>
@@ -1989,14 +1981,14 @@ function openPlacement() {
   for(let i=-1;i<=6;i++) document.getElementById('plstep'+i)?.classList.remove('active');
   for(let i=0;i<6;i++){ const d=document.getElementById('pldot'+i); if(d){d.classList.remove('done','active');} }
 
-  // Reset pickers
-  ['plPasseDefPicker','plTirDefPicker','plTirAttPicker'].forEach(id=>{
+  // Reset pickers (step 3 et 4 uniquement, step 2 = passe simple sans choix)
+  ['plTirDefPicker','plTirAttPicker'].forEach(id=>{
     const e=document.getElementById(id); if(e) e.style.display='block';
   });
   [0,1,2,3,4,5].forEach(i=>{ const e=document.getElementById('plContent'+i); if(e){e.style.display='none';e.innerHTML='';} });
   const rs=document.getElementById('plReactStart'); if(rs) rs.style.display='block';
   document.querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
-  ['plPasseDefStart','plTirDefStart','plTirAttStart'].forEach(id=>{
+  ['plTirDefStart','plTirAttStart'].forEach(id=>{
     const b=document.getElementById(id); if(b){b.style.opacity='0.4';b.style.pointerEvents='none';}
   });
   document.getElementById('plTirAttSelected').textContent='0/3 sélectionnés';
@@ -2050,13 +2042,14 @@ function renderPlTimer(step) {
     return `<div style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;margin:1px;"></div>`;
   }).join('');
 
-  // For step 4 (3 tirs), show which shot we're on
+  // For step 4 (3 tirs), show which shot is up next from the shuffled queue
   let shotLabel = '';
   if(step === 4 && plData.tirAttQueue) {
-    const shotIdx = Math.floor(done / 10);
-    const shotName = plData.tirAttQueue[shotIdx];
-    const shotNum = (done % 10) + 1;
-    if(shotName) shotLabel = `<div style="font-size:12px;color:var(--cyan);margin-bottom:8px;">Tir ${shotIdx+1}/3 : <strong>${shotName}</strong> (${shotNum}/10)</div>`;
+    const shotName = plData.tirAttQueue[done]; // le tir à exécuter MAINTENANT, lu dans la queue mélangée
+    if(shotName) {
+      const doneForThisShot = plData.tirAttPerShot[shotName] ? plData.tirAttPerShot[shotName].tried : 0;
+      shotLabel = `<div style="font-size:14px;color:var(--cyan);margin-bottom:8px;">Prochain tir : <strong style="color:var(--gold);">${shotName}</strong> <span style="color:var(--text-muted);">(${doneForThisShot+1}/10 pour ce tir)</span></div>`;
+    }
   }
 
   if(s.waiting) {
@@ -2132,7 +2125,7 @@ function plReady(step) {
 function selectPlChoice(type, el, name) {
   el.closest('.pl-tir-grid').querySelectorAll('.pl-tir-opt').forEach(o=>o.classList.remove('selected'));
   el.classList.add('selected'); plData.choices[type]=name;
-  const btnMap={passeDef:'plPasseDefStart',tirDef:'plTirDefStart'};
+  const btnMap={tirDef:'plTirDefStart'};
   const btn=document.getElementById(btnMap[type]); if(btn){btn.style.opacity='1';btn.style.pointerEvents='auto';}
 }
 
@@ -2294,13 +2287,11 @@ function plNextStep(step) {
   plData.waiting = true;
   document.getElementById('placementOverlay').scrollTo({top:0,behavior:'smooth'});
 
-  // For react step, init differently
-  if(next === 5) {
-    // Already handled by startReact button
-  } else if(!['plPasseDefPicker','plTirDefPicker','plTirAttPicker'].some(id => {
-    const e=document.getElementById(id); return e && e.style.display!=='none' && next===parseInt(id.replace('plPasseDefPicker','2').replace('plTirDefPicker','3').replace('plTirAttPicker','4'));
-  })) {
-    if(next <= 1) renderPlStep(next);
+  // Steps 0,1,2 (passe bande, passe croisée, passe défense) démarrent automatiquement, sans choix
+  // Step 3 (tir défense) et 4 (3 tirs attaque) attendent un choix via leur picker
+  // Step 5 (réactivité) attend le bouton "Commencer" de startReact()
+  if(next <= 2) {
+    renderPlStep(next);
   }
 }
 
@@ -2349,7 +2340,7 @@ function showPlacementResult() {
 
   const names=[
     'Passe Bande','Passe Croisée',
-    'Passe Déf. ('+plData.choices.passeDef+')',
+    'Passe Défense → Milieu',
     'Tir Déf. ('+plData.choices.tirDef+')',
     'Tirs Att. ('+[plData.choices.tirAtt1,plData.choices.tirAtt2,plData.choices.tirAtt3].filter(Boolean).join(', ')+')',
     'Réactivité'
