@@ -248,6 +248,11 @@ function plRecord(step, success) {
     }
   }
 
+  // Advance to the next random action for réactivité
+  if(step === 5) {
+    reactIdx++;
+  }
+
   // Update dot indicators
   const dotEl = document.getElementById('pldot'+step);
 
@@ -256,6 +261,8 @@ function plRecord(step, success) {
 
   if(plData.results[step].length >= total) {
     setTimeout(()=>plNextStep(step), 400);
+  } else if(step === 5) {
+    renderReactStep();
   } else {
     const contentEl = document.getElementById('plContent'+step);
     if(contentEl) contentEl.innerHTML = renderPlTimer(step);
@@ -568,6 +575,11 @@ function confirmValidation() {
   document.getElementById('valPhotoText').style.display='block';
   closeModal('validateModal');
   renderLeague(); addXP(200,'Rang homologué ! 🏆'); checkBadges();
+}
+
+function confirmPlacement() {
+  document.getElementById('placementOverlay').classList.remove('open');
+  navTo('home');
 }
 
 function resetAll() {

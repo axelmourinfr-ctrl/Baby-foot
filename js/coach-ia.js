@@ -159,15 +159,19 @@ async function generateProgram() {
   document.getElementById('programContent').classList.remove('visible');
 
   const context = buildPlayerContext();
-  const systemPrompt = `Tu es un coach expert en baby-foot compétitif. Génère un programme d'entraînement hebdomadaire personnalisé basé sur les données du joueur. Réponds UNIQUEMENT avec du JSON valide, sans markdown, sans backticks, sans aucune explication avant ou après:
+  const systemPrompt = `Tu es un coach expert en baby-foot compétitif. Génère un programme d'entraînement hebdomadaire personnalisé basé sur les données du joueur.
+
+RÈGLE ABSOLUE : ta réponse doit commencer directement par le caractère { et se terminer par le caractère }. N'écris RIEN avant le {, RIEN après le }. Pas de phrase d'introduction, pas de conclusion, pas de balises markdown, pas de \`\`\`. Juste le JSON brut, rien d'autre.
+
+Format exact attendu :
 {"days":[{"day":"Lundi","focus":"Passes","exercises":[{"name":"Passe bande","reps":"3x20","note":"..."}],"tip":"..."}],"weekGoal":"...","motivation":"..."}
+
 Génère exactement 7 jours. Adapte les exercices aux vrais points faibles du joueur identifiés dans son profil.\n\n${context}`;
 
   try {
     const text = await callCoachAPI(systemPrompt, 'Génère le programme.');
-    const clean = text.replace(/```json|```/g,'').trim();
-    let program;
-    try { program = JSON.parse(clean); } catch(e) { throw new Error('Réponse invalide, réessaie.'); }
+    const program = extractProgramJSON(text);
+    if (!program) throw new Error('Réponse invalide, réessaie.');
     DB.set('coachProgram', program);
     document.getElementById('programLoader').classList.remove('visible');
     document.getElementById('programContent').classList.add('visible');
@@ -178,6 +182,23 @@ Génère exactement 7 jours. Adapte les exercices aux vrais points faibles du jo
     document.getElementById('programContent').classList.add('visible');
     document.getElementById('programContent').innerHTML = '<p style="color:var(--red)">Erreur : '+err.message+'</p>';
   }
+}
+
+function extractProgramJSON(text) {
+  if (!text) return null;
+  // 1. Retire les balises markdown éventuelles
+  let clean = text.replace(/```json|```/gi, '').trim();
+  // 2. Tente un parse direct
+  try { return JSON.parse(clean); } catch(e) {}
+  // 3. Isole le premier bloc {...} correspondant, même s'il y a du texte autour
+  const start = clean.indexOf('{');
+  const end = clean.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) return null;
+  const candidate = clean.slice(start, end + 1);
+  try { return JSON.parse(candidate); } catch(e) {}
+  // 4. Dernier recours : retire les virgules traînantes avant } ou ]
+  const fixed = candidate.replace(/,(\s*[}\]])/g, '$1');
+  try { return JSON.parse(fixed); } catch(e) { return null; }
 }
 
 function renderProgram(program) {
