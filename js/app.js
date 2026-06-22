@@ -210,6 +210,7 @@ function navTo(screen) {
   if(screen==='career') renderCareer();
   if(screen==='video') initVideoScreen();
   if(screen==='coach') initCoachIA();
+  if(screen==='opponents') renderOpponents();
 }
 
 // ══════════════════════════════════════════

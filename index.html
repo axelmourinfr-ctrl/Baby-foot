@@ -165,6 +165,34 @@
         <div class="role-card" id="role-def" onclick="selectRole('def')"><div class="role-card-icon">🛡️</div><div class="role-card-name">Défenseur</div></div>
       </div>
       <div class="match-form" id="matchForm"></div>
+
+      <div class="match-details-toggle" onclick="toggleMatchDetails()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 4px;cursor:pointer;border-top:1px solid var(--border);margin-top:8px;">
+        <span style="font-size:13px;color:var(--text-secondary);font-weight:700;">+ Détails (optionnel)</span>
+        <span id="matchDetailsArrow" style="color:var(--text-muted);">▾</span>
+      </div>
+      <div id="matchDetailsPanel" style="display:none;margin-bottom:12px;">
+        <div class="section-title" style="font-size:11px;margin-top:8px;">Adversaire</div>
+        <input type="text" id="matchOpponentInput" list="matchOpponentSuggestions" placeholder="Nom de l'adversaire (optionnel)" style="width:100%;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:14px;margin-bottom:10px;">
+        <datalist id="matchOpponentSuggestions"></datalist>
+
+        <div class="section-title" style="font-size:11px;">Type de garde rencontrée</div>
+        <select id="matchGuardType" style="width:100%;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:14px;margin-bottom:10px;">
+          <option value="">— Non renseigné —</option>
+          <option value="normale">Garde normale</option>
+          <option value="inversee">Garde inversée</option>
+          <option value="switch">Switch constant</option>
+          <option value="piege_timing">Piège timing</option>
+          <option value="reflexe">Réflexe pur</option>
+          <option value="hybride">Hybride</option>
+        </select>
+
+        <div class="section-title" style="font-size:11px;">Résultat du match</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <div class="role-card" id="matchResultWin" onclick="selectMatchResult('victoire')" style="flex:1;padding:10px;"><div style="font-size:13px;">🏆 Victoire</div></div>
+          <div class="role-card" id="matchResultLoss" onclick="selectMatchResult('defaite')" style="flex:1;padding:10px;"><div style="font-size:13px;">❌ Défaite</div></div>
+        </div>
+      </div>
+
       <button type="button" class="match-submit" onclick="saveMatch()">Valider le match</button>
     </div>
 
@@ -187,6 +215,9 @@
 
     <!-- CAREER -->
     <div class="screen" id="screen-career"><div id="careerContent"></div></div>
+
+    <!-- OPPONENTS -->
+    <div class="screen" id="screen-opponents"><div id="opponentsContent"></div></div>
 
     <!-- VIDEO -->
     <div class="screen" id="screen-video"><div id="videoContent"></div></div>
@@ -268,6 +299,7 @@
   <!-- MORE MENU -->
   <div id="moreMenu" style="display:none;position:fixed;bottom:70px;right:12px;background:var(--bg-card);border:1px solid var(--border-bright);border-radius:8px;overflow:hidden;z-index:200;min-width:160px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
     <div onclick="navTo('objectives');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🎯 Objectifs</div>
+    <div onclick="navTo('opponents');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🔍 Adversaires</div>
     <div onclick="navTo('career');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🏆 Carrière</div>
     <div onclick="navTo('video');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🎬 Vidéo</div>
     <div onclick="navTo('coach');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🤖 Coach IA</div>

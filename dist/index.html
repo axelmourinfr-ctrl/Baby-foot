@@ -480,6 +480,34 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
         <div class="role-card" id="role-def" onclick="selectRole('def')"><div class="role-card-icon">🛡️</div><div class="role-card-name">Défenseur</div></div>
       </div>
       <div class="match-form" id="matchForm"></div>
+
+      <div class="match-details-toggle" onclick="toggleMatchDetails()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 4px;cursor:pointer;border-top:1px solid var(--border);margin-top:8px;">
+        <span style="font-size:13px;color:var(--text-secondary);font-weight:700;">+ Détails (optionnel)</span>
+        <span id="matchDetailsArrow" style="color:var(--text-muted);">▾</span>
+      </div>
+      <div id="matchDetailsPanel" style="display:none;margin-bottom:12px;">
+        <div class="section-title" style="font-size:11px;margin-top:8px;">Adversaire</div>
+        <input type="text" id="matchOpponentInput" list="matchOpponentSuggestions" placeholder="Nom de l'adversaire (optionnel)" style="width:100%;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:14px;margin-bottom:10px;">
+        <datalist id="matchOpponentSuggestions"></datalist>
+
+        <div class="section-title" style="font-size:11px;">Type de garde rencontrée</div>
+        <select id="matchGuardType" style="width:100%;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:14px;margin-bottom:10px;">
+          <option value="">— Non renseigné —</option>
+          <option value="normale">Garde normale</option>
+          <option value="inversee">Garde inversée</option>
+          <option value="switch">Switch constant</option>
+          <option value="piege_timing">Piège timing</option>
+          <option value="reflexe">Réflexe pur</option>
+          <option value="hybride">Hybride</option>
+        </select>
+
+        <div class="section-title" style="font-size:11px;">Résultat du match</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <div class="role-card" id="matchResultWin" onclick="selectMatchResult('victoire')" style="flex:1;padding:10px;"><div style="font-size:13px;">🏆 Victoire</div></div>
+          <div class="role-card" id="matchResultLoss" onclick="selectMatchResult('defaite')" style="flex:1;padding:10px;"><div style="font-size:13px;">❌ Défaite</div></div>
+        </div>
+      </div>
+
       <button type="button" class="match-submit" onclick="saveMatch()">Valider le match</button>
     </div>
 
@@ -502,6 +530,9 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
 
     <!-- CAREER -->
     <div class="screen" id="screen-career"><div id="careerContent"></div></div>
+
+    <!-- OPPONENTS -->
+    <div class="screen" id="screen-opponents"><div id="opponentsContent"></div></div>
 
     <!-- VIDEO -->
     <div class="screen" id="screen-video"><div id="videoContent"></div></div>
@@ -583,6 +614,7 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
   <!-- MORE MENU -->
   <div id="moreMenu" style="display:none;position:fixed;bottom:70px;right:12px;background:var(--bg-card);border:1px solid var(--border-bright);border-radius:8px;overflow:hidden;z-index:200;min-width:160px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
     <div onclick="navTo('objectives');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🎯 Objectifs</div>
+    <div onclick="navTo('opponents');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🔍 Adversaires</div>
     <div onclick="navTo('career');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🏆 Carrière</div>
     <div onclick="navTo('video');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🎬 Vidéo</div>
     <div onclick="navTo('coach');toggleMoreMenu()" style="padding:12px 16px;cursor:pointer;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">🤖 Coach IA</div>
@@ -1911,6 +1943,28 @@ function selectRole(role) {
   renderMatch(role);
 }
 
+let matchDetailsOpen = false;
+let matchSelectedResult = null;
+
+function toggleMatchDetails() {
+  matchDetailsOpen = !matchDetailsOpen;
+  document.getElementById('matchDetailsPanel').style.display = matchDetailsOpen ? 'block' : 'none';
+  document.getElementById('matchDetailsArrow').textContent = matchDetailsOpen ? '▴' : '▾';
+  if(matchDetailsOpen) fillOpponentSuggestions();
+}
+
+function fillOpponentSuggestions() {
+  const list = document.getElementById('matchOpponentSuggestions');
+  const known = DB.get('knownOpponents') || [];
+  list.innerHTML = known.map(name => `<option value="${name}"></option>`).join('');
+}
+
+function selectMatchResult(result) {
+  matchSelectedResult = (matchSelectedResult === result) ? null : result;
+  document.getElementById('matchResultWin').classList.toggle('selected', matchSelectedResult==='victoire');
+  document.getElementById('matchResultLoss').classList.toggle('selected', matchSelectedResult==='defaite');
+}
+
 function renderMatch(role) {
   matchCounts = {};
   matchFields[role].forEach(f=>matchCounts[f.key]=0);
@@ -1936,10 +1990,124 @@ function saveMatch() {
   const ms = DB.get('matchStats')||{att:{},def:{}};
   Object.entries(matchCounts).forEach(([k,v])=>{ ms[matchRole][k]=(ms[matchRole][k]||0)+v; });
   DB.set('matchStats',ms);
+
+  // Détails optionnels — n'empêchent jamais la saisie rapide, purement additifs
+  const opponentName = (document.getElementById('matchOpponentInput')?.value || '').trim();
+  const guardType = document.getElementById('matchGuardType')?.value || '';
+  const hasDetails = opponentName || guardType || matchSelectedResult;
+
+  if(hasDetails) {
+    const matchHistory = DB.get('matchHistory') || [];
+    matchHistory.push({
+      ts: Date.now(),
+      role: matchRole,
+      opponent: opponentName || null,
+      guardType: guardType || null,
+      result: matchSelectedResult,
+      counts: {...matchCounts}
+    });
+    DB.set('matchHistory', matchHistory);
+
+    if(opponentName) {
+      const known = DB.get('knownOpponents') || [];
+      if(!known.includes(opponentName)) { known.push(opponentName); DB.set('knownOpponents', known); }
+    }
+  }
+
   DB.push('history',{type:'match',ts:Date.now(),role:matchRole,counts:{...matchCounts},xp:xpGain});
   renderMatch(matchRole);
+
+  // Reset des champs optionnels pour le prochain match
+  if(document.getElementById('matchOpponentInput')) document.getElementById('matchOpponentInput').value = '';
+  if(document.getElementById('matchGuardType')) document.getElementById('matchGuardType').value = '';
+  matchSelectedResult = null;
+  document.getElementById('matchResultWin')?.classList.remove('selected');
+  document.getElementById('matchResultLoss')?.classList.remove('selected');
+  matchDetailsOpen = false;
+  if(document.getElementById('matchDetailsPanel')) document.getElementById('matchDetailsPanel').style.display = 'none';
+  if(document.getElementById('matchDetailsArrow')) document.getElementById('matchDetailsArrow').textContent = '▾';
+
   renderDashboard(); checkBadges(); autoCheckObjectives(); updateCoach();
   navTo('dash');
+}
+
+// ══════════════════════════════════════════
+// ADVERSAIRES (SCOUTING) — basé sur matchHistory saisi manuellement
+// ══════════════════════════════════════════
+
+function renderOpponents() {
+  const el = document.getElementById('opponentsContent');
+  if(!el) return;
+  const matchHistory = DB.get('matchHistory') || [];
+  const notes = DB.get('opponentNotes') || {};
+
+  const named = matchHistory.filter(m => m.opponent);
+  const byOpponent = {};
+  named.forEach(m => {
+    if(!byOpponent[m.opponent]) byOpponent[m.opponent] = [];
+    byOpponent[m.opponent].push(m);
+  });
+
+  const names = Object.keys(byOpponent).sort();
+
+  if(names.length === 0) {
+    el.innerHTML = `
+      <div class="section-title" style="margin-bottom:4px">Adversaires</div>
+      <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <div class="empty-state-text">Aucun adversaire enregistré</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">Renseigne le nom de l'adversaire dans les détails optionnels d'un match pour commencer le suivi.</div>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="section-title" style="margin-bottom:4px">Adversaires</div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">${names.length} adversaire(s) suivi(s)</div>
+    ${names.map(name => {
+      const matches = byOpponent[name];
+      const wins = matches.filter(m => m.result === 'victoire').length;
+      const losses = matches.filter(m => m.result === 'defaite').length;
+      const guardCounts = {};
+      matches.forEach(m => { if(m.guardType) guardCounts[m.guardType] = (guardCounts[m.guardType]||0)+1; });
+      const mainGuard = Object.entries(guardCounts).sort((a,b)=>b[1]-a[1])[0];
+      const guardLabels = {normale:'Normale',inversee:'Inversée',switch:'Switch constant',piege_timing:'Piège timing',reflexe:'Réflexe pur',hybride:'Hybride'};
+
+      return `
+      <div class="history-item" style="cursor:pointer;flex-direction:column;align-items:stretch;" onclick="toggleOpponentDetail('${name.replace(/'/g,"\\'")}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--text-primary);">${name}</div>
+            <div style="font-size:11px;color:var(--text-muted);">${matches.length} match(s)${mainGuard ? ' · Garde habituelle : '+(guardLabels[mainGuard[0]]||mainGuard[0]) : ''}</div>
+          </div>
+          <div style="text-align:right;">
+            <span style="color:var(--green);font-weight:700;">${wins}V</span> <span style="color:var(--text-muted);">-</span> <span style="color:var(--red);font-weight:700;">${losses}D</span>
+          </div>
+        </div>
+        <div id="opp-detail-${name.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <div class="section-title" style="font-size:11px;">Tendances observées</div>
+          <textarea id="opp-notes-${name.replace(/[^a-zA-Z0-9]/g,'_')}" placeholder="Ex: ferme la tirer croisée après 3 buts, passe en garde inversée quand mené..." style="width:100%;min-height:70px;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:13px;margin-bottom:8px;" onclick="event.stopPropagation()">${notes[name]||''}</textarea>
+          <button type="button" onclick="event.stopPropagation();saveOpponentNotes('${name.replace(/'/g,"\\'")}')" style="width:100%;padding:9px;background:var(--gold-dim);border:none;border-radius:6px;color:var(--bg-primary);font-weight:700;font-size:13px;cursor:pointer;">💾 Sauvegarder les notes</button>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function toggleOpponentDetail(name) {
+  const id = 'opp-detail-'+name.replace(/[^a-zA-Z0-9]/g,'_');
+  const elDetail = document.getElementById(id);
+  if(elDetail) elDetail.style.display = elDetail.style.display==='none' ? 'block' : 'none';
+}
+
+function saveOpponentNotes(name) {
+  const id = 'opp-notes-'+name.replace(/[^a-zA-Z0-9]/g,'_');
+  const textarea = document.getElementById(id);
+  if(!textarea) return;
+  const notes = DB.get('opponentNotes') || {};
+  notes[name] = textarea.value;
+  DB.set('opponentNotes', notes);
+  showToast('📝 Notes sauvegardées','#1A3A1A');
 }
 
 // ── js/league.js ──
@@ -3521,6 +3689,7 @@ function navTo(screen) {
   if(screen==='career') renderCareer();
   if(screen==='video') initVideoScreen();
   if(screen==='coach') initCoachIA();
+  if(screen==='opponents') renderOpponents();
 }
 
 // ══════════════════════════════════════════

@@ -519,6 +519,28 @@ function selectRole(role) {
   renderMatch(role);
 }
 
+let matchDetailsOpen = false;
+let matchSelectedResult = null;
+
+function toggleMatchDetails() {
+  matchDetailsOpen = !matchDetailsOpen;
+  document.getElementById('matchDetailsPanel').style.display = matchDetailsOpen ? 'block' : 'none';
+  document.getElementById('matchDetailsArrow').textContent = matchDetailsOpen ? '▴' : '▾';
+  if(matchDetailsOpen) fillOpponentSuggestions();
+}
+
+function fillOpponentSuggestions() {
+  const list = document.getElementById('matchOpponentSuggestions');
+  const known = DB.get('knownOpponents') || [];
+  list.innerHTML = known.map(name => `<option value="${name}"></option>`).join('');
+}
+
+function selectMatchResult(result) {
+  matchSelectedResult = (matchSelectedResult === result) ? null : result;
+  document.getElementById('matchResultWin').classList.toggle('selected', matchSelectedResult==='victoire');
+  document.getElementById('matchResultLoss').classList.toggle('selected', matchSelectedResult==='defaite');
+}
+
 function renderMatch(role) {
   matchCounts = {};
   matchFields[role].forEach(f=>matchCounts[f.key]=0);
@@ -544,8 +566,122 @@ function saveMatch() {
   const ms = DB.get('matchStats')||{att:{},def:{}};
   Object.entries(matchCounts).forEach(([k,v])=>{ ms[matchRole][k]=(ms[matchRole][k]||0)+v; });
   DB.set('matchStats',ms);
+
+  // Détails optionnels — n'empêchent jamais la saisie rapide, purement additifs
+  const opponentName = (document.getElementById('matchOpponentInput')?.value || '').trim();
+  const guardType = document.getElementById('matchGuardType')?.value || '';
+  const hasDetails = opponentName || guardType || matchSelectedResult;
+
+  if(hasDetails) {
+    const matchHistory = DB.get('matchHistory') || [];
+    matchHistory.push({
+      ts: Date.now(),
+      role: matchRole,
+      opponent: opponentName || null,
+      guardType: guardType || null,
+      result: matchSelectedResult,
+      counts: {...matchCounts}
+    });
+    DB.set('matchHistory', matchHistory);
+
+    if(opponentName) {
+      const known = DB.get('knownOpponents') || [];
+      if(!known.includes(opponentName)) { known.push(opponentName); DB.set('knownOpponents', known); }
+    }
+  }
+
   DB.push('history',{type:'match',ts:Date.now(),role:matchRole,counts:{...matchCounts},xp:xpGain});
   renderMatch(matchRole);
+
+  // Reset des champs optionnels pour le prochain match
+  if(document.getElementById('matchOpponentInput')) document.getElementById('matchOpponentInput').value = '';
+  if(document.getElementById('matchGuardType')) document.getElementById('matchGuardType').value = '';
+  matchSelectedResult = null;
+  document.getElementById('matchResultWin')?.classList.remove('selected');
+  document.getElementById('matchResultLoss')?.classList.remove('selected');
+  matchDetailsOpen = false;
+  if(document.getElementById('matchDetailsPanel')) document.getElementById('matchDetailsPanel').style.display = 'none';
+  if(document.getElementById('matchDetailsArrow')) document.getElementById('matchDetailsArrow').textContent = '▾';
+
   renderDashboard(); checkBadges(); autoCheckObjectives(); updateCoach();
   navTo('dash');
+}
+
+// ══════════════════════════════════════════
+// ADVERSAIRES (SCOUTING) — basé sur matchHistory saisi manuellement
+// ══════════════════════════════════════════
+
+function renderOpponents() {
+  const el = document.getElementById('opponentsContent');
+  if(!el) return;
+  const matchHistory = DB.get('matchHistory') || [];
+  const notes = DB.get('opponentNotes') || {};
+
+  const named = matchHistory.filter(m => m.opponent);
+  const byOpponent = {};
+  named.forEach(m => {
+    if(!byOpponent[m.opponent]) byOpponent[m.opponent] = [];
+    byOpponent[m.opponent].push(m);
+  });
+
+  const names = Object.keys(byOpponent).sort();
+
+  if(names.length === 0) {
+    el.innerHTML = `
+      <div class="section-title" style="margin-bottom:4px">Adversaires</div>
+      <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <div class="empty-state-text">Aucun adversaire enregistré</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">Renseigne le nom de l'adversaire dans les détails optionnels d'un match pour commencer le suivi.</div>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="section-title" style="margin-bottom:4px">Adversaires</div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">${names.length} adversaire(s) suivi(s)</div>
+    ${names.map(name => {
+      const matches = byOpponent[name];
+      const wins = matches.filter(m => m.result === 'victoire').length;
+      const losses = matches.filter(m => m.result === 'defaite').length;
+      const guardCounts = {};
+      matches.forEach(m => { if(m.guardType) guardCounts[m.guardType] = (guardCounts[m.guardType]||0)+1; });
+      const mainGuard = Object.entries(guardCounts).sort((a,b)=>b[1]-a[1])[0];
+      const guardLabels = {normale:'Normale',inversee:'Inversée',switch:'Switch constant',piege_timing:'Piège timing',reflexe:'Réflexe pur',hybride:'Hybride'};
+
+      return `
+      <div class="history-item" style="cursor:pointer;flex-direction:column;align-items:stretch;" onclick="toggleOpponentDetail('${name.replace(/'/g,"\\'")}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--text-primary);">${name}</div>
+            <div style="font-size:11px;color:var(--text-muted);">${matches.length} match(s)${mainGuard ? ' · Garde habituelle : '+(guardLabels[mainGuard[0]]||mainGuard[0]) : ''}</div>
+          </div>
+          <div style="text-align:right;">
+            <span style="color:var(--green);font-weight:700;">${wins}V</span> <span style="color:var(--text-muted);">-</span> <span style="color:var(--red);font-weight:700;">${losses}D</span>
+          </div>
+        </div>
+        <div id="opp-detail-${name.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <div class="section-title" style="font-size:11px;">Tendances observées</div>
+          <textarea id="opp-notes-${name.replace(/[^a-zA-Z0-9]/g,'_')}" placeholder="Ex: ferme la tirer croisée après 3 buts, passe en garde inversée quand mené..." style="width:100%;min-height:70px;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:13px;margin-bottom:8px;" onclick="event.stopPropagation()">${notes[name]||''}</textarea>
+          <button type="button" onclick="event.stopPropagation();saveOpponentNotes('${name.replace(/'/g,"\\'")}')" style="width:100%;padding:9px;background:var(--gold-dim);border:none;border-radius:6px;color:var(--bg-primary);font-weight:700;font-size:13px;cursor:pointer;">💾 Sauvegarder les notes</button>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function toggleOpponentDetail(name) {
+  const id = 'opp-detail-'+name.replace(/[^a-zA-Z0-9]/g,'_');
+  const elDetail = document.getElementById(id);
+  if(elDetail) elDetail.style.display = elDetail.style.display==='none' ? 'block' : 'none';
+}
+
+function saveOpponentNotes(name) {
+  const id = 'opp-notes-'+name.replace(/[^a-zA-Z0-9]/g,'_');
+  const textarea = document.getElementById(id);
+  if(!textarea) return;
+  const notes = DB.get('opponentNotes') || {};
+  notes[name] = textarea.value;
+  DB.set('opponentNotes', notes);
+  showToast('📝 Notes sauvegardées','#1A3A1A');
 }
