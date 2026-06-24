@@ -2,6 +2,57 @@
 // TRAINING — Mode classique + Mode chrono
 // ══════════════════════════════════════════
 let currentCat = 'passes';
+
+// ══════════════════════════════════════════
+// MENTAL & PERFORMANCE — check-in optionnel avant/après session
+// ══════════════════════════════════════════
+
+let mentalCheckinOpen = false;
+const MENTAL_SLIDERS = [
+  {key:'confidence', label:'Confiance', icon:'💪'},
+  {key:'fatigue',     label:'Fatigue',   icon:'😴'},
+  {key:'stress',      label:'Stress',    icon:'😬'},
+];
+
+function toggleMentalCheckin() {
+  mentalCheckinOpen = !mentalCheckinOpen;
+  document.getElementById('mentalCheckinPanel').style.display = mentalCheckinOpen ? 'block' : 'none';
+  document.getElementById('mentalCheckinArrow').textContent = mentalCheckinOpen ? '▴' : '▾';
+  if(mentalCheckinOpen) renderMentalSliders();
+}
+
+function renderMentalSliders() {
+  const today = new Date().toISOString().slice(0,10);
+  const checkins = DB.get('mentalCheckins') || {};
+  const todayData = checkins[today] || {};
+
+  MENTAL_SLIDERS.forEach(s => {
+    const val = todayData[s.key] ?? 5;
+    const el = document.getElementById('mentalSlider'+s.key.charAt(0).toUpperCase()+s.key.slice(1));
+    if(!el) return;
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:4px;">
+        <span>${s.icon} ${s.label}</span>
+        <span id="mentalVal-${s.key}" style="color:var(--gold);font-weight:700;">${val}/10</span>
+      </div>
+      <input type="range" min="1" max="10" value="${val}" oninput="document.getElementById('mentalVal-${s.key}').textContent=this.value+'/10'" id="mentalRange-${s.key}" style="width:100%;margin-bottom:12px;">
+    `;
+  });
+}
+
+function saveMentalCheckin() {
+  const today = new Date().toISOString().slice(0,10);
+  const checkins = DB.get('mentalCheckins') || {};
+  const entry = {};
+  MENTAL_SLIDERS.forEach(s => {
+    const rangeEl = document.getElementById('mentalRange-'+s.key);
+    entry[s.key] = rangeEl ? parseInt(rangeEl.value) : 5;
+  });
+  checkins[today] = entry;
+  DB.set('mentalCheckins', checkins);
+  document.getElementById('mentalCheckinLabel').textContent = '🧠 État enregistré aujourd\'hui ✓';
+  showToast('🧠 État enregistré','#1A3A1A');
+}
 let pendingExCat = 'passes';
 
 // ── Mode chrono state ──
@@ -516,6 +567,8 @@ function selectRole(role) {
   matchRole = role;
   document.getElementById('role-att').classList.toggle('selected',role==='att');
   document.getElementById('role-def').classList.toggle('selected',role==='def');
+  const entryBtn = document.getElementById('matchDetailedEntry');
+  if(entryBtn) entryBtn.style.display = (role==='att') ? 'block' : 'none';
   renderMatch(role);
 }
 
@@ -684,4 +737,137 @@ function saveOpponentNotes(name) {
   notes[name] = textarea.value;
   DB.set('opponentNotes', notes);
   showToast('📝 Notes sauvegardées','#1A3A1A');
+}
+
+// ══════════════════════════════════════════
+// MATCH DÉTAILLÉ (Attaquant uniquement) — tir par tir avec garde adverse
+// 3 taps par tir : type de tir → garde adverse → résultat
+// ══════════════════════════════════════════
+
+const GUARD_TYPES = [
+  {id:'normale',label:'Normale'},
+  {id:'inversee',label:'Inversée'},
+  {id:'switch',label:'Switch'},
+  {id:'piege_timing',label:'Piège timing'},
+  {id:'reflexe',label:'Réflexe pur'},
+  {id:'hybride',label:'Hybride'},
+];
+
+let mdEvents = [];      // tirs loggés pour cette session en cours
+let mdStep = 'shot';    // 'shot' | 'guard' | 'result'
+let mdPendingShot = null;
+let mdPendingGuard = null;
+
+function initMatchDetail() {
+  mdEvents = [];
+  mdStep = 'shot';
+  mdPendingShot = null;
+  mdPendingGuard = null;
+  renderMatchDetail();
+}
+
+function renderMatchDetail() {
+  const el = document.getElementById('matchDetailContent');
+  if(!el) return;
+
+  const shotOptions = DEFAULT_EXERCISES.attack;
+
+  let stepHTML = '';
+  if(mdStep === 'shot') {
+    stepHTML = `
+      <div class="section-title" style="font-size:12px;">1/3 — Quel tir ?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+        ${shotOptions.map(s => `<button type="button" onclick="mdSelectShot('${s.name.replace(/'/g,"\\'")}')" style="padding:14px 8px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:13px;font-weight:700;cursor:pointer;">${s.name}</button>`).join('')}
+      </div>`;
+  } else if(mdStep === 'guard') {
+    stepHTML = `
+      <div class="section-title" style="font-size:12px;">2/3 — Garde adverse sur ce tir</div>
+      <div style="font-size:13px;color:var(--gold);margin-bottom:10px;">Tir : <strong>${mdPendingShot}</strong></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        ${GUARD_TYPES.map(g => `<button type="button" onclick="mdSelectGuard('${g.id}')" style="padding:14px 8px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:13px;font-weight:700;cursor:pointer;">${g.label}</button>`).join('')}
+      </div>
+      <button type="button" onclick="mdBackToShot()" style="margin-top:10px;width:100%;padding:9px;background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;">← Changer le tir</button>`;
+  } else if(mdStep === 'result') {
+    const guardLabel = GUARD_TYPES.find(g=>g.id===mdPendingGuard)?.label || mdPendingGuard;
+    stepHTML = `
+      <div class="section-title" style="font-size:12px;">3/3 — Résultat</div>
+      <div style="font-size:13px;color:var(--gold);margin-bottom:10px;">${mdPendingShot} · contre garde ${guardLabel}</div>
+      <div style="display:flex;gap:10px;">
+        <button type="button" onclick="mdRecordResult(true)" style="flex:1;padding:22px;background:rgba(0,230,118,0.1);border:2px solid var(--green);border-radius:8px;color:var(--green);font-size:24px;font-weight:900;cursor:pointer;">✓ But</button>
+        <button type="button" onclick="mdRecordResult(false)" style="flex:1;padding:22px;background:rgba(255,59,48,0.1);border:2px solid var(--red);border-radius:8px;color:var(--red);font-size:24px;font-weight:900;cursor:pointer;">✗ Raté</button>
+      </div>`;
+  }
+
+  const logHTML = mdEvents.length === 0 ? '' : `
+    <div class="section-title" style="font-size:11px;margin-top:20px;">Tirs loggés (${mdEvents.length})</div>
+    <div style="max-height:180px;overflow-y:auto;margin-top:6px;">
+      ${mdEvents.slice().reverse().map(e => `
+        <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border-radius:6px;margin-bottom:4px;font-size:12px;">
+          <span style="color:var(--text-secondary);">${e.shot} <span style="color:var(--text-muted);">vs ${GUARD_TYPES.find(g=>g.id===e.guardType)?.label||e.guardType}</span></span>
+          <span style="color:${e.success?'var(--green)':'var(--red)'};font-weight:700;">${e.success?'✓ But':'✗ Raté'}</span>
+        </div>`).join('')}
+    </div>`;
+
+  el.innerHTML = `
+    <div class="section-title" style="margin-bottom:4px">Match détaillé — Attaquant</div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Tir par tir, avec garde adverse associée.</div>
+    ${stepHTML}
+    ${logHTML}
+    <button type="button" onclick="finishMatchDetail()" ${mdEvents.length===0?'disabled':''} style="width:100%;margin-top:20px;padding:13px;background:var(--gold-dim);border:none;border-radius:6px;color:var(--bg-primary);font-weight:700;font-size:14px;cursor:pointer;${mdEvents.length===0?'opacity:0.4;':''}">🏁 Terminer le match (${mdEvents.length} tirs)</button>
+    <button type="button" onclick="navTo('match')" style="width:100%;margin-top:8px;padding:11px;background:transparent;border:1px solid var(--border-bright);color:var(--text-secondary);font-size:13px;font-weight:700;border-radius:6px;cursor:pointer;">Annuler et revenir au mode rapide</button>
+  `;
+}
+
+function mdSelectShot(shotName) {
+  mdPendingShot = shotName;
+  mdStep = 'guard';
+  renderMatchDetail();
+}
+
+function mdSelectGuard(guardId) {
+  mdPendingGuard = guardId;
+  mdStep = 'result';
+  renderMatchDetail();
+}
+
+function mdBackToShot() {
+  mdStep = 'shot';
+  mdPendingGuard = null;
+  renderMatchDetail();
+}
+
+function mdRecordResult(success) {
+  mdEvents.push({
+    ts: Date.now(),
+    shot: mdPendingShot,
+    guardType: mdPendingGuard,
+    success: success
+  });
+  mdPendingShot = null;
+  mdPendingGuard = null;
+  mdStep = 'shot';
+  renderMatchDetail();
+}
+
+function finishMatchDetail() {
+  if(mdEvents.length === 0) { navTo('match'); return; }
+
+  const allEvents = DB.get('matchDetailEvents') || [];
+  const sessionId = Date.now();
+  mdEvents.forEach(e => allEvents.push({...e, sessionId}));
+  DB.set('matchDetailEvents', allEvents);
+
+  // Reflète aussi dans matchStats (buts/tirs) pour rester cohérent avec le reste de l'app
+  const ms = DB.get('matchStats') || {att:{},def:{}};
+  ms.att.shotTried = (ms.att.shotTried||0) + mdEvents.length;
+  ms.att.goals = (ms.att.goals||0) + mdEvents.filter(e=>e.success).length;
+  DB.set('matchStats', ms);
+
+  const xpGain = 30 + mdEvents.filter(e=>e.success).length*5;
+  addXP(xpGain, 'Match détaillé · '+mdEvents.length+' tirs');
+  DB.push('history',{type:'match',ts:Date.now(),role:'att',counts:{shotTried:mdEvents.length,goals:mdEvents.filter(e=>e.success).length},xp:xpGain});
+
+  showToast('🏁 Match détaillé enregistré : '+mdEvents.length+' tirs','#1A3A1A');
+  renderDashboard(); checkBadges(); autoCheckObjectives(); updateCoach();
+  navTo('dash');
 }

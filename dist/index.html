@@ -463,6 +463,18 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
     <div class="screen" id="screen-training">
       <div class="section-title" style="margin-bottom:4px">Entraînement</div>
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Les totaux s'accumulent. Chaque session = XP.</div>
+
+      <div class="match-details-toggle" onclick="toggleMentalCheckin()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 4px;cursor:pointer;border:1px solid var(--border);border-radius:6px;margin-bottom:14px;">
+        <span style="font-size:12px;color:var(--text-secondary);font-weight:700;" id="mentalCheckinLabel">🧠 Comment tu te sens ? (optionnel)</span>
+        <span id="mentalCheckinArrow" style="color:var(--text-muted);">▾</span>
+      </div>
+      <div id="mentalCheckinPanel" style="display:none;margin-bottom:16px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:14px;">
+        <div id="mentalSliderConfidence" class="mental-slider-row"></div>
+        <div id="mentalSliderFatigue" class="mental-slider-row"></div>
+        <div id="mentalSliderStress" class="mental-slider-row"></div>
+        <button type="button" onclick="saveMentalCheckin()" style="width:100%;margin-top:6px;padding:9px;background:var(--gold-dim);border:none;border-radius:6px;color:var(--bg-primary);font-weight:700;font-size:13px;cursor:pointer;">Enregistrer mon état</button>
+      </div>
+
       <div class="training-cats">
         <div class="cat-tab active" onclick="switchCat('passes',this)">Passes</div>
         <div class="cat-tab" onclick="switchCat('attack',this)">Attaque</div>
@@ -478,6 +490,9 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
       <div class="match-role-picker">
         <div class="role-card selected" id="role-att" onclick="selectRole('att')"><div class="role-card-icon">⚔️</div><div class="role-card-name">Attaquant</div></div>
         <div class="role-card" id="role-def" onclick="selectRole('def')"><div class="role-card-icon">🛡️</div><div class="role-card-name">Défenseur</div></div>
+      </div>
+      <div id="matchDetailedEntry" style="display:block;margin-bottom:14px;">
+        <button type="button" onclick="navTo('matchdetail')" style="width:100%;padding:11px;background:transparent;border:1px dashed var(--gold-dim);color:var(--gold);font-size:13px;font-weight:700;border-radius:6px;cursor:pointer;">🎯 Mode détaillé (tir par tir, peaufiner un match)</button>
       </div>
       <div class="match-form" id="matchForm"></div>
 
@@ -534,6 +549,9 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
     <!-- OPPONENTS -->
     <div class="screen" id="screen-opponents"><div id="opponentsContent"></div></div>
 
+    <!-- MATCH DETAILED (Attaquant only) -->
+    <div class="screen" id="screen-matchdetail"><div id="matchDetailContent"></div></div>
+
     <!-- VIDEO -->
     <div class="screen" id="screen-video"><div id="videoContent"></div></div>
 
@@ -562,6 +580,8 @@ body { background:var(--bg-deep); color:var(--text-primary); font-family:system-
       <div class="chart-wrap"><div class="chart-title">XP par jour</div><canvas id="chartXP" style="width:100%;height:120px;"></canvas></div>
       <div class="section-title">% Passes</div>
       <div class="chart-wrap"><div class="chart-title">Évolution sur 10 sessions</div><canvas id="chartPass" style="width:100%;height:120px;"></canvas></div>
+      <div class="section-title">Fiabilité des tirs en match</div>
+      <div id="shotReliabilityContent" style="margin-bottom:16px;"></div>
       <div class="section-title">Historique</div>
       <div id="historyList"></div>
     </div>
@@ -854,6 +874,9 @@ document.addEventListener('click',e=>{const m=document.getElementById('moreMenu'
     </div>
     <button type="button" class="btn-primary" onclick="exportData()" style="margin-bottom:10px;">
       📥 Télécharger ma sauvegarde
+    </button>
+    <button type="button" class="btn-primary" onclick="exportStatsCSV()" style="margin-bottom:10px;background:var(--bg-card);border:1px solid var(--gold-dim);color:var(--gold);">
+      📊 Exporter mes stats en CSV
     </button>
     <div style="margin-bottom:16px;">
       <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Restaurer une sauvegarde</label>
@@ -1396,6 +1419,7 @@ function renderBadgesPage() {
         </div>
       </div>
     </div>
+    <button type="button" onclick="shareRankImage()" style="width:100%;padding:10px;margin-bottom:14px;background:transparent;border:1px solid var(--gold-dim);color:var(--gold);border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">📤 Partager mon rang</button>
   `+cats.map(cat=>`
     <div style="margin-bottom:4px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-secondary);margin-top:12px;">${cat}</div>
     ${BADGES.filter(b=>b.cat===cat).map(b=>{
@@ -1421,11 +1445,122 @@ function renderBadgesPage() {
 // ── AUTO-COMPLETE linked to missions ──
 function autoCheckObjectives() { autoCheckMissions(); }
 
+function shareRankImage() {
+  const profile = DB.get('profile') || {};
+  const xp = DB.get('xp') || 0;
+  const rank = getRank(xp);
+  const rankG = DB.get('rankGlobal');
+  const league = rankG ? (LEAGUES[rankG.leagueIdx] || LEAGUES[0]) : null;
+  const unlocked = DB.get('badges') || {};
+  const totalUnlocked = BADGES.filter(b => unlocked[b.id]).length;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 800; canvas.height = 1000;
+  const ctx = canvas.getContext('2d');
+
+  // Fond
+  const grad = ctx.createLinearGradient(0,0,0,1000);
+  grad.addColorStop(0,'#0D1B2A'); grad.addColorStop(1,'#1B2838');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,800,1000);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#D4AF37';
+  ctx.font = 'bold 36px sans-serif';
+  ctx.fillText('BFC · RPG', 400, 90);
+
+  ctx.font = '120px sans-serif';
+  ctx.fillText(league ? league.emoji : '⚽', 400, 280);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 52px sans-serif';
+  ctx.fillText(league ? league.name : rank.name, 400, 360);
+
+  ctx.fillStyle = '#9FB3C8';
+  ctx.font = '28px sans-serif';
+  ctx.fillText(profile.name || 'Joueur', 400, 410);
+
+  ctx.fillStyle = '#D4AF37';
+  ctx.font = 'bold 44px sans-serif';
+  ctx.fillText(xp + ' XP', 400, 510);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 32px sans-serif';
+  ctx.fillText(totalUnlocked + ' / ' + BADGES.length + ' badges débloqués', 400, 580);
+
+  ctx.fillStyle = '#5A6B7D';
+  ctx.font = '22px sans-serif';
+  ctx.fillText('BabyFoot Coach RPG', 400, 950);
+
+  canvas.toBlob(blob => {
+    const file = new File([blob], 'bfc-rang.png', {type:'image/png'});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+      navigator.share({files:[file], title:'Mon rang BFC·RPG'}).catch(()=>{});
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'bfc-rang.png'; a.click();
+      URL.revokeObjectURL(url);
+      showToast('🖼️ Image téléchargée !', '#1A3A1A');
+    }
+  }, 'image/png');
+}
+
 // ── js/training.js ──
 // ══════════════════════════════════════════
 // TRAINING — Mode classique + Mode chrono
 // ══════════════════════════════════════════
 let currentCat = 'passes';
+
+// ══════════════════════════════════════════
+// MENTAL & PERFORMANCE — check-in optionnel avant/après session
+// ══════════════════════════════════════════
+
+let mentalCheckinOpen = false;
+const MENTAL_SLIDERS = [
+  {key:'confidence', label:'Confiance', icon:'💪'},
+  {key:'fatigue',     label:'Fatigue',   icon:'😴'},
+  {key:'stress',      label:'Stress',    icon:'😬'},
+];
+
+function toggleMentalCheckin() {
+  mentalCheckinOpen = !mentalCheckinOpen;
+  document.getElementById('mentalCheckinPanel').style.display = mentalCheckinOpen ? 'block' : 'none';
+  document.getElementById('mentalCheckinArrow').textContent = mentalCheckinOpen ? '▴' : '▾';
+  if(mentalCheckinOpen) renderMentalSliders();
+}
+
+function renderMentalSliders() {
+  const today = new Date().toISOString().slice(0,10);
+  const checkins = DB.get('mentalCheckins') || {};
+  const todayData = checkins[today] || {};
+
+  MENTAL_SLIDERS.forEach(s => {
+    const val = todayData[s.key] ?? 5;
+    const el = document.getElementById('mentalSlider'+s.key.charAt(0).toUpperCase()+s.key.slice(1));
+    if(!el) return;
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:4px;">
+        <span>${s.icon} ${s.label}</span>
+        <span id="mentalVal-${s.key}" style="color:var(--gold);font-weight:700;">${val}/10</span>
+      </div>
+      <input type="range" min="1" max="10" value="${val}" oninput="document.getElementById('mentalVal-${s.key}').textContent=this.value+'/10'" id="mentalRange-${s.key}" style="width:100%;margin-bottom:12px;">
+    `;
+  });
+}
+
+function saveMentalCheckin() {
+  const today = new Date().toISOString().slice(0,10);
+  const checkins = DB.get('mentalCheckins') || {};
+  const entry = {};
+  MENTAL_SLIDERS.forEach(s => {
+    const rangeEl = document.getElementById('mentalRange-'+s.key);
+    entry[s.key] = rangeEl ? parseInt(rangeEl.value) : 5;
+  });
+  checkins[today] = entry;
+  DB.set('mentalCheckins', checkins);
+  document.getElementById('mentalCheckinLabel').textContent = '🧠 État enregistré aujourd\'hui ✓';
+  showToast('🧠 État enregistré','#1A3A1A');
+}
 let pendingExCat = 'passes';
 
 // ── Mode chrono state ──
@@ -1940,6 +2075,8 @@ function selectRole(role) {
   matchRole = role;
   document.getElementById('role-att').classList.toggle('selected',role==='att');
   document.getElementById('role-def').classList.toggle('selected',role==='def');
+  const entryBtn = document.getElementById('matchDetailedEntry');
+  if(entryBtn) entryBtn.style.display = (role==='att') ? 'block' : 'none';
   renderMatch(role);
 }
 
@@ -2108,6 +2245,139 @@ function saveOpponentNotes(name) {
   notes[name] = textarea.value;
   DB.set('opponentNotes', notes);
   showToast('📝 Notes sauvegardées','#1A3A1A');
+}
+
+// ══════════════════════════════════════════
+// MATCH DÉTAILLÉ (Attaquant uniquement) — tir par tir avec garde adverse
+// 3 taps par tir : type de tir → garde adverse → résultat
+// ══════════════════════════════════════════
+
+const GUARD_TYPES = [
+  {id:'normale',label:'Normale'},
+  {id:'inversee',label:'Inversée'},
+  {id:'switch',label:'Switch'},
+  {id:'piege_timing',label:'Piège timing'},
+  {id:'reflexe',label:'Réflexe pur'},
+  {id:'hybride',label:'Hybride'},
+];
+
+let mdEvents = [];      // tirs loggés pour cette session en cours
+let mdStep = 'shot';    // 'shot' | 'guard' | 'result'
+let mdPendingShot = null;
+let mdPendingGuard = null;
+
+function initMatchDetail() {
+  mdEvents = [];
+  mdStep = 'shot';
+  mdPendingShot = null;
+  mdPendingGuard = null;
+  renderMatchDetail();
+}
+
+function renderMatchDetail() {
+  const el = document.getElementById('matchDetailContent');
+  if(!el) return;
+
+  const shotOptions = DEFAULT_EXERCISES.attack;
+
+  let stepHTML = '';
+  if(mdStep === 'shot') {
+    stepHTML = `
+      <div class="section-title" style="font-size:12px;">1/3 — Quel tir ?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+        ${shotOptions.map(s => `<button type="button" onclick="mdSelectShot('${s.name.replace(/'/g,"\\'")}')" style="padding:14px 8px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:13px;font-weight:700;cursor:pointer;">${s.name}</button>`).join('')}
+      </div>`;
+  } else if(mdStep === 'guard') {
+    stepHTML = `
+      <div class="section-title" style="font-size:12px;">2/3 — Garde adverse sur ce tir</div>
+      <div style="font-size:13px;color:var(--gold);margin-bottom:10px;">Tir : <strong>${mdPendingShot}</strong></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        ${GUARD_TYPES.map(g => `<button type="button" onclick="mdSelectGuard('${g.id}')" style="padding:14px 8px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:13px;font-weight:700;cursor:pointer;">${g.label}</button>`).join('')}
+      </div>
+      <button type="button" onclick="mdBackToShot()" style="margin-top:10px;width:100%;padding:9px;background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;">← Changer le tir</button>`;
+  } else if(mdStep === 'result') {
+    const guardLabel = GUARD_TYPES.find(g=>g.id===mdPendingGuard)?.label || mdPendingGuard;
+    stepHTML = `
+      <div class="section-title" style="font-size:12px;">3/3 — Résultat</div>
+      <div style="font-size:13px;color:var(--gold);margin-bottom:10px;">${mdPendingShot} · contre garde ${guardLabel}</div>
+      <div style="display:flex;gap:10px;">
+        <button type="button" onclick="mdRecordResult(true)" style="flex:1;padding:22px;background:rgba(0,230,118,0.1);border:2px solid var(--green);border-radius:8px;color:var(--green);font-size:24px;font-weight:900;cursor:pointer;">✓ But</button>
+        <button type="button" onclick="mdRecordResult(false)" style="flex:1;padding:22px;background:rgba(255,59,48,0.1);border:2px solid var(--red);border-radius:8px;color:var(--red);font-size:24px;font-weight:900;cursor:pointer;">✗ Raté</button>
+      </div>`;
+  }
+
+  const logHTML = mdEvents.length === 0 ? '' : `
+    <div class="section-title" style="font-size:11px;margin-top:20px;">Tirs loggés (${mdEvents.length})</div>
+    <div style="max-height:180px;overflow-y:auto;margin-top:6px;">
+      ${mdEvents.slice().reverse().map(e => `
+        <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--bg-card);border-radius:6px;margin-bottom:4px;font-size:12px;">
+          <span style="color:var(--text-secondary);">${e.shot} <span style="color:var(--text-muted);">vs ${GUARD_TYPES.find(g=>g.id===e.guardType)?.label||e.guardType}</span></span>
+          <span style="color:${e.success?'var(--green)':'var(--red)'};font-weight:700;">${e.success?'✓ But':'✗ Raté'}</span>
+        </div>`).join('')}
+    </div>`;
+
+  el.innerHTML = `
+    <div class="section-title" style="margin-bottom:4px">Match détaillé — Attaquant</div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Tir par tir, avec garde adverse associée.</div>
+    ${stepHTML}
+    ${logHTML}
+    <button type="button" onclick="finishMatchDetail()" ${mdEvents.length===0?'disabled':''} style="width:100%;margin-top:20px;padding:13px;background:var(--gold-dim);border:none;border-radius:6px;color:var(--bg-primary);font-weight:700;font-size:14px;cursor:pointer;${mdEvents.length===0?'opacity:0.4;':''}">🏁 Terminer le match (${mdEvents.length} tirs)</button>
+    <button type="button" onclick="navTo('match')" style="width:100%;margin-top:8px;padding:11px;background:transparent;border:1px solid var(--border-bright);color:var(--text-secondary);font-size:13px;font-weight:700;border-radius:6px;cursor:pointer;">Annuler et revenir au mode rapide</button>
+  `;
+}
+
+function mdSelectShot(shotName) {
+  mdPendingShot = shotName;
+  mdStep = 'guard';
+  renderMatchDetail();
+}
+
+function mdSelectGuard(guardId) {
+  mdPendingGuard = guardId;
+  mdStep = 'result';
+  renderMatchDetail();
+}
+
+function mdBackToShot() {
+  mdStep = 'shot';
+  mdPendingGuard = null;
+  renderMatchDetail();
+}
+
+function mdRecordResult(success) {
+  mdEvents.push({
+    ts: Date.now(),
+    shot: mdPendingShot,
+    guardType: mdPendingGuard,
+    success: success
+  });
+  mdPendingShot = null;
+  mdPendingGuard = null;
+  mdStep = 'shot';
+  renderMatchDetail();
+}
+
+function finishMatchDetail() {
+  if(mdEvents.length === 0) { navTo('match'); return; }
+
+  const allEvents = DB.get('matchDetailEvents') || [];
+  const sessionId = Date.now();
+  mdEvents.forEach(e => allEvents.push({...e, sessionId}));
+  DB.set('matchDetailEvents', allEvents);
+
+  // Reflète aussi dans matchStats (buts/tirs) pour rester cohérent avec le reste de l'app
+  const ms = DB.get('matchStats') || {att:{},def:{}};
+  ms.att.shotTried = (ms.att.shotTried||0) + mdEvents.length;
+  ms.att.goals = (ms.att.goals||0) + mdEvents.filter(e=>e.success).length;
+  DB.set('matchStats', ms);
+
+  const xpGain = 30 + mdEvents.filter(e=>e.success).length*5;
+  addXP(xpGain, 'Match détaillé · '+mdEvents.length+' tirs');
+  DB.push('history',{type:'match',ts:Date.now(),role:'att',counts:{shotTried:mdEvents.length,goals:mdEvents.filter(e=>e.success).length},xp:xpGain});
+
+  showToast('🏁 Match détaillé enregistré : '+mdEvents.length+' tirs','#1A3A1A');
+  renderDashboard(); checkBadges(); autoCheckObjectives(); updateCoach();
+  navTo('dash');
 }
 
 // ── js/league.js ──
@@ -3593,10 +3863,39 @@ function renderStats() {
   document.getElementById('s-pass-pct').textContent=pT>0?Math.round(pOk/pT*100)+'%':'—';
   document.getElementById('s-att-tries').textContent=gT;
   document.getElementById('s-att-pct').textContent=gT>0?Math.round(gOk/gT*100)+'%':'—';
+  renderShotReliability();
   const sorted=[...history].sort((a,b)=>b.ts-a.ts).slice(0,20);
   document.getElementById('historyList').innerHTML=sorted.length===0
     ?`<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Aucune activité</div></div>`
     :sorted.map(h=>{ const d=new Date(h.ts); const ds=d.toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'}); const desc=h.type==='match'?'Match · '+(h.role==='att'?'Attaquant':'Défenseur'):h.type==='video'?'Analyse vidéo · '+h.events+' événements':'Entraînement · '+(h.tried||0)+' rép.'; return `<div class="history-item"><div class="history-left"><div class="history-date">${ds}</div><div class="history-desc">${desc}</div></div><div class="history-xp">+${h.xp} XP</div></div>`; }).join('');
+}
+
+function renderShotReliability() {
+  const el = document.getElementById('shotReliabilityContent');
+  if(!el) return;
+  const events = DB.get('matchDetailEvents') || [];
+  if(events.length === 0) {
+    el.innerHTML = `<div style="font-size:12px;color:var(--text-muted);padding:10px;">Utilise le Mode détaillé en match pour voir quels tirs sont vraiment fiables en conditions réelles (pas juste à l'entraînement).</div>`;
+    return;
+  }
+  const byShot = {};
+  events.forEach(e => {
+    if(!byShot[e.shot]) byShot[e.shot] = {tried:0, ok:0};
+    byShot[e.shot].tried++;
+    if(e.success) byShot[e.shot].ok++;
+  });
+  const rows = Object.entries(byShot)
+    .map(([shot, s]) => ({shot, pct: Math.round(s.ok/s.tried*100), tried: s.tried}))
+    .sort((a,b) => b.tried - a.tried);
+
+  el.innerHTML = rows.map(r => `
+    <div class="history-item">
+      <div class="history-left">
+        <div class="history-desc">${r.shot}</div>
+        <div class="history-date">${r.tried} tir(s) en match</div>
+      </div>
+      <div style="font-size:18px;font-weight:900;color:${r.pct>=70?'var(--green)':r.pct>=40?'#FF9500':'var(--red)'}">${r.pct}%</div>
+    </div>`).join('');
 }
 
 // ══════════════════════════════════════════
@@ -3690,6 +3989,7 @@ function navTo(screen) {
   if(screen==='video') initVideoScreen();
   if(screen==='coach') initCoachIA();
   if(screen==='opponents') renderOpponents();
+  if(screen==='matchdetail') initMatchDetail();
 }
 
 // ══════════════════════════════════════════
@@ -3765,6 +4065,41 @@ function exportData() {
   a.href = url; a.download = 'bfc-sauvegarde.json'; a.click();
   URL.revokeObjectURL(url);
   showToast('✅ Sauvegarde téléchargée !', '#1A3A1A');
+}
+
+function exportStatsCSV() {
+  const rows = [['Type','Date','Détail','Réussite/Total','Pourcentage']];
+
+  const ts = DB.get('trainStats') || {};
+  const exercises = DB.get('exercises') || DEFAULT_EXERCISES;
+  const allExercises = [...exercises.passes, ...exercises.attack, ...exercises.defense];
+  allExercises.forEach(ex => {
+    const s = ts[ex.id];
+    if(s && s.tried > 0) {
+      rows.push(['Entraînement', '', ex.name, s.ok+'/'+s.tried, Math.round(s.ok/s.tried*100)+'%']);
+    }
+  });
+
+  const matchEvents = DB.get('matchDetailEvents') || [];
+  matchEvents.forEach(e => {
+    const d = new Date(e.ts).toLocaleDateString('fr-BE');
+    rows.push(['Match détaillé', d, e.shot+' vs garde '+e.guardType, e.success?'1/1':'0/1', e.success?'100%':'0%']);
+  });
+
+  const history = DB.get('history') || [];
+  history.forEach(h => {
+    const d = new Date(h.ts).toLocaleDateString('fr-BE');
+    const detail = h.type==='match' ? 'Match · '+(h.role==='att'?'Attaquant':'Défenseur') : h.type==='video' ? 'Analyse vidéo' : 'Entraînement';
+    rows.push(['Historique', d, detail, '', h.xp+' XP']);
+  });
+
+  const csv = rows.map(r => r.map(cell => '"'+String(cell).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'bfc-stats-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('📊 CSV téléchargé !', '#1A3A1A');
 }
 
 function importData(input) {

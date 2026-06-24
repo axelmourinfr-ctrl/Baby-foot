@@ -148,6 +148,18 @@
     <div class="screen" id="screen-training">
       <div class="section-title" style="margin-bottom:4px">Entraînement</div>
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Les totaux s'accumulent. Chaque session = XP.</div>
+
+      <div class="match-details-toggle" onclick="toggleMentalCheckin()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 4px;cursor:pointer;border:1px solid var(--border);border-radius:6px;margin-bottom:14px;">
+        <span style="font-size:12px;color:var(--text-secondary);font-weight:700;" id="mentalCheckinLabel">🧠 Comment tu te sens ? (optionnel)</span>
+        <span id="mentalCheckinArrow" style="color:var(--text-muted);">▾</span>
+      </div>
+      <div id="mentalCheckinPanel" style="display:none;margin-bottom:16px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:14px;">
+        <div id="mentalSliderConfidence" class="mental-slider-row"></div>
+        <div id="mentalSliderFatigue" class="mental-slider-row"></div>
+        <div id="mentalSliderStress" class="mental-slider-row"></div>
+        <button type="button" onclick="saveMentalCheckin()" style="width:100%;margin-top:6px;padding:9px;background:var(--gold-dim);border:none;border-radius:6px;color:var(--bg-primary);font-weight:700;font-size:13px;cursor:pointer;">Enregistrer mon état</button>
+      </div>
+
       <div class="training-cats">
         <div class="cat-tab active" onclick="switchCat('passes',this)">Passes</div>
         <div class="cat-tab" onclick="switchCat('attack',this)">Attaque</div>
@@ -163,6 +175,9 @@
       <div class="match-role-picker">
         <div class="role-card selected" id="role-att" onclick="selectRole('att')"><div class="role-card-icon">⚔️</div><div class="role-card-name">Attaquant</div></div>
         <div class="role-card" id="role-def" onclick="selectRole('def')"><div class="role-card-icon">🛡️</div><div class="role-card-name">Défenseur</div></div>
+      </div>
+      <div id="matchDetailedEntry" style="display:block;margin-bottom:14px;">
+        <button type="button" onclick="navTo('matchdetail')" style="width:100%;padding:11px;background:transparent;border:1px dashed var(--gold-dim);color:var(--gold);font-size:13px;font-weight:700;border-radius:6px;cursor:pointer;">🎯 Mode détaillé (tir par tir, peaufiner un match)</button>
       </div>
       <div class="match-form" id="matchForm"></div>
 
@@ -219,6 +234,9 @@
     <!-- OPPONENTS -->
     <div class="screen" id="screen-opponents"><div id="opponentsContent"></div></div>
 
+    <!-- MATCH DETAILED (Attaquant only) -->
+    <div class="screen" id="screen-matchdetail"><div id="matchDetailContent"></div></div>
+
     <!-- VIDEO -->
     <div class="screen" id="screen-video"><div id="videoContent"></div></div>
 
@@ -247,6 +265,8 @@
       <div class="chart-wrap"><div class="chart-title">XP par jour</div><canvas id="chartXP" style="width:100%;height:120px;"></canvas></div>
       <div class="section-title">% Passes</div>
       <div class="chart-wrap"><div class="chart-title">Évolution sur 10 sessions</div><canvas id="chartPass" style="width:100%;height:120px;"></canvas></div>
+      <div class="section-title">Fiabilité des tirs en match</div>
+      <div id="shotReliabilityContent" style="margin-bottom:16px;"></div>
       <div class="section-title">Historique</div>
       <div id="historyList"></div>
     </div>
@@ -539,6 +559,9 @@ document.addEventListener('click',e=>{const m=document.getElementById('moreMenu'
     </div>
     <button type="button" class="btn-primary" onclick="exportData()" style="margin-bottom:10px;">
       📥 Télécharger ma sauvegarde
+    </button>
+    <button type="button" class="btn-primary" onclick="exportStatsCSV()" style="margin-bottom:10px;background:var(--bg-card);border:1px solid var(--gold-dim);color:var(--gold);">
+      📊 Exporter mes stats en CSV
     </button>
     <div style="margin-bottom:16px;">
       <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Restaurer une sauvegarde</label>

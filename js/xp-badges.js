@@ -117,6 +117,7 @@ function renderBadgesPage() {
         </div>
       </div>
     </div>
+    <button type="button" onclick="shareRankImage()" style="width:100%;padding:10px;margin-bottom:14px;background:transparent;border:1px solid var(--gold-dim);color:var(--gold);border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">📤 Partager mon rang</button>
   `+cats.map(cat=>`
     <div style="margin-bottom:4px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-secondary);margin-top:12px;">${cat}</div>
     ${BADGES.filter(b=>b.cat===cat).map(b=>{
@@ -141,3 +142,63 @@ function renderBadgesPage() {
 
 // ── AUTO-COMPLETE linked to missions ──
 function autoCheckObjectives() { autoCheckMissions(); }
+
+function shareRankImage() {
+  const profile = DB.get('profile') || {};
+  const xp = DB.get('xp') || 0;
+  const rank = getRank(xp);
+  const rankG = DB.get('rankGlobal');
+  const league = rankG ? (LEAGUES[rankG.leagueIdx] || LEAGUES[0]) : null;
+  const unlocked = DB.get('badges') || {};
+  const totalUnlocked = BADGES.filter(b => unlocked[b.id]).length;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 800; canvas.height = 1000;
+  const ctx = canvas.getContext('2d');
+
+  // Fond
+  const grad = ctx.createLinearGradient(0,0,0,1000);
+  grad.addColorStop(0,'#0D1B2A'); grad.addColorStop(1,'#1B2838');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,800,1000);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#D4AF37';
+  ctx.font = 'bold 36px sans-serif';
+  ctx.fillText('BFC · RPG', 400, 90);
+
+  ctx.font = '120px sans-serif';
+  ctx.fillText(league ? league.emoji : '⚽', 400, 280);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 52px sans-serif';
+  ctx.fillText(league ? league.name : rank.name, 400, 360);
+
+  ctx.fillStyle = '#9FB3C8';
+  ctx.font = '28px sans-serif';
+  ctx.fillText(profile.name || 'Joueur', 400, 410);
+
+  ctx.fillStyle = '#D4AF37';
+  ctx.font = 'bold 44px sans-serif';
+  ctx.fillText(xp + ' XP', 400, 510);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 32px sans-serif';
+  ctx.fillText(totalUnlocked + ' / ' + BADGES.length + ' badges débloqués', 400, 580);
+
+  ctx.fillStyle = '#5A6B7D';
+  ctx.font = '22px sans-serif';
+  ctx.fillText('BabyFoot Coach RPG', 400, 950);
+
+  canvas.toBlob(blob => {
+    const file = new File([blob], 'bfc-rang.png', {type:'image/png'});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+      navigator.share({files:[file], title:'Mon rang BFC·RPG'}).catch(()=>{});
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'bfc-rang.png'; a.click();
+      URL.revokeObjectURL(url);
+      showToast('🖼️ Image téléchargée !', '#1A3A1A');
+    }
+  }, 'image/png');
+}

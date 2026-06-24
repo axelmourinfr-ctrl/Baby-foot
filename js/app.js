@@ -114,10 +114,39 @@ function renderStats() {
   document.getElementById('s-pass-pct').textContent=pT>0?Math.round(pOk/pT*100)+'%':'—';
   document.getElementById('s-att-tries').textContent=gT;
   document.getElementById('s-att-pct').textContent=gT>0?Math.round(gOk/gT*100)+'%':'—';
+  renderShotReliability();
   const sorted=[...history].sort((a,b)=>b.ts-a.ts).slice(0,20);
   document.getElementById('historyList').innerHTML=sorted.length===0
     ?`<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Aucune activité</div></div>`
     :sorted.map(h=>{ const d=new Date(h.ts); const ds=d.toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'}); const desc=h.type==='match'?'Match · '+(h.role==='att'?'Attaquant':'Défenseur'):h.type==='video'?'Analyse vidéo · '+h.events+' événements':'Entraînement · '+(h.tried||0)+' rép.'; return `<div class="history-item"><div class="history-left"><div class="history-date">${ds}</div><div class="history-desc">${desc}</div></div><div class="history-xp">+${h.xp} XP</div></div>`; }).join('');
+}
+
+function renderShotReliability() {
+  const el = document.getElementById('shotReliabilityContent');
+  if(!el) return;
+  const events = DB.get('matchDetailEvents') || [];
+  if(events.length === 0) {
+    el.innerHTML = `<div style="font-size:12px;color:var(--text-muted);padding:10px;">Utilise le Mode détaillé en match pour voir quels tirs sont vraiment fiables en conditions réelles (pas juste à l'entraînement).</div>`;
+    return;
+  }
+  const byShot = {};
+  events.forEach(e => {
+    if(!byShot[e.shot]) byShot[e.shot] = {tried:0, ok:0};
+    byShot[e.shot].tried++;
+    if(e.success) byShot[e.shot].ok++;
+  });
+  const rows = Object.entries(byShot)
+    .map(([shot, s]) => ({shot, pct: Math.round(s.ok/s.tried*100), tried: s.tried}))
+    .sort((a,b) => b.tried - a.tried);
+
+  el.innerHTML = rows.map(r => `
+    <div class="history-item">
+      <div class="history-left">
+        <div class="history-desc">${r.shot}</div>
+        <div class="history-date">${r.tried} tir(s) en match</div>
+      </div>
+      <div style="font-size:18px;font-weight:900;color:${r.pct>=70?'var(--green)':r.pct>=40?'#FF9500':'var(--red)'}">${r.pct}%</div>
+    </div>`).join('');
 }
 
 // ══════════════════════════════════════════
@@ -211,6 +240,7 @@ function navTo(screen) {
   if(screen==='video') initVideoScreen();
   if(screen==='coach') initCoachIA();
   if(screen==='opponents') renderOpponents();
+  if(screen==='matchdetail') initMatchDetail();
 }
 
 // ══════════════════════════════════════════
@@ -286,6 +316,41 @@ function exportData() {
   a.href = url; a.download = 'bfc-sauvegarde.json'; a.click();
   URL.revokeObjectURL(url);
   showToast('✅ Sauvegarde téléchargée !', '#1A3A1A');
+}
+
+function exportStatsCSV() {
+  const rows = [['Type','Date','Détail','Réussite/Total','Pourcentage']];
+
+  const ts = DB.get('trainStats') || {};
+  const exercises = DB.get('exercises') || DEFAULT_EXERCISES;
+  const allExercises = [...exercises.passes, ...exercises.attack, ...exercises.defense];
+  allExercises.forEach(ex => {
+    const s = ts[ex.id];
+    if(s && s.tried > 0) {
+      rows.push(['Entraînement', '', ex.name, s.ok+'/'+s.tried, Math.round(s.ok/s.tried*100)+'%']);
+    }
+  });
+
+  const matchEvents = DB.get('matchDetailEvents') || [];
+  matchEvents.forEach(e => {
+    const d = new Date(e.ts).toLocaleDateString('fr-BE');
+    rows.push(['Match détaillé', d, e.shot+' vs garde '+e.guardType, e.success?'1/1':'0/1', e.success?'100%':'0%']);
+  });
+
+  const history = DB.get('history') || [];
+  history.forEach(h => {
+    const d = new Date(h.ts).toLocaleDateString('fr-BE');
+    const detail = h.type==='match' ? 'Match · '+(h.role==='att'?'Attaquant':'Défenseur') : h.type==='video' ? 'Analyse vidéo' : 'Entraînement';
+    rows.push(['Historique', d, detail, '', h.xp+' XP']);
+  });
+
+  const csv = rows.map(r => r.map(cell => '"'+String(cell).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'bfc-stats-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('📊 CSV téléchargé !', '#1A3A1A');
 }
 
 function importData(input) {
