@@ -948,15 +948,16 @@ const IDB = {
       });
     } catch(e) { return null; }
   },
-  async set(k, v) {
+  async set(k, v, ts) {
     try {
       const db = await this.open(); if(!db) return;
       // Always store as JSON string to avoid IDB serialization issues
       const serialized = JSON.stringify(v);
+      const writeTs = ts || Date.now();
       return new Promise(resolve => {
         try {
           const tx = db.transaction('data','readwrite');
-          tx.objectStore('data').put({k, v: serialized});
+          tx.objectStore('data').put({k, v: serialized, ts: writeTs});
           tx.oncomplete = resolve;
           tx.onerror = resolve;
         } catch(e) { resolve(); }
@@ -974,12 +975,12 @@ const IDB = {
             const result = {};
             (req.result||[]).forEach(row => {
               if(row.k && row.k.startsWith('_auth')) {
-                result[row.k] = row.v; // keep raw for auth tokens
+                result[row.k] = {v: row.v, ts: row.ts||0}; // keep raw for auth tokens
               } else {
                 try {
-                  result[row.k] = typeof row.v === 'string' ? JSON.parse(row.v) : row.v;
+                  result[row.k] = {v: typeof row.v === 'string' ? JSON.parse(row.v) : row.v, ts: row.ts||0};
                 } catch(e) {
-                  result[row.k] = row.v;
+                  result[row.k] = {v: row.v, ts: row.ts||0};
                 }
               }
             });
@@ -1006,10 +1007,14 @@ const DB = {
   set: (k, v) => {
     // 1. Cache mémoire
     _cache[k] = v;
-    // 2. localStorage
-    try { localStorage.setItem('bfc_'+k, JSON.stringify(v)); } catch(e) {}
-    // 3. IndexedDB (permanent)
-    IDB.set(k, v);
+    // 2. localStorage (synchrone, toujours à jour immédiatement)
+    const ts = Date.now();
+    try {
+      localStorage.setItem('bfc_'+k, JSON.stringify(v));
+      localStorage.setItem('bfc_ts_'+k, String(ts));
+    } catch(e) {}
+    // 3. IndexedDB (permanent, asynchrone — ne doit jamais écraser une donnée plus récente au prochain boot)
+    IDB.set(k, v, ts);
     // 4. Cloud si connecté
     if(window._bfc_user) CloudDB.sync(k, v);
   },
@@ -1021,12 +1026,27 @@ async function loadFromIDB() {
   try {
     const all = await IDB.getAll();
     if(!all || !Object.keys(all).length) return false;
-    Object.entries(all).forEach(([k,v]) => {
-      _cache[k] = v;
-      try { localStorage.setItem('bfc_'+k, JSON.stringify(v)); } catch(e) {}
+    Object.entries(all).forEach(([k, entry]) => {
+      const idbTs = entry.ts || 0;
+      const localTs = parseInt(localStorage.getItem('bfc_ts_'+k) || '0', 10);
+      // Ne jamais écraser une valeur localStorage plus récente que la copie IndexedDB
+      if(localTs > idbTs) {
+        // localStorage est déjà plus frais (l'écriture IDB précédente n'avait pas eu le temps de se terminer) :
+        // on garde localStorage tel quel et on remet _cache en phase avec lui, pas avec l'ancienne copie IDB.
+        try {
+          const localRaw = localStorage.getItem('bfc_'+k);
+          if(localRaw !== null) _cache[k] = JSON.parse(localRaw);
+        } catch(e) { _cache[k] = entry.v; }
+        return;
+      }
+      _cache[k] = entry.v;
+      try {
+        localStorage.setItem('bfc_'+k, JSON.stringify(entry.v));
+        localStorage.setItem('bfc_ts_'+k, String(idbTs));
+      } catch(e) {}
     });
-    console.log('IDB loaded:', Object.keys(all).length, 'keys, profile:', !!all['profile']);
-    return !!all['profile'];
+    console.log('IDB loaded:', Object.keys(all).length, 'keys, profile:', !!_cache['profile']);
+    return !!_cache['profile'];
   } catch(e) {
     console.error('IDB load error:', e);
     return false;
@@ -1045,9 +1065,11 @@ async function loadFromCloud() {
     data.forEach(row => {
       try {
         const parsed = JSON.parse(row.value);
+        const ts = Date.now();
         _cache[row.key] = parsed;
         localStorage.setItem('bfc_'+row.key, row.value);
-        IDB.set(row.key, parsed); // aussi dans IDB pour persistance
+        localStorage.setItem('bfc_ts_'+row.key, String(ts));
+        IDB.set(row.key, parsed, ts); // aussi dans IDB pour persistance
       } catch(e) {}
     });
     console.log('Cloud loaded:', data.length, 'keys');
@@ -1181,9 +1203,11 @@ const CloudDB = {
       data.forEach(row => {
         try {
           const v = JSON.parse(row.value);
+          const ts = Date.now();
           _cache[row.key] = v;
           localStorage.setItem('bfc_'+row.key, row.value);
-          IDB.set(row.key, v);
+          localStorage.setItem('bfc_ts_'+row.key, String(ts));
+          IDB.set(row.key, v, ts);
         } catch(e) {}
       });
       return true;
