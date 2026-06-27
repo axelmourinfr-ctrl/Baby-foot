@@ -1021,35 +1021,50 @@ const DB = {
   push: (k, v) => { const a=DB.get(k)||[]; a.push(v); DB.set(k,a); return a; }
 };
 
-// Charge tout IndexedDB en mémoire au démarrage
+// Charge tout au démarrage : localStorage = source primaire (synchrone, toujours à jour),
+// IndexedDB complète seulement ce qui manque ou ce qui y est plus récent.
 async function loadFromIDB() {
   try {
-    const all = await IDB.getAll();
-    if(!all || !Object.keys(all).length) return false;
-    Object.entries(all).forEach(([k, entry]) => {
-      const idbTs = entry.ts || 0;
-      const localTs = parseInt(localStorage.getItem('bfc_ts_'+k) || '0', 10);
-      // Ne jamais écraser une valeur localStorage plus récente que la copie IndexedDB
-      if(localTs > idbTs) {
-        // localStorage est déjà plus frais (l'écriture IDB précédente n'avait pas eu le temps de se terminer) :
-        // on garde localStorage tel quel et on remet _cache en phase avec lui, pas avec l'ancienne copie IDB.
-        try {
-          const localRaw = localStorage.getItem('bfc_'+k);
-          if(localRaw !== null) _cache[k] = JSON.parse(localRaw);
-        } catch(e) { _cache[k] = entry.v; }
-        return;
-      }
-      _cache[k] = entry.v;
+    // 1. D'abord, charge TOUT ce qui est dans localStorage dans le cache mémoire.
+    //    localStorage est synchrone donc toujours à jour, c'est la référence.
+    for(let i = 0; i < localStorage.length; i++) {
+      const fullKey = localStorage.key(i);
+      if(!fullKey || !fullKey.startsWith('bfc_') || fullKey.startsWith('bfc_ts_') || fullKey === 'bfc_cloud_session') continue;
+      const k = fullKey.slice(4); // retire 'bfc_'
       try {
-        localStorage.setItem('bfc_'+k, JSON.stringify(entry.v));
-        localStorage.setItem('bfc_ts_'+k, String(idbTs));
+        const v = JSON.parse(localStorage.getItem(fullKey));
+        if(v !== null) _cache[k] = v;
       } catch(e) {}
-    });
-    console.log('IDB loaded:', Object.keys(all).length, 'keys, profile:', !!_cache['profile']);
+    }
+
+    // 2. Ensuite, lis IndexedDB et complète : seulement si la clé manque dans le cache,
+    //    OU si la version IDB est strictement plus récente que celle de localStorage.
+    const all = await IDB.getAll();
+    if(all && Object.keys(all).length) {
+      Object.entries(all).forEach(([k, entry]) => {
+        const idbTs = entry.ts || 0;
+        const localTs = parseInt(localStorage.getItem('bfc_ts_'+k) || '0', 10);
+        const missingLocally = _cache[k] === undefined;
+        if(missingLocally || idbTs > localTs) {
+          _cache[k] = entry.v;
+          try {
+            localStorage.setItem('bfc_'+k, JSON.stringify(entry.v));
+            localStorage.setItem('bfc_ts_'+k, String(idbTs));
+          } catch(e) {}
+        }
+      });
+    }
+
+    console.log('Boot loaded — profile:', !!_cache['profile'], '| keys:', Object.keys(_cache).length);
     return !!_cache['profile'];
   } catch(e) {
-    console.error('IDB load error:', e);
-    return false;
+    console.error('Boot load error:', e);
+    // Dernier recours : au moins le profil depuis localStorage
+    try {
+      const p = localStorage.getItem('bfc_profile');
+      if(p) _cache['profile'] = JSON.parse(p);
+    } catch(e2) {}
+    return !!_cache['profile'];
   }
 }
 
