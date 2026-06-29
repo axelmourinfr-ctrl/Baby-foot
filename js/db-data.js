@@ -296,7 +296,7 @@ const CloudDB = {
   async sync(key, value) {
     if(!this._token || !window._bfc_user) return;
     try {
-      await fetch(SUPABASE_URL+'/rest/v1/player_data', {
+      await fetch(SUPABASE_URL+'/rest/v1/player_data?on_conflict=user_id,key', {
         method:'POST',
         headers: {
           ...this._headers(true),
@@ -316,22 +316,30 @@ const CloudDB = {
     if(!this._token || !window._bfc_user) return false;
     try {
       const r = await fetch(
-        SUPABASE_URL+'/rest/v1/player_data?user_id=eq.'+window._bfc_user.id+'&select=key,value',
+        SUPABASE_URL+'/rest/v1/player_data?user_id=eq.'+window._bfc_user.id+'&select=key,value,updated_at',
         { headers: this._headers(true) }
       );
       if(!r.ok) return false;
       const data = await r.json();
       if(!data?.length) return false;
+      let appliedCount = 0;
       data.forEach(row => {
         try {
           const v = JSON.parse(row.value);
-          const ts = Date.now();
-          _cache[row.key] = v;
-          localStorage.setItem('bfc_'+row.key, row.value);
-          localStorage.setItem('bfc_ts_'+row.key, String(ts));
-          IDB.set(row.key, v, ts);
+          const cloudTs = row.updated_at ? new Date(row.updated_at).getTime() : 0;
+          const localTs = parseInt(localStorage.getItem('bfc_ts_'+row.key) || '0', 10);
+          const missingLocally = _cache[row.key] === undefined && localStorage.getItem('bfc_'+row.key) === null;
+          // N'écrase le local QUE si la clé manque localement OU si le cloud est strictement plus récent.
+          if(missingLocally || cloudTs > localTs) {
+            _cache[row.key] = v;
+            localStorage.setItem('bfc_'+row.key, row.value);
+            localStorage.setItem('bfc_ts_'+row.key, String(cloudTs || Date.now()));
+            IDB.set(row.key, v, cloudTs || Date.now());
+            appliedCount++;
+          }
         } catch(e) {}
       });
+      console.log('Cloud loadAll:', data.length, 'reçues,', appliedCount, 'appliquées (le reste = local plus récent)');
       return true;
     } catch(e) { return false; }
   },
@@ -340,7 +348,8 @@ const CloudDB = {
     if(!this._token || !window._bfc_user) return;
     const KEYS = ['profile','xp','exercises','history','matchStats','trainStats',
       'placement','placementHistory','rankGlobal','rankAttack','rankDefense',
-      'validated','badges','missions','totalMissionsDone','career'];
+      'validated','badges','missions','totalMissionsDone','career',
+      'matchHistory','matchDetailEvents','opponentNotes','knownOpponents','mentalCheckins','chronoHistory','videoSessions','coachProgram'];
     for(const k of KEYS) {
       const v = DB.get(k);
       if(v !== null) await this.sync(k, v);

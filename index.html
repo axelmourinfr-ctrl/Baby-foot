@@ -541,6 +541,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('moreMenu'
         <div style="font-size:14px;color:var(--text-secondary);" id="authUserEmail"></div>
         <div style="font-size:13px;color:var(--green);margin-top:4px;">Données synchronisées</div>
       </div>
+      <button type="button" class="btn-primary" onclick="forceCloudPush()" style="background:var(--gold-dim);color:var(--bg-primary);margin-bottom:8px;">⬆️ Forcer la sauvegarde de mes données vers le cloud</button>
       <button type="button" class="btn-primary" onclick="authSignOut()" style="background:var(--red);margin-bottom:8px;">Se déconnecter</button>
       <button type="button" class="modal-cancel" style="width:100%;" onclick="closeModal('authModal')">Fermer</button>
     </div>

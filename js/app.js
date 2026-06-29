@@ -409,6 +409,17 @@ async function initCloud() {
   }
 }
 
+async function forceCloudPush() {
+  if(!window._bfc_user) { showToast('Pas connecté au cloud','#3A1A1A'); return; }
+  showToast('⬆️ Envoi vers le cloud...','#1A2A3A');
+  try {
+    await CloudDB.pushAll();
+    showToast('✅ Données envoyées au cloud !','#1A3A1A');
+  } catch(e) {
+    showToast('Erreur lors de l\'envoi','#3A1A1A');
+  }
+}
+
 function updateCloudStatus(connected, email) {
   const icon = document.getElementById('cloudIcon');
   const label = document.getElementById('cloudLabel');
